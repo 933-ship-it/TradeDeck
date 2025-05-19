@@ -1,44 +1,99 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Login | TradeDeck</title>
-    <!-- Firebase Compatibility SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
-  </head>
-  <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
-    <h1>TradeDeck</h1>
-    <p>Sign in to access your account</p>
-    <button onclick="signInWithGoogle()" style="padding: 10px 20px; font-size: 16px;">Sign in with Google</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TradeDeck | Home</title>
 
-    <script>
-      // ✅ Paste your Firebase Config here
-      const firebaseConfig = {
-        apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-        authDomain: "tradedeck-82bbb.firebaseapp.com",
-        projectId: "tradedeck-82bbb",
-        storageBucket: "tradedeck-82bbb.appspot.com",
-        messagingSenderId: "755235931546",
-        appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-        measurementId: "G-4RXR7V9NCW"
-      };
+  <!-- ✅ Firebase Compat SDKs for basic browser usage -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
 
-      // ✅ Initialize Firebase with compat
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f5f7fa;
+    }
+    header {
+      background-color: #101820;
+      color: #fdd835;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+    .container {
+      padding: 40px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #fdd835;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+    }
+    #userDetails {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <header>TradeDeck</header>
+  <div class="container">
+    <h2>Welcome to TradeDeck</h2>
+    <p id="userDetails">You are not signed in.</p>
+    <button id="signInBtn">Sign In with Google</button>
+    <button id="signOutBtn" style="display:none;">Sign Out</button>
+  </div>
 
-      function signInWithGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
-          .then((result) => {
-            console.log("User signed in:", result.user);
-            window.location.href = "home.html";
-          })
-          .catch((error) => {
-            console.error("Sign-in error:", error);
-            alert("Error signing in: " + error.message);
-          });
+  <script>
+    // ✅ Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+      authDomain: "tradedeck-82bbb.firebaseapp.com",
+      projectId: "tradedeck-82bbb",
+      storageBucket: "tradedeck-82bbb.appspot.com",
+      messagingSenderId: "755235931546",
+      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+      measurementId: "G-4RXR7V9NCW"
+    };
+
+    // ✅ Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const signInBtn = document.getElementById('signInBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const userDetails = document.getElementById('userDetails');
+
+    // ✅ Google Sign-In
+    signInBtn.onclick = () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch((error) => {
+        console.error("Sign-in error:", error.message);
+      });
+    };
+
+    // ✅ Sign Out
+    signOutBtn.onclick = () => {
+      auth.signOut();
+    };
+
+    // ✅ Auth state listener
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        userDetails.innerText = `Signed in as: ${user.displayName} (${user.email})`;
+        signInBtn.style.display = "none";
+        signOutBtn.style.display = "inline-block";
+      } else {
+        userDetails.innerText = "You are not signed in.";
+        signInBtn.style.display = "inline-block";
+        signOutBtn.style.display = "none";
       }
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
