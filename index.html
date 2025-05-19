@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TradeDeck - School Marketplace</title>
+  <title>TradeDeck</title>
 
-  <!-- Fonts & Icons -->
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="icon" href="https://img.icons8.com/emoji/48/books-emoji.png"/>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -15,10 +14,11 @@
 
   <style>
     :root {
-      --primary: #3f51b5;
-      --accent: #ffb300;
-      --bg: #f5f7fa;
-      --text: #333;
+      --primary: #1e3a8a;
+      --accent: #fbbf24;
+      --light: #f9fafb;
+      --dark: #1f2937;
+      --text: #111827;
     }
 
     * {
@@ -29,149 +29,133 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--bg);
+      background: var(--light);
       color: var(--text);
-      line-height: 1.6;
     }
 
-    header.hero {
-      background: linear-gradient(135deg, var(--primary), #1a237e);
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary), #111827);
       color: white;
-      padding: 4rem 2rem;
       text-align: center;
+      padding: 6rem 2rem;
+      border-bottom: 8px solid var(--accent);
     }
 
-    header.hero h1 {
+    .hero h1 {
       font-size: 3rem;
+      font-weight: 800;
       margin-bottom: 1rem;
     }
 
-    header.hero p {
+    .hero p {
       font-size: 1.25rem;
       margin-bottom: 2rem;
     }
 
-    button#loginBtn {
+    .button {
       background: var(--accent);
-      color: black;
-      padding: 0.75rem 2rem;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
+      padding: 0.8rem 2rem;
       font-size: 1rem;
+      font-weight: bold;
+      color: var(--dark);
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s;
     }
 
-    button#loginBtn:hover {
-      background: #ffa000;
+    .button:hover {
+      background: #f59e0b;
+    }
+
+    .dashboard {
+      display: none;
+      text-align: center;
+      padding: 4rem 2rem;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .dashboard h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
     }
 
     .features {
-      padding: 3rem 1rem;
-      max-width: 1000px;
-      margin: auto;
-      text-align: center;
-    }
-
-    .features h2 {
-      font-size: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .grid {
-      display: flex;
-      flex-wrap: wrap;
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1.5rem;
-      justify-content: center;
     }
 
     .card {
       background: white;
-      padding: 1.5rem;
+      padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 280px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
       text-align: left;
     }
 
     .card h3 {
-      margin-bottom: 1rem;
-      font-size: 1.2rem;
       color: var(--primary);
+      margin-bottom: 1rem;
     }
 
-    .card ul {
-      list-style-type: disc;
-      padding-left: 1.2rem;
+    .card p {
+      font-size: 0.95rem;
+      line-height: 1.6;
     }
 
     footer {
-      background: #eceff1;
-      padding: 2rem;
+      background: #e5e7eb;
       text-align: center;
-      font-size: 0.9rem;
-      color: #666;
+      padding: 2rem;
       margin-top: 3rem;
+      font-size: 0.9rem;
     }
 
-    #userInfo {
-      margin-top: 1rem;
-      font-weight: 600;
-    }
-
-    @media (max-width: 600px) {
-      header.hero h1 {
-        font-size: 2rem;
-      }
-
-      .card {
-        width: 90%;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <header class="hero">
+  <header class="hero" id="loginSection">
     <h1>📚 TradeDeck</h1>
-    <p>Buy & Sell School Stuff Instantly — Powered by Google & PayPal</p>
-    <button id="loginBtn">Sign in with Google</button>
-    <div id="userInfo"></div>
+    <p>Buy & Sell School Materials Instantly</p>
+    <button class="button" onclick="signIn()">Sign in with Google</button>
   </header>
 
-  <section class="features">
-    <h2>Why TradeDeck?</h2>
-    <div class="grid">
+  <main class="dashboard" id="dashboard">
+    <h2 id="welcomeUser">Welcome!</h2>
+    <p class="tagline">Your marketplace is ready. Browse, buy, or list your content.</p>
+
+    <div class="features container">
       <div class="card">
-        <h3>🛍️ For Buyers</h3>
-        <ul>
-          <li>Buy notes, past papers, textbooks</li>
-          <li>Instant PayPal checkout</li>
-          <li>Live chat with sellers</li>
-        </ul>
+        <h3>📘 Buy Educational Materials</h3>
+        <p>Explore a variety of revision papers, notes, and textbooks uploaded by students and teachers.</p>
       </div>
       <div class="card">
-        <h3>💼 For Sellers</h3>
-        <ul>
-          <li>List digital files or physical goods</li>
-          <li>Add your PayPal link</li>
-          <li>Chat with buyers in real time</li>
-        </ul>
+        <h3>💼 Sell Your Notes</h3>
+        <p>Upload your study materials and set your prices. Connect your PayPal to start earning.</p>
       </div>
       <div class="card">
-        <h3>🚀 Fair & Fast</h3>
-        <ul>
-          <li>15% platform fee (auto terms)</li>
-          <li>Promote listings to homepage</li>
-          <li>Hourly product rotation system</li>
-        </ul>
+        <h3>🔒 Secure Transactions</h3>
+        <p>All trades go through verified PayPal links with built-in protections and 15% platform fees.</p>
       </div>
     </div>
-  </section>
+  </main>
 
   <footer>
-    <p>⚡ TradeDeck is a decentralized school marketplace built with Firebase, Google Sign-In & PayPal.</p>
+    🚀 Powered by Firebase • Built for students • TradeDeck © 2025
   </footer>
 
   <script>
@@ -182,26 +166,33 @@
       projectId: "tradedeck-82bbb",
       storageBucket: "tradedeck-82bbb.appspot.com",
       messagingSenderId: "755235931546",
-      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-      measurementId: "G-4RXR7V9NCW"
+      appId: "1:755235931546:web:7e35364b0157cd7fc2a623"
     };
 
-    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Login button click
-    document.getElementById('loginBtn').addEventListener('click', () => {
+    function signIn() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then(result => {
           const user = result.user;
-          document.getElementById('userInfo').innerText = `👋 Welcome, ${user.displayName}!`;
+          showDashboard(user.displayName);
         })
-        .catch(err => {
-          console.error("Login Error:", err.message);
-          alert("Login failed: " + err.message);
+        .catch(error => {
+          alert("Login failed: " + error.message);
         });
+    }
+
+    function showDashboard(name) {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('welcomeUser').innerText = `👋 Welcome, ${name}`;
+    }
+
+    // Auto-login if already signed in
+    auth.onAuthStateChanged(user => {
+      if (user) showDashboard(user.displayName);
     });
   </script>
 </body>
