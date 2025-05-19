@@ -2,164 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TradeDeck</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-
-  <style>
-    :root {
-      --primary: #1e3a8a;
-      --accent: #fbbf24;
-      --light: #f9fafb;
-      --dark: #1f2937;
-      --text: #111827;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--light);
-      color: var(--text);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 2rem;
-    }
-
-    .hero {
-      background: linear-gradient(135deg, var(--primary), #111827);
-      color: white;
-      text-align: center;
-      padding: 6rem 2rem;
-      border-bottom: 8px solid var(--accent);
-    }
-
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
-    }
-
-    .hero p {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-    }
-
-    .button {
-      background: var(--accent);
-      border: none;
-      padding: 0.8rem 2rem;
-      font-size: 1rem;
-      font-weight: bold;
-      color: var(--dark);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .button:hover {
-      background: #f59e0b;
-    }
-
-    .dashboard {
-      display: none;
-      text-align: center;
-      padding: 4rem 2rem;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .dashboard h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--primary);
-    }
-
-    .features {
-      margin-top: 3rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-      text-align: left;
-    }
-
-    .card h3 {
-      color: var(--primary);
-      margin-bottom: 1rem;
-    }
-
-    .card p {
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    footer {
-      background: #e5e7eb;
-      text-align: center;
-      padding: 2rem;
-      margin-top: 3rem;
-      font-size: 0.9rem;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeDeck Auth</title>
 </head>
 <body>
+  <h1>Welcome to TradeDeck</h1>
 
-  <header class="hero" id="loginSection">
-    <h1>📚 TradeDeck</h1>
-    <p>Buy & Sell School Materials Instantly</p>
-    <button class="button" onclick="signIn()">Sign in with Google</button>
-  </header>
+  <!-- Login/Logout Buttons -->
+  <button id="loginButton">Sign In with Google</button>
+  <button id="logoutButton" style="display: none;">Sign Out</button>
 
-  <main class="dashboard" id="dashboard">
-    <h2 id="welcomeUser">Welcome!</h2>
-    <p class="tagline">Your marketplace is ready. Browse, buy, or list your content.</p>
+  <!-- User Info Display -->
+  <div id="userInfo" style="display: none;">
+    <p><strong>Name:</strong> <span id="userName"></span></p>
+    <p><strong>Email:</strong> <span id="userEmail"></span></p>
+    <img id="userPhoto" src="" alt="User Photo" width="100" />
+  </div>
 
-    <div class="features container">
-      <div class="card">
-        <h3>📘 Buy Educational Materials</h3>
-        <p>Explore a variety of revision papers, notes, and textbooks uploaded by students and teachers.</p>
-      </div>
-      <div class="card">
-        <h3>💼 Sell Your Notes</h3>
-        <p>Upload your study materials and set your prices. Connect your PayPal to start earning.</p>
-      </div>
-      <div class="card">
-        <h3>🔒 Secure Transactions</h3>
-        <p>All trades go through verified PayPal links with built-in protections and 15% platform fees.</p>
-      </div>
-    </div>
-  </main>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-  <footer>
-    🚀 Powered by Firebase • Built for students • TradeDeck © 2025
-  </footer>
-
-  <script>
-    // Firebase config
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
       authDomain: "tradedeck-82bbb.firebaseapp.com",
@@ -169,30 +35,63 @@
       appId: "1:755235931546:web:7e35364b0157cd7fc2a623"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const db = getFirestore(app);
 
-    function signIn() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(result => {
-          const user = result.user;
-          showDashboard(user.displayName);
-        })
-        .catch(error => {
-          alert("Login failed: " + error.message);
-        });
-    }
+    // DOM Elements
+    const loginBtn = document.getElementById("loginButton");
+    const logoutBtn = document.getElementById("logoutButton");
+    const userInfo = document.getElementById("userInfo");
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const userPhoto = document.getElementById("userPhoto");
 
-    function showDashboard(name) {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('welcomeUser').innerText = `👋 Welcome, ${name}`;
-    }
+    // Login Function
+    loginBtn.onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-    // Auto-login if already signed in
-    auth.onAuthStateChanged(user => {
-      if (user) showDashboard(user.displayName);
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            name: user.displayName,
+            email: user.email,
+            photo: user.photoURL,
+            uid: user.uid,
+            createdAt: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error("Login Error:", error);
+      }
+    };
+
+    // Logout Function
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+    };
+
+    // Auth State Listener
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        userInfo.style.display = "block";
+
+        userName.textContent = user.displayName;
+        userEmail.textContent = user.email;
+        userPhoto.src = user.photoURL;
+      } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        userInfo.style.display = "none";
+      }
     });
   </script>
 </body>
