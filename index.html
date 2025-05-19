@@ -1,102 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TradeDeck</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f9f9f9;
-      color: #333;
-    }
+<html>
+  <head>
+    <title>Login | TradeDeck</title>
+    <!-- Firebase Compatibility SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
+  </head>
+  <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
+    <h1>TradeDeck</h1>
+    <p>Sign in to access your account</p>
+    <button onclick="signInWithGoogle()" style="padding: 10px 20px; font-size: 16px;">Sign in with Google</button>
 
-    header {
-      background-color: #1a1a2e;
-      color: white;
-      padding: 1rem 2rem;
-      text-align: center;
-      font-size: 1.5rem;
-    }
+    <script>
+      // ✅ Paste your Firebase Config here
+      const firebaseConfig = {
+        apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+        authDomain: "tradedeck-82bbb.firebaseapp.com",
+        projectId: "tradedeck-82bbb",
+        storageBucket: "tradedeck-82bbb.appspot.com",
+        messagingSenderId: "755235931546",
+        appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+        measurementId: "G-4RXR7V9NCW"
+      };
 
-    .container {
-      max-width: 600px;
-      margin: 4rem auto;
-      text-align: center;
-    }
+      // ✅ Initialize Firebase with compat
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
 
-    #homepage {
-      display: none;
-    }
-
-    .button {
-      margin-top: 2rem;
-      background-color: #1a73e8;
-      border: none;
-      color: white;
-      padding: 0.75rem 2rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .info {
-      margin-top: 1rem;
-      font-size: 1rem;
-    }
-  </style>
-</head>
-<body>
-  <header>TradeDeck</header>
-
-  <div class="container" id="signin">
-    <h2>Sign in with Google to continue</h2>
-    <div id="g_id_onload"
-         data-client_id="398565123801-qcg90u788c2oo3fqi2t8i1df8vapce4r.apps.googleusercontent.com"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
-    </div>
-
-    <div class="g_id_signin"
-         data-type="standard"
-         data-size="large"
-         data-theme="outline"
-         data-text="sign_in_with"
-         data-shape="pill"
-         data-logo_alignment="left">
-    </div>
-  </div>
-
-  <div class="container" id="homepage">
-    <h2>Welcome to TradeDeck</h2>
-    <p class="info" id="userWelcome"></p>
-    <p>No products yet. Start listing your first product!</p>
-    <!-- Placeholder buttons -->
-    <button class="button">List a Product</button>
-    <button class="button">Go to Sell Tab</button>
-  </div>
-
-  <script>
-    function handleCredentialResponse(response) {
-      // Decode JWT token to get user info
-      const data = parseJwt(response.credential);
-      document.getElementById('signin').style.display = 'none';
-      document.getElementById('homepage').style.display = 'block';
-      document.getElementById('userWelcome').textContent = `Hello, ${data.name || data.email}`;
-    }
-
-    function parseJwt(token) {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    }
-  </script>
-</body>
+      function signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+          .then((result) => {
+            console.log("User signed in:", result.user);
+            window.location.href = "home.html";
+          })
+          .catch((error) => {
+            console.error("Sign-in error:", error);
+            alert("Error signing in: " + error.message);
+          });
+      }
+    </script>
+  </body>
 </html>
