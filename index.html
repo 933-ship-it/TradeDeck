@@ -3,46 +3,124 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TradeDeck | Home</title>
+  <title>TradeDeck | Dashboard</title>
 
   <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
 
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0; background: #f5f7fa;
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
     }
+    body, html {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
     header {
+      height: 60px;
       background: #101820;
       color: #fdd835;
-      padding: 20px;
-      text-align: center;
-      font-size: 24px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-size: 22px;
       font-weight: bold;
+      flex-shrink: 0;
     }
-    #homepage, #dashboard {
-      max-width: 600px;
-      margin: 50px auto;
+
+    /* Layout container */
+    #dashboard {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* Sidebar */
+    nav.sidebar {
+      width: 220px;
+      background: #1a1a1a;
+      color: #ccc;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+    }
+    nav.sidebar a {
+      padding: 15px 25px;
+      text-decoration: none;
+      color: #ccc;
+      font-weight: 600;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    nav.sidebar a:hover, nav.sidebar a.active {
+      background: #fdd835;
+      color: #101820;
+    }
+
+    /* Main content */
+    main.content {
+      flex-grow: 1;
       background: white;
       padding: 30px;
-      border-radius: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: #fdfdfd;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #101820;
+    }
+    .card p {
+      color: #444;
+    }
+
+    /* Homepage styling */
+    #homepage {
+      max-width: 600px;
+      margin: 100px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
       box-shadow: 0 0 12px #ccc;
       text-align: center;
     }
-    #dashboard {
-      display: none;
-    }
-    button {
+    #homepage button {
       background: #fdd835;
       border: none;
       padding: 12px 24px;
       font-size: 16px;
       cursor: pointer;
       margin-top: 20px;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: 600;
+    }
+
+    /* Sign out button */
+    #signOutBtn {
+      background: #e53935;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      align-self: flex-start;
     }
   </style>
 </head>
@@ -50,21 +128,47 @@
 
   <header>TradeDeck</header>
 
+  <!-- Homepage Section -->
   <section id="homepage">
     <h1>Welcome to TradeDeck</h1>
-    <p>TradeDeck is your tech-focused school marketplace for educational materials.</p>
+    <p>Your tech-focused school marketplace for educational materials.</p>
     <button id="signInBtn">Sign In with Google</button>
   </section>
 
-  <section id="dashboard">
-    <h2>Dashboard</h2>
-    <p>Hello, <span id="userName"></span>! You are signed in.</p>
-    <p>This is your basic dashboard layout.</p>
-    <button id="signOutBtn">Sign Out</button>
+  <!-- Dashboard Section -->
+  <section id="dashboard" style="display:none;">
+
+    <nav class="sidebar">
+      <a href="#" class="active">Dashboard</a>
+      <a href="#">Products</a>
+      <a href="#">Sales</a>
+      <a href="#">Analytics</a>
+      <a href="#">Settings</a>
+      <button id="signOutBtn">Sign Out</button>
+    </nav>
+
+    <main class="content">
+      <h2>Hello, <span id="userName"></span>!</h2>
+
+      <div class="card">
+        <h3>Stats</h3>
+        <p>Placeholder for your sales, revenue, and other stats.</p>
+      </div>
+
+      <div class="card">
+        <h3>Your Products</h3>
+        <p>List and manage your educational materials here.</p>
+      </div>
+
+      <div class="card">
+        <h3>Recent Sales</h3>
+        <p>Overview of your latest sales transactions.</p>
+      </div>
+    </main>
+
   </section>
 
 <script>
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
     authDomain: "tradedeck-82bbb.firebaseapp.com",
@@ -94,7 +198,7 @@
   auth.onAuthStateChanged(user => {
     if(user){
       homepage.style.display = 'none';
-      dashboard.style.display = 'block';
+      dashboard.style.display = 'flex';
       userNameSpan.textContent = user.displayName || user.email;
     } else {
       homepage.style.display = 'block';
