@@ -1,99 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck | Home</title>
 
-  <!-- ✅ Firebase Compat SDKs for basic browser usage -->
+  <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
 
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f5f7fa;
+      margin: 0; background: #f5f7fa;
     }
     header {
-      background-color: #101820;
+      background: #101820;
       color: #fdd835;
       padding: 20px;
       text-align: center;
       font-size: 24px;
+      font-weight: bold;
     }
-    .container {
-      padding: 40px;
+    #homepage, #dashboard {
+      max-width: 600px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px #ccc;
       text-align: center;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #fdd835;
-      border: none;
-      cursor: pointer;
-      margin: 10px;
+    #dashboard {
+      display: none;
     }
-    #userDetails {
+    button {
+      background: #fdd835;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
       margin-top: 20px;
-      font-size: 18px;
+      border-radius: 5px;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
+
   <header>TradeDeck</header>
-  <div class="container">
-    <h2>Welcome to TradeDeck</h2>
-    <p id="userDetails">You are not signed in.</p>
+
+  <section id="homepage">
+    <h1>Welcome to TradeDeck</h1>
+    <p>TradeDeck is your tech-focused school marketplace for educational materials.</p>
     <button id="signInBtn">Sign In with Google</button>
-    <button id="signOutBtn" style="display:none;">Sign Out</button>
-  </div>
+  </section>
 
-  <script>
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-      authDomain: "tradedeck-82bbb.firebaseapp.com",
-      projectId: "tradedeck-82bbb",
-      storageBucket: "tradedeck-82bbb.appspot.com",
-      messagingSenderId: "755235931546",
-      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-      measurementId: "G-4RXR7V9NCW"
-    };
+  <section id="dashboard">
+    <h2>Dashboard</h2>
+    <p>Hello, <span id="userName"></span>! You are signed in.</p>
+    <p>This is your basic dashboard layout.</p>
+    <button id="signOutBtn">Sign Out</button>
+  </section>
 
-    // ✅ Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+<script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+    authDomain: "tradedeck-82bbb.firebaseapp.com",
+    projectId: "tradedeck-82bbb",
+    storageBucket: "tradedeck-82bbb.appspot.com",
+    messagingSenderId: "755235931546",
+    appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+    measurementId: "G-4RXR7V9NCW"
+  };
 
-    const signInBtn = document.getElementById('signInBtn');
-    const signOutBtn = document.getElementById('signOutBtn');
-    const userDetails = document.getElementById('userDetails');
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
-    // ✅ Google Sign-In
-    signInBtn.onclick = () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch((error) => {
-        console.error("Sign-in error:", error.message);
-      });
-    };
+  const homepage = document.getElementById('homepage');
+  const dashboard = document.getElementById('dashboard');
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const userNameSpan = document.getElementById('userName');
 
-    // ✅ Sign Out
-    signOutBtn.onclick = () => {
-      auth.signOut();
-    };
+  signInBtn.onclick = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(e => alert("Sign-in error: " + e.message));
+  };
 
-    // ✅ Auth state listener
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        userDetails.innerText = `Signed in as: ${user.displayName} (${user.email})`;
-        signInBtn.style.display = "none";
-        signOutBtn.style.display = "inline-block";
-      } else {
-        userDetails.innerText = "You are not signed in.";
-        signInBtn.style.display = "inline-block";
-        signOutBtn.style.display = "none";
-      }
-    });
-  </script>
+  signOutBtn.onclick = () => auth.signOut();
+
+  auth.onAuthStateChanged(user => {
+    if(user){
+      homepage.style.display = 'none';
+      dashboard.style.display = 'block';
+      userNameSpan.textContent = user.displayName || user.email;
+    } else {
+      homepage.style.display = 'block';
+      dashboard.style.display = 'none';
+      userNameSpan.textContent = '';
+    }
+  });
+</script>
+
 </body>
 </html>
