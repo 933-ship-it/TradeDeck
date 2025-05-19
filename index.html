@@ -2,30 +2,140 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDeck Auth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeDeck | Sign In</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #eee;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      max-width: 420px;
+      width: 100%;
+      border-radius: 12px;
+      padding: 40px 30px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 700;
+      color: #222;
+    }
+    p.subtitle {
+      color: #555;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0070f3;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0,112,243,0.6);
+      user-select: none;
+    }
+    button:hover {
+      background: #005bb5;
+      box-shadow: 0 8px 20px rgba(0,91,181,0.8);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #logoutButton {
+      background: #e03e3e;
+      margin-top: 15px;
+      box-shadow: 0 6px 15px rgba(224,62,62,0.6);
+    }
+    #logoutButton:hover {
+      background: #a02a2a;
+      box-shadow: 0 8px 20px rgba(160,42,42,0.8);
+    }
+
+    /* User info card */
+    #userInfo {
+      margin-top: 30px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+      color: #222;
+      display: none;
+    }
+    #userInfo img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      border: 4px solid #0070f3;
+      object-fit: cover;
+    }
+    #userInfo p {
+      margin-bottom: 8px;
+      font-size: 1.15rem;
+    }
+    #userInfo p strong {
+      color: #0070f3;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+      button {
+        font-size: 1rem;
+      }
+      #userInfo p {
+        font-size: 1rem;
+      }
+      #userInfo img {
+        width: 90px;
+        height: 90px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to TradeDeck</h1>
 
-  <!-- Login/Logout Buttons -->
-  <button id="loginButton">Sign In with Google</button>
-  <button id="logoutButton" style="display: none;">Sign Out</button>
+  <div class="container">
+    <h1>TradeDeck</h1>
+    <p class="subtitle">Sign in with your Google account to continue</p>
 
-  <!-- User Info Display -->
-  <div id="userInfo" style="display: none;">
-    <p><strong>Name:</strong> <span id="userName"></span></p>
-    <p><strong>Email:</strong> <span id="userEmail"></span></p>
-    <img id="userPhoto" src="" alt="User Photo" width="100" />
+    <button id="loginButton">Sign In with Google</button>
+    <button id="logoutButton" style="display:none;">Sign Out</button>
+
+    <div id="userInfo">
+      <img id="userPhoto" src="" alt="User Photo" />
+      <p><strong>Name:</strong> <span id="userName"></span></p>
+      <p><strong>Email:</strong> <span id="userEmail"></span></p>
+    </div>
   </div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
       authDomain: "tradedeck-82bbb.firebaseapp.com",
@@ -35,13 +145,11 @@
       appId: "1:755235931546:web:7e35364b0157cd7fc2a623"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     const db = getFirestore(app);
 
-    // DOM Elements
     const loginBtn = document.getElementById("loginButton");
     const logoutBtn = document.getElementById("logoutButton");
     const userInfo = document.getElementById("userInfo");
@@ -49,12 +157,12 @@
     const userEmail = document.getElementById("userEmail");
     const userPhoto = document.getElementById("userPhoto");
 
-    // Login Function
     loginBtn.onclick = async () => {
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
+        // Save user to Firestore if new
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
@@ -68,31 +176,34 @@
           });
         }
       } catch (error) {
+        alert("Login failed. See console for details.");
         console.error("Login Error:", error);
       }
     };
 
-    // Logout Function
     logoutBtn.onclick = async () => {
       await signOut(auth);
     };
 
-    // Auth State Listener
     onAuthStateChanged(auth, user => {
       if (user) {
         loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
+        logoutBtn.style.display = "block";
         userInfo.style.display = "block";
 
         userName.textContent = user.displayName;
         userEmail.textContent = user.email;
         userPhoto.src = user.photoURL;
       } else {
-        loginBtn.style.display = "inline-block";
+        loginBtn.style.display = "block";
         logoutBtn.style.display = "none";
         userInfo.style.display = "none";
+        userName.textContent = "";
+        userEmail.textContent = "";
+        userPhoto.src = "";
       }
     });
   </script>
+
 </body>
 </html>
