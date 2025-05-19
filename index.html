@@ -2,341 +2,206 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TradeDeck | Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TradeDeck - School Marketplace</title>
 
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://img.icons8.com/emoji/48/books-emoji.png"/>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
   <style>
     :root {
-      --primary-color: #ffcc33;
-      --primary-dark: #e6c72e;
-      --bg-color: #fff8e1;
-      --text-dark: #101820;
-      --sidebar-bg: #101820;
-      --sidebar-text: #fdd835;
-      --card-bg: white;
-      --card-shadow: rgba(0, 0, 0, 0.1);
+      --primary: #3f51b5;
+      --accent: #ffb300;
+      --bg: #f5f7fa;
+      --text: #333;
     }
+
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-dark);
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
     }
 
-    /* --- Sign In View --- */
-    #signInView {
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #ffb347, #ffcc33);
-      color: var(--text-dark);
-      flex-direction: column;
-      padding: 20px;
+    header.hero {
+      background: linear-gradient(135deg, var(--primary), #1a237e);
+      color: white;
+      padding: 4rem 2rem;
       text-align: center;
     }
-    #signInView h1 {
-      font-size: 36px;
-      margin-bottom: 24px;
-      font-weight: 700;
-      user-select: none;
-    }
-    #signInView button {
-      background-color: var(--primary-color);
-      border: none;
-      padding: 18px 36px;
-      font-size: 20px;
-      font-weight: 700;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      user-select: none;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-    }
-    #signInView button:hover {
-      background-color: var(--primary-dark);
+
+    header.hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
     }
 
-    /* --- Dashboard View --- */
-    #dashboardView {
-      display: none;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    header.hero p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
     }
-    header {
-      height: 60px;
-      background: var(--primary-color);
-      color: var(--sidebar-bg);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      font-weight: 700;
-      font-size: 24px;
-      letter-spacing: 1.1px;
-      user-select: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      flex-shrink: 0;
-    }
-    header .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    header .profile-info img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid var(--sidebar-bg);
-      user-select: none;
-    }
-    header .profile-info .name {
-      font-weight: 600;
-      font-size: 18px;
-      white-space: nowrap;
-      user-select: text;
-    }
-    header button#signOutBtn {
-      background-color: var(--sidebar-bg);
+
+    button#loginBtn {
+      background: var(--accent);
+      color: black;
+      padding: 0.75rem 2rem;
       border: none;
-      color: var(--primary-color);
-      padding: 8px 16px;
       border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      user-select: none;
-      transition: background-color 0.25s ease;
-    }
-    header button#signOutBtn:hover {
-      background-color: #222;
+      transition: background 0.3s ease;
     }
 
-    .container {
-      display: flex;
-      flex-grow: 1;
-      overflow: hidden;
-      background: var(--bg-color);
+    button#loginBtn:hover {
+      background: #ffa000;
     }
 
-    nav.sidebar {
-      width: 280px;
-      background-color: var(--sidebar-bg);
-      color: var(--sidebar-text);
-      display: flex;
-      flex-direction: column;
-      padding: 30px 20px;
-      user-select: none;
-    }
-    nav.sidebar .profile {
+    .features {
+      padding: 3rem 1rem;
+      max-width: 1000px;
+      margin: auto;
       text-align: center;
-      margin-bottom: 40px;
-    }
-    nav.sidebar .profile img {
-      width: 96px;
-      height: 96px;
-      border-radius: 50%;
-      border: 3px solid var(--sidebar-text);
-      object-fit: cover;
-      margin-bottom: 12px;
-    }
-    nav.sidebar .profile .name {
-      font-size: 20px;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      user-select: text;
-    }
-    nav.sidebar nav-links {
-      flex-grow: 1;
-    }
-    nav.sidebar button.logout {
-      margin-top: auto;
-      background-color: var(--primary-color);
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.25s ease;
-      user-select: none;
-    }
-    nav.sidebar button.logout:hover {
-      background-color: var(--primary-dark);
     }
 
-    main.content {
-      flex-grow: 1;
-      padding: 32px;
-      overflow-y: auto;
+    .features h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 24px;
-      background: #fff;
-      border-radius: 20px 0 0 20px;
-      box-shadow: 4px 0 8px rgba(0,0,0,0.06);
+      gap: 1.5rem;
+      justify-content: center;
     }
 
-    /* Product Card */
-    .product-card {
-      background: var(--card-bg);
-      box-shadow: 0 4px 12px var(--card-shadow);
-      border-radius: 16px;
-      padding: 24px;
-      width: 280px;
-      display: flex;
-      flex-direction: column;
-      user-select: none;
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-    .product-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    .product-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
+    .card {
+      background: white;
+      padding: 1.5rem;
       border-radius: 12px;
-      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 280px;
+      text-align: left;
     }
-    .product-card h3 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      color: var(--text-dark);
+
+    .card h3 {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      color: var(--primary);
     }
-    .product-card p {
-      flex-grow: 1;
-      color: #555;
-      font-size: 14px;
-      line-height: 1.4;
+
+    .card ul {
+      list-style-type: disc;
+      padding-left: 1.2rem;
     }
-    .product-card .price {
-      margin-top: 12px;
-      font-weight: 700;
-      font-size: 18px;
-      color: var(--primary-dark);
-      user-select: text;
+
+    footer {
+      background: #eceff1;
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 3rem;
+    }
+
+    #userInfo {
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      header.hero h1 {
+        font-size: 2rem;
+      }
+
+      .card {
+        width: 90%;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div id="signInView">
-    <h1>TradeDeck Sign In</h1>
-    <button id="signInBtn">Sign In with Google</button>
-  </div>
+  <header class="hero">
+    <h1>📚 TradeDeck</h1>
+    <p>Buy & Sell School Stuff Instantly — Powered by Google & PayPal</p>
+    <button id="loginBtn">Sign in with Google</button>
+    <div id="userInfo"></div>
+  </header>
 
-  <div id="dashboardView">
-    <header>
-      <div>TradeDeck</div>
-      <div class="profile-info">
-        <img id="profilePic" src="" alt="Profile Pic" />
-        <span class="name" id="profileName"></span>
-        <button id="signOutBtn">Sign Out</button>
+  <section class="features">
+    <h2>Why TradeDeck?</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>🛍️ For Buyers</h3>
+        <ul>
+          <li>Buy notes, past papers, textbooks</li>
+          <li>Instant PayPal checkout</li>
+          <li>Live chat with sellers</li>
+        </ul>
       </div>
-    </header>
-    <div class="container">
-      <nav class="sidebar">
-        <div class="profile">
-          <img id="sidebarPic" src="" alt="Profile Picture" />
-          <div class="name" id="sidebarName"></div>
-        </div>
-        <button class="logout" id="sidebarSignOutBtn">Sign Out</button>
-      </nav>
-
-      <main class="content">
-        <div class="product-card">
-          <img src="https://picsum.photos/280/160?random=1" alt="Product 1" />
-          <h3>Product One</h3>
-          <p>This is a demo description for product one on the TradeDeck store.</p>
-          <div class="price">$19.99</div>
-        </div>
-        <div class="product-card">
-          <img src="https://picsum.photos/280/160?random=2" alt="Product 2" />
-          <h3>Product Two</h3>
-          <p>Another awesome product description to attract customers.</p>
-          <div class="price">$29.99</div>
-        </div>
-        <div class="product-card">
-          <img src="https://picsum.photos/280/160?random=3" alt="Product 3" />
-          <h3>Product Three</h3>
-          <p>High quality and great value — perfect for your needs!</p>
-          <div class="price">$9.99</div>
-        </div>
-      </main>
+      <div class="card">
+        <h3>💼 For Sellers</h3>
+        <ul>
+          <li>List digital files or physical goods</li>
+          <li>Add your PayPal link</li>
+          <li>Chat with buyers in real time</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🚀 Fair & Fast</h3>
+        <ul>
+          <li>15% platform fee (auto terms)</li>
+          <li>Promote listings to homepage</li>
+          <li>Hourly product rotation system</li>
+        </ul>
+      </div>
     </div>
+  </section>
 
-  </div>
+  <footer>
+    <p>⚡ TradeDeck is a decentralized school marketplace built with Firebase, Google Sign-In & PayPal.</p>
+  </footer>
+
   <script>
-    // Your Firebase config here
-      const firebaseConfig = {
-    apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-    authDomain: "tradedeck-82bbb.firebaseapp.com",
-    projectId: "tradedeck-82bbb",
-    storageBucket: "tradedeck-82bbb.appspot.com",
-    messagingSenderId: "755235931546",
-    appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-    measurementId: "G-4RXR7V9NCW"
-  };
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+      authDomain: "tradedeck-82bbb.firebaseapp.com",
+      projectId: "tradedeck-82bbb",
+      storageBucket: "tradedeck-82bbb.appspot.com",
+      messagingSenderId: "755235931546",
+      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+      measurementId: "G-4RXR7V9NCW"
+    };
 
-    // Initialize Firebase
+    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Elements
-    const signInView = document.getElementById('signInView');
-    const dashboardView = document.getElementById('dashboardView');
-    const signInBtn = document.getElementById('signInBtn');
-    const signOutBtn = document.getElementById('signOutBtn');
-    const sidebarSignOutBtn = document.getElementById('sidebarSignOutBtn');
-    const profilePic = document.getElementById('profilePic');
-    const profileName = document.getElementById('profileName');
-    const sidebarPic = document.getElementById('sidebarPic');
-    const sidebarName = document.getElementById('sidebarName');
-
-    // Sign In Function
-    signInBtn.addEventListener('click', () => {
+    // Login button click
+    document.getElementById('loginBtn').addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(e => alert('Sign-in failed: ' + e.message));
-    });
-
-    // Sign Out Function
-    function signOut() {
-      auth.signOut();
-    }
-    signOutBtn.addEventListener('click', signOut);
-    sidebarSignOutBtn.addEventListener('click', signOut);
-
-    // Listen for auth state changes
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        // Show dashboard, hide sign-in
-        signInView.style.display = 'none';
-        dashboardView.style.display = 'flex';
-
-        // Set user info
-        profilePic.src = user.photoURL || 'https://via.placeholder.com/40';
-        profileName.textContent = user.displayName || 'Anonymous';
-        sidebarPic.src = user.photoURL || 'https://via.placeholder.com/96';
-        sidebarName.textContent = user.displayName || 'Anonymous';
-      } else {
-        // Show sign-in, hide dashboard
-        dashboardView.style.display = 'none';
-        signInView.style.display = 'flex';
-      }
+      auth.signInWithPopup(provider)
+        .then(result => {
+          const user = result.user;
+          document.getElementById('userInfo').innerText = `👋 Welcome, ${user.displayName}!`;
+        })
+        .catch(err => {
+          console.error("Login Error:", err.message);
+          alert("Login failed: " + err.message);
+        });
     });
   </script>
 </body>
