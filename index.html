@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
 <style>
-  /* Reset */
+  /* Reset and base */
   * {
     margin: 0; padding: 0; box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
@@ -22,7 +22,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
   }
 
   .login-container {
@@ -30,7 +29,7 @@
     backdrop-filter: blur(15px);
     border-radius: 20px;
     padding: 3rem 4rem;
-    width: 350px;
+    width: 360px;
     text-align: center;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     color: #fff;
@@ -50,20 +49,21 @@
     color: #cdd1d4;
   }
 
+  /* Google button */
   .google-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: #4285f4;
     border-radius: 50px;
-    padding: 0.8rem 1.5rem;
-    font-size: 1.2rem;
+    padding: 0.85rem 1.6rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: #fff;
     cursor: pointer;
     border: none;
     box-shadow: 0 5px 15px rgba(66,133,244,0.4);
-    transition: all 0.3s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.15s ease;
     user-select: none;
   }
 
@@ -78,9 +78,10 @@
   }
 
   .google-icon {
-    width: 22px;
-    height: 22px;
-    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    margin-right: 14px;
+    fill: white;
   }
 
   /* Animations */
@@ -102,49 +103,42 @@
 </head>
 <body>
 
-<div class="login-container" id="loginBox">
+<div class="login-container" id="loginBox" role="main" aria-label="Login form">
   <h1>TradeDeck</h1>
   <p>Your academic marketplace — Sign in with Google</p>
 
-  <button id="googleSignIn" class="google-btn">
-    <img
-      class="google-icon"
-      src="data:image/jpeg;base64,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"
-      alt="Google icon"
-    />
+  <button id="googleSignIn" class="google-btn" aria-label="Sign in with Google">
+    <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3" aria-hidden="true" focusable="false">
+      <path fill="#4285F4" d="M533.5 278.4c0-18.7-1.5-36.6-4.4-53.9H272v102.1h146.9c-6.4 34.8-25.6 64.3-54.5 84v69.9h88c51.4-47.4 80.1-117.1 80.1-202.1z"/>
+      <path fill="#34A853" d="M272 544.3c73.6 0 135.5-24.3 180.6-65.7l-88-69.9c-24.5 16.5-55.6 26-92.6 26-71.1 0-131.5-48-153.2-112.7H28.5v70.8C73.4 484.6 166.6 544.3 272 544.3z"/>
+      <path fill="#FBBC04" d="M118.8 321.9c-5-15-7.9-31-7.9-47.3s2.9-32.3 7.9-47.3v-70.8H28.5C10.1 202.9 0 241.9 0 281.6c0 39.7 10.1 78.7 28.5 110.3l90.3-70z"/>
+      <path fill="#EA4335" d="M272 107.7c39.9 0 75.7 13.7 103.8 40.5l77.9-77.9C405.3 24.4 344 0 272 0 166.6 0 73.4 59.7 28.5 147.8l90.3 70c21.7-64.7 82.1-112.7 153.2-112.7z"/>
+    </svg>
     Sign in with Google
   </button>
 </div>
 
 <script>
-  // Firebase config
+  // TODO: Replace with your Firebase config
   const firebaseConfig = {
-    apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-    authDomain: "tradedeck-82bbb.firebaseapp.com",
-    projectId: "tradedeck-82bbb",
-    storageBucket: "tradedeck-82bbb.appspot.com",
-    messagingSenderId: "755235931546",
-    appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-    measurementId: "G-4RXR7V9NCW"
+    // Your config here
   };
 
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  // Google sign-in provider
-  const provider = new firebase.auth.GoogleAuthProvider();
-
-  // Button handler
-  document.getElementById('googleSignIn').addEventListener('click', () => {
+  // Google Sign-In handler
+  const googleSignInBtn = document.getElementById('googleSignIn');
+  googleSignInBtn.addEventListener('click', () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
       .then((result) => {
-        const user = result.user;
-        // Redirect to homepage after login
-        window.location.href = "home.html";
+        console.log('User signed in:', result.user);
+        // Redirect or update UI after successful login
       })
       .catch((error) => {
-        alert("Login failed: " + error.message);
+        console.error('Sign in error:', error);
       });
   });
 </script>
