@@ -5,375 +5,175 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck | Dashboard</title>
 
+  <!-- Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth-compat.js"></script>
 
   <style>
-    /* Reset */
-    *, *::before, *::after {
+    /* Reset & base */
+    * {
       box-sizing: border-box;
     }
     body, html {
-      margin: 0; padding: 0;
+      margin: 0; padding: 0; height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9fafc;
-      color: #333;
-      height: 100vh;
-      overflow: hidden;
+      background-color: #f5f7fa;
+      color: #101820;
     }
-
-    /* Variables */
-    :root {
-      --primary: #fdd835;
-      --primary-dark: #c6a700;
-      --background: #fff;
-      --sidebar-bg: #1f2937;
-      --sidebar-hover: #374151;
-      --text-light: #d1d5db;
-      --shadow: rgba(0,0,0,0.1);
-      --border-radius: 10px;
+    /* Header */
+    header {
+      background-color: #101820;
+      color: #fdd835;
+      padding: 20px 30px;
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+      letter-spacing: 1.2px;
     }
-
-    /* Layout wrapper */
-    #app {
+    /* Layout */
+    .container {
       display: flex;
-      height: 100vh;
-      overflow: hidden;
-      background: var(--background);
+      height: calc(100vh - 72px); /* header height + some */
     }
-
     /* Sidebar */
     nav.sidebar {
-      width: 260px;
-      background-color: var(--sidebar-bg);
-      color: var(--text-light);
+      width: 280px;
+      background-color: #121619;
+      color: #fdd835;
       display: flex;
       flex-direction: column;
-      padding: 1.5rem 0;
-      transition: width 0.3s ease;
+      padding: 20px;
+      gap: 30px;
     }
-    nav.sidebar.collapsed {
-      width: 72px;
-    }
-
-    nav.sidebar .logo {
-      font-weight: 700;
-      font-size: 1.6rem;
+    nav.sidebar .profile {
       text-align: center;
-      color: var(--primary);
-      margin-bottom: 2rem;
-      user-select: none;
     }
-
-    nav.sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      flex-grow: 1;
-    }
-
-    nav.sidebar ul li {
-      margin-bottom: 0.3rem;
-    }
-
-    nav.sidebar ul li a {
-      display: flex;
-      align-items: center;
-      padding: 14px 24px;
-      color: var(--text-light);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1rem;
-      border-left: 4px solid transparent;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    nav.sidebar ul li a:hover,
-    nav.sidebar ul li a.active {
-      background-color: var(--sidebar-hover);
-      border-left: 4px solid var(--primary);
-      color: var(--primary);
-    }
-
-    nav.sidebar ul li a svg {
-      margin-right: 16px;
-      flex-shrink: 0;
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    nav.sidebar .signout-btn {
-      margin: 1rem 1.5rem 0 1.5rem;
-      background-color: transparent;
-      border: 2px solid var(--primary);
-      color: var(--primary);
-      padding: 10px;
-      border-radius: var(--border-radius);
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      text-align: center;
-      user-select: none;
-    }
-    nav.sidebar .signout-btn:hover {
-      background-color: var(--primary);
-      color: var(--sidebar-bg);
-    }
-
-    /* Main content area */
-    main.content {
-      flex-grow: 1;
-      padding: 2rem 2.5rem;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      background: var(--background);
-    }
-
-    /* Top Navbar */
-    header.topbar {
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0 1.5rem;
-      margin-bottom: 1.5rem;
-      background-color: var(--background);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    /* Sidebar toggle button */
-    #sidebarToggle {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px;
-      margin-right: 1rem;
-    }
-    #sidebarToggle svg {
-      width: 24px;
-      height: 24px;
-      fill: #333;
-    }
-
-    /* User profile section */
-    .user-profile {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      cursor: default;
-      user-select: none;
-    }
-    .user-profile img {
-      width: 38px;
-      height: 38px;
+    nav.sidebar .profile img {
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid var(--primary);
+      border: 3px solid #fdd835;
+      margin-bottom: 12px;
     }
-    .user-profile span {
+    nav.sidebar .profile .name {
+      font-size: 20px;
       font-weight: 600;
-      color: #555;
+      word-break: break-word;
     }
-
-    /* Dashboard heading */
-    h2 {
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      font-size: 2rem;
-      color: #101820;
-    }
-
-    /* Grid container for cards */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    /* Cards */
-    .card {
-      background: var(--background);
-      border-radius: var(--border-radius);
-      padding: 24px 28px;
-      box-shadow: 0 10px 15px var(--shadow);
-      transition: box-shadow 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-    .card:hover {
-      box-shadow: 0 14px 22px rgba(0, 0, 0, 0.15);
-    }
-    .card h3 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      color: #101820;
-      font-weight: 700;
-      font-size: 1.3rem;
-    }
-    .card p {
-      color: #555;
-      line-height: 1.5;
-      font-size: 1rem;
-      flex-grow: 1;
-    }
-
-    /* Homepage styling */
-    #homepage {
-      max-width: 480px;
-      margin: 10vh auto;
-      background: var(--background);
-      padding: 40px 30px;
-      border-radius: var(--border-radius);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-      text-align: center;
-      user-select: none;
-    }
-    #homepage h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: #101820;
-    }
-    #homepage p {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-      color: #444;
-      line-height: 1.4;
-    }
-    #homepage button {
-      background: var(--primary);
+    nav.sidebar button {
+      margin-top: auto;
+      background-color: #fdd835;
       border: none;
-      color: #101820;
-      font-weight: 700;
-      font-size: 1.15rem;
-      padding: 14px 36px;
-      border-radius: var(--border-radius);
+      padding: 12px;
+      border-radius: 5px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.2s ease;
     }
-    #homepage button:hover {
-      background: var(--primary-dark);
-      color: #fff;
+    nav.sidebar button:hover {
+      background-color: #e6c72e;
     }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      nav.sidebar {
-        position: fixed;
-        left: -260px;
-        top: 0;
-        height: 100vh;
-        z-index: 100;
-        transition: left 0.3s ease;
-      }
-      nav.sidebar.open {
-        left: 0;
-      }
-      #sidebarToggle {
-        display: inline-block;
-      }
-      main.content {
-        padding: 1.5rem 1rem;
-      }
+    /* Main content */
+    main.content {
+      flex-grow: 1;
+      padding: 40px 60px;
+      overflow-y: auto;
+    }
+    main.content h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    main.content p {
+      font-size: 18px;
+      line-height: 1.4;
+      color: #555;
     }
   </style>
 </head>
 <body>
 
-  <header class="topbar">
-    <button id="sidebarToggle" aria-label="Toggle Sidebar" title="Toggle Sidebar">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M3 12h18M3 6h18M3 18h18" stroke="#333" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <div class="user-profile" title="Signed in user">
-      <img src="" alt="User Avatar" id="userAvatar" />
-      <span id="userName"></span>
+<header>TradeDeck Dashboard</header>
+
+<div class="container">
+  <nav class="sidebar">
+    <div class="profile">
+      <img id="userAvatar" src="https://via.placeholder.com/90?text=User" alt="User Avatar" />
+      <div class="name" id="userName">Guest</div>
     </div>
-  </header>
+    <button id="signInBtn">Sign In with Google</button>
+    <button id="signOutBtn" style="display:none;">Sign Out</button>
+  </nav>
 
-  <div id="app">
-    <nav class="sidebar" id="sidebar">
-      <div class="logo">TradeDeck</div>
-      <ul>
-        <li><a href="#" class="active" id="navDashboard">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
-          Dashboard
-        </a></li>
-        <li><a href="#" id="navStore">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v2H4zM6 7h12l-1 13H7L6 7z" fill="currentColor"/></svg>
-          Store
-        </a></li>
-        <li><a href="#" id="navLeaderboard">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M3 17h3v4H3v-4zm5-6h3v10H8V11zm5-5h3v15h-3V6zm5 3h3v12h-3V9z" fill="currentColor"/></svg>
-          Leaderboard
-        </a></li>
-      </ul>
-      <button class="signout-btn" id="signOutBtn">Sign Out</button>
-    </nav>
+  <main class="content">
+    <h1>Welcome to your dashboard</h1>
+    <p>This is the skeleton for your TradeDeck user dashboard. You will see your user info here once signed in.</p>
+  </main>
+</div>
 
-    <main class="content">
-      <h2>Dashboard</h2>
-      <div class="grid">
-        <section class="card">
-          <h3>Welcome</h3>
-          <p>Here’s your overview and latest updates.</p>
-        </section>
-        <section class="card">
-          <h3>Your Total Sales</h3>
-          <p>$0.00</p>
-        </section>
-        <section class="card">
-          <h3>Active Listings</h3>
-          <p>No active listings.</p>
-        </section>
-        <section class="card">
-          <h3>Recent Activity</h3>
-          <p>No recent activity.</p>
-        </section>
-      </div>
-    </main>
-  </div>
+<script>
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+    authDomain: "tradedeck-82bbb.firebaseapp.com",
+    projectId: "tradedeck-82bbb",
+    storageBucket: "tradedeck-82bbb.appspot.com",
+    messagingSenderId: "755235931546",
+    appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+    measurementId: "G-4RXR7V9NCW"
+  };
 
-  <script>
-    // Sidebar toggle for mobile
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // Elements
+  const userNameEl = document.getElementById('userName');
+  const userAvatarEl = document.getElementById('userAvatar');
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+
+  // Google provider
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  // Sign In
+  signInBtn.onclick = () => {
+    auth.signInWithPopup(provider).catch(error => {
+      console.error('Sign in error:', error.message);
+      alert('Sign in failed: ' + error.message);
     });
+  };
 
-    // Dummy user data for demo (replace with Firebase data)
-    const user = {
-      name: 'TradeDeck User',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-    };
-
-    // Display user info
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userAvatar').src = user.avatar;
-
-    // Navigation active state (basic example)
-    document.querySelectorAll('nav.sidebar ul li a').forEach(link => {
-      link.addEventListener('click', e => {
-        document.querySelector('nav.sidebar ul li a.active')?.classList.remove('active');
-        e.currentTarget.classList.add('active');
-        e.preventDefault();
-      });
+  // Sign Out
+  signOutBtn.onclick = () => {
+    auth.signOut().catch(error => {
+      console.error('Sign out error:', error.message);
     });
+  };
 
-    // Sign out button - replace with Firebase auth signout logic
-    document.getElementById('signOutBtn').addEventListener('click', () => {
-      alert('Signing out...');
-      // firebase.auth().signOut();
-    });
-  </script>
+  // Auth state listener
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // Update UI
+      userNameEl.textContent = user.displayName || 'No Name';
+      userAvatarEl.src = user.photoURL || 'https://via.placeholder.com/90?text=User';
+
+      // Show/hide buttons
+      signInBtn.style.display = 'none';
+      signOutBtn.style.display = 'block';
+    } else {
+      // Reset UI
+      userNameEl.textContent = 'Guest';
+      userAvatarEl.src = 'https://via.placeholder.com/90?text=User';
+
+      // Show/hide buttons
+      signInBtn.style.display = 'block';
+      signOutBtn.style.display = 'none';
+    }
+  });
+</script>
 
 </body>
 </html>
