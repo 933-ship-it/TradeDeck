@@ -51,49 +51,49 @@
 
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
-              Turn Your Digital Assets Into Revenue
-            </h2>
-            <p class="text-lg text-gray-600 mb-6">
-              Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
-            </p>
-            <button
-              id="startSellingBtn"
-              class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
-            >
-              Start Selling Now
-            </button>
-          </div>
+          <div id="sellLandingContent">
+            <div class="text-center mb-16">
+              <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
+                Turn Your Digital Assets Into Revenue
+              </h2>
+              <p class="text-lg text-gray-600 mb-6">
+                Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
+              </p>
+              <button
+                id="startSellingBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
+              >
+                Start Selling Now
+              </button>
+            </div>
 
-          <div class="mb-20">
-            <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div class="bg-white p-6 rounded-xl shadow">
-                <div class="text-blue-600 text-4xl mb-4">📁</div>
-                <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
-                <p class="text-gray-600 text-sm">
-                  PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.
-                </p>
-              </div>
-              <div class="bg-white p-6 rounded-xl shadow">
-                <div class="text-green-500 text-4xl mb-4">⚙️</div>
-                <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
-                <p class="text-gray-600 text-sm">
-                  Set your price, description, preview images, and license terms.
-                </p>
-              </div>
-              <div class="bg-white p-6 rounded-xl shadow">
-                <div class="text-purple-500 text-4xl mb-4">💳</div>
-                <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
-                <p class="text-gray-600 text-sm">
-                  Your sales are paid directly to your connected PayPal account.
-                </p>
+            <div class="mb-20">
+              <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-blue-600 text-4xl mb-4">📁</div>
+                  <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
+                  <p class="text-gray-600 text-sm">
+                    PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.
+                  </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-green-500 text-4xl mb-4">⚙️</div>
+                  <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
+                  <p class="text-gray-600 text-sm">
+                    Set your price, description, preview images, and license terms.
+                  </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-purple-500 text-4xl mb-4">💳</div>
+                  <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
+                  <p class="text-gray-600 text-sm">
+                    Your sales are paid directly to your connected PayPal account.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
+          </div> <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
             <form id="productUploadForm" class="space-y-6">
               <div>
@@ -204,13 +204,16 @@
       });
     });
 
-    // Show product form on button click
+    // Get the new landing content div and the product form
+    const sellLandingContent = document.getElementById('sellLandingContent'); // NEW ELEMENT
     const startSellingBtn = document.getElementById('startSellingBtn');
     const productForm = document.getElementById('productForm');
+
+    // Modify the click listener for 'Start Selling Now' button
     startSellingBtn.addEventListener('click', () => {
-      productForm.classList.remove('hidden');
-      startSellingBtn.disabled = true;
-      startSellingBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      sellLandingContent.classList.add('hidden'); // Hide the landing content
+      productForm.classList.remove('hidden');    // Show the product form
+      // The button itself can stay disabled as it's now hidden within the hidden div
     });
 
     // Allowed file types for basic client-side "scan"
@@ -327,8 +330,9 @@
 
         productUploadForm.reset();
         productForm.classList.add('hidden');
-        startSellingBtn.disabled = false;
-        startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        // After successful listing, show the landing content again if desired, or keep form hidden
+        // For now, let's keep the form hidden and allow the user to click "Start Selling Now" again
+        sellLandingContent.classList.remove('hidden'); // Show landing content again
         alert('Product listed successfully!');
         loadProducts(); // Reload products to show the newly added one
 
