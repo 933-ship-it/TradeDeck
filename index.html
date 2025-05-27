@@ -132,7 +132,7 @@
                 />
               </div>
               <div>
-                <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (PDF, ZIP, MP4, etc.)</label>
+                <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Any type)</label>
                 <input
                   type="file"
                   id="productFile"
@@ -204,29 +204,22 @@
       });
     });
 
-    // Get the new landing content div and the product form
-    const sellLandingContent = document.getElementById('sellLandingContent'); // NEW ELEMENT
+    const sellLandingContent = document.getElementById('sellLandingContent');
     const startSellingBtn = document.getElementById('startSellingBtn');
     const productForm = document.getElementById('productForm');
 
-    // Modify the click listener for 'Start Selling Now' button
     startSellingBtn.addEventListener('click', () => {
-      sellLandingContent.classList.add('hidden'); // Hide the landing content
-      productForm.classList.remove('hidden');    // Show the product form
-      // The button itself can stay disabled as it's now hidden within the hidden div
+      sellLandingContent.classList.add('hidden');
+      productForm.classList.remove('hidden');
     });
 
-    // Allowed file types for basic client-side "scan"
-    const allowedFileTypes = [
-      'application/pdf',
-      'application/zip',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-      'image/png',
-      'image/jpeg',
-      'audio/mpeg',  // MP3
-      'video/mp4'
-    ];
+    // --- MODIFIED CODE START ---
 
+    // No specific allowedFileTypes array needed if allowing any type.
+    // If you want to keep it but allow all, you could make it an empty array,
+    // but the `includes` check would still fail unless removed.
+    // So, we'll remove the type check directly.
+    
     const productFileInput = document.getElementById('productFile');
     const previewImageInput = document.getElementById('previewImage');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
@@ -235,15 +228,13 @@
     productFileInput.addEventListener('change', () => {
       const file = productFileInput.files[0];
       if (!file) {
-        fileValidationMsg.textContent = ''; // Clear message if no file selected
+        fileValidationMsg.textContent = '';
         return;
       }
-      if (!allowedFileTypes.includes(file.type)) {
-        fileValidationMsg.textContent = 'Error: Unsupported file type.';
-        productFileInput.value = ''; // Clear the input
-      } else if (file.size > 100 * 1024 * 1024) { // 100 MB limit
+      // REMOVED: if (!allowedFileTypes.includes(file.type)) { ... }
+      if (file.size > 100 * 1024 * 1024) { // Still keep the 100 MB limit
         fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-        productFileInput.value = ''; // Clear the input
+        productFileInput.value = '';
       } else {
         fileValidationMsg.textContent = '';
       }
@@ -252,27 +243,25 @@
     previewImageInput.addEventListener('change', () => {
       const file = previewImageInput.files[0];
       if (!file) {
-        previewImageValidationMsg.textContent = ''; // Clear message if no file selected
+        previewImageValidationMsg.textContent = '';
         return;
       }
       if (!['image/jpeg', 'image/png'].includes(file.type)) {
         previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-        previewImageInput.value = ''; // Clear the input
+        previewImageInput.value = '';
       } else if (file.size > 5 * 1024 * 1024) { // 5 MB limit for preview image
         previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-        previewImageInput.value = ''; // Clear the input
+        previewImageInput.value = '';
       } else {
         previewImageValidationMsg.textContent = '';
       }
     });
 
-    // Submit product form handler
     const productUploadForm = document.getElementById('productUploadForm');
 
     productUploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Clear previous validation messages
       fileValidationMsg.textContent = '';
       previewImageValidationMsg.textContent = '';
 
@@ -290,11 +279,14 @@
         return;
       }
 
-      // Re-validate file types and sizes before upload
-      if (!allowedFileTypes.includes(productFile.type) || productFile.size > 100 * 1024 * 1024) {
-          fileValidationMsg.textContent = 'Invalid product file: Check type or size.';
+      // REMOVED: if (!allowedFileTypes.includes(productFile.type) || productFile.size > 100 * 1024 * 1024) { ... }
+      // RETAINED: Only the size check for the product file
+      if (productFile.size > 100 * 1024 * 1024) {
+          fileValidationMsg.textContent = 'Invalid product file: File size exceeds 100 MB.';
           return;
       }
+
+      // Keep validation for preview image as it's specifically for images
       if (!['image/jpeg', 'image/png'].includes(previewImage.type) || previewImage.size > 5 * 1024 * 1024) {
           previewImageValidationMsg.textContent = 'Invalid preview image: Only JPEG/PNG up to 5MB.';
           return;
@@ -321,8 +313,8 @@
           title: productUploadForm.title.value.trim(),
           description: productUploadForm.description.value.trim(),
           price: parseFloat(productUploadForm.price.value),
-          productFileURL: productFileURL, // Corrected key name
-          previewImageURL: previewImageURL, // Corrected key name
+          productFileURL: productFileURL,
+          previewImageURL: previewImageURL,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         };
 
@@ -330,11 +322,9 @@
 
         productUploadForm.reset();
         productForm.classList.add('hidden');
-        // After successful listing, show the landing content again if desired, or keep form hidden
-        // For now, let's keep the form hidden and allow the user to click "Start Selling Now" again
-        sellLandingContent.classList.remove('hidden'); // Show landing content again
+        sellLandingContent.classList.remove('hidden');
         alert('Product listed successfully!');
-        loadProducts(); // Reload products to show the newly added one
+        loadProducts();
 
       } catch (error) {
         console.error('Error uploading product:', error);
@@ -346,13 +336,14 @@
       }
     });
 
-    // Load products from Firestore and show on Home tab
+    // --- MODIFIED CODE END ---
+
     async function loadProducts() {
       const productList = document.getElementById('productList');
       productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
 
       try {
-        const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(50).get(); // Order by 'createdAt'
+        const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(50).get();
         if (snapshot.empty) {
           productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>';
           return;
@@ -380,7 +371,6 @@
       }
     }
 
-    // Initial load of products when the page loads
     loadProducts();
   </script>
 </body>
