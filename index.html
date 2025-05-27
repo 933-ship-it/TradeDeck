@@ -259,66 +259,70 @@
 
 
     // Submit product form handler
-    const productUploadForm = document.getElementById('productUploadForm'); // Get the form by its new ID
-    productUploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+const productUploadForm = document.getElementById('productUploadForm'); // Form element
 
-      // Validate files again
-      const productFile = productFileInput.files[0];
-      const previewImage = previewImageInput.files[0];
-      if (!productFile || !previewImage) {
-        fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
-        return;
-      }
+productUploadForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-      // Basic validation done, disable submit
-      fileValidationMsg.textContent = '';
-      previewImageValidationMsg.textContent = '';
-      productUploadForm.querySelector('button[type="submit"]').disabled = true;
-      productUploadForm.querySelector('button[type="submit"]').textContent = 'Uploading...';
+  // Validate files again
+  const productFile = productFileInput.files[0];
+  const previewImage = previewImageInput.files[0];
+  if (!productFile || !previewImage) {
+    fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
+    return;
+  }
 
+  // Disable submit button and show uploading text
+  const submitBtn = productUploadForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Uploading...';
 
-      const title = document.getElementById('title').value.trim();
-      const description = document.getElementById('description').value.trim();
-      const price = parseFloat(document.getElementById('price').value);
+  try {
+    // Generate unique file paths using timestamp + random suffix to avoid collisions
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
 
-      if (!title || !description || isNaN(price) || price < 0) {
-        fileValidationMsg.textContent = 'Please fill all fields correctly.';
-        productUploadForm.querySelector('button[type="submit"]').disabled = false;
-        productUploadForm.querySelector('button[type="submit"]').textContent = 'List Product';
-        return;
-      }
+    // Upload product file
+    const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
+    await productFileRef.put(productFile);
+    const productFileURL = await productFileRef.getDownloadURL();
 
-      try {
-        // Upload preview image first
-        const previewImageRef = storage.ref().child(`previews/${Date.now()}_${previewImage.name}`);
-        const previewSnapshot = await previewImageRef.put(previewImage);
-        const previewURL = await previewSnapshot.ref.getDownloadURL();
+    // Upload preview image
+    const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
+    await previewImageRef.put(previewImage);
+    const previewImageURL = await previewImageRef.getDownloadURL();
 
-        // Upload product file
-        const productFileRef = storage.ref().child(`products/${Date.now()}_${productFile.name}`);
-        const productSnapshot = await productFileRef.put(productFile);
-        const productURL = await productSnapshot.ref.getDownloadURL();
+    // Prepare product metadata
+    const productData = {
+      title: productUploadForm.title.value.trim(),
+      description: productUploadForm.description.value.trim(),
+      price: parseFloat(productUploadForm.price.value),
+      productFileURL,
+      previewImageURL,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      // You can add user ID or seller info here if you have auth implemented
+    };
 
-        // Save product metadata in Firestore
-        await db.collection('products').add({
-          title,
-          description,
-          price,
-          previewURL,
-          productURL,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+    // Save product info in Firestore collection (e.g., 'products')
+    await db.collection('products').add(productData);
 
-        alert('Product uploaded successfully! It will appear on the homepage.');
+    // Reset form and UI feedback
+    productUploadForm.reset();
+    productForm.classList.add('hidden');
+    startSellingBtn.disabled = false;
+    startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
-        // Reset form
-        productUploadForm.reset();
-        productForm.classList.add('hidden');
-        startSellingBtn.disabled = false;
-        startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        productUploadForm.querySelector('button[type="submit"]').disabled = false;
-        productUploadForm.querySelector('button[type="submit"]').textContent = 'List Product';
+    alert('Product listed successfully!');
+
+  } catch (error) {
+    console.error('Error uploading product:', error);
+    alert('Failed to list product. Please try again.');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'List Product';
+  }
+});
+
 
 
         // Reload products to show new product
