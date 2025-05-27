@@ -50,119 +50,119 @@
       </section>
 
       <section id="sell" class="hidden">
-  <div class="max-w-6xl mx-auto mt-16 px-4">
-    <div class="text-center mb-16">
-      <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
-        Turn Your Digital Assets Into Revenue
-      </h2>
-      <p class="text-lg text-gray-600 mb-6">
-        Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
-      </p>
-      <button
-        id="startSellingBtn"
-        class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
-      >
-        Start Selling Now
-      </button>
-    </div>
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <div class="text-center mb-16">
+            <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
+              Turn Your Digital Assets Into Revenue
+            </h2>
+            <p class="text-lg text-gray-600 mb-6">
+              Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
+            </p>
+            <button
+              id="startSellingBtn"
+              class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
+            >
+              Start Selling Now
+            </button>
+          </div>
 
-    <div class="mb-20">
-      <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        <div class="bg-white p-6 rounded-xl shadow">
-          <div class="text-blue-600 text-4xl mb-4">📁</div>
-          <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
-          <p class="text-gray-600 text-sm">
-            PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.
-          </p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow">
-          <div class="text-green-500 text-4xl mb-4">⚙️</div>
-          <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
-          <p class="text-gray-600 text-sm">
-            Set your price, description, preview images, and license terms.
-          </p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow">
-          <div class="text-purple-500 text-4xl mb-4">💳</div>
-          <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
-          <p class="text-gray-600 text-sm">
-            Your sales are paid directly to your connected PayPal account.
-          </p>
-        </div>
-      </div>
-    </div>
+          <div class="mb-20">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div class="bg-white p-6 rounded-xl shadow">
+                <div class="text-blue-600 text-4xl mb-4">📁</div>
+                <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
+                <p class="text-gray-600 text-sm">
+                  PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.
+                </p>
+              </div>
+              <div class="bg-white p-6 rounded-xl shadow">
+                <div class="text-green-500 text-4xl mb-4">⚙️</div>
+                <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
+                <p class="text-gray-600 text-sm">
+                  Set your price, description, preview images, and license terms.
+                </p>
+              </div>
+              <div class="bg-white p-6 rounded-xl shadow">
+                <div class="text-purple-500 text-4xl mb-4">💳</div>
+                <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
+                <p class="text-gray-600 text-sm">
+                  Your sales are paid directly to your connected PayPal account.
+                </p>
+              </div>
+            </div>
+          </div>
 
-    <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
-      <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
-      <form id="productUploadForm" class="space-y-6">
-        <div>
-          <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., Ultimate eBook Template Pack"
-          />
+          <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
+            <form id="productUploadForm" class="space-y-6">
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., Ultimate eBook Template Pack"
+                />
+              </div>
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="4"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Describe your product in detail..."
+                ></textarea>
+              </div>
+              <div>
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  min="0"
+                  step="0.01"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., 29.99"
+                />
+              </div>
+              <div>
+                <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (PDF, ZIP, MP4, etc.)</label>
+                <input
+                  type="file"
+                  id="productFile"
+                  name="productFile"
+                  required
+                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
+              </div>
+              <div>
+                <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image (JPEG, PNG)</label>
+                <input
+                  type="file"
+                  id="previewImage"
+                  name="previewImage"
+                  accept="image/jpeg, image/png"
+                  required
+                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                List Product
+              </button>
+            </form>
+          </div>
         </div>
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Describe your product in detail..."
-          ></textarea>
-        </div>
-        <div>
-          <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            min="0"
-            step="0.01"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., 29.99"
-          />
-        </div>
-        <div>
-          <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (PDF, ZIP, MP4, etc.)</label>
-          <input
-            type="file"
-            id="productFile"
-            name="productFile"
-            required
-            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
-        </div>
-        <div>
-          <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image (JPEG, PNG)</label>
-          <input
-            type="file"
-            id="previewImage"
-            name="previewImage"
-            accept="image/jpeg, image/png"
-            required
-            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-        </div>
-        <button
-          type="submit"
-          class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          List Product
-        </button>
-      </form>
-    </div>
-  </div>
       </section>
 
       <section id="dashboard" class="hidden">
@@ -227,17 +227,20 @@
     const productFileInput = document.getElementById('productFile');
     const previewImageInput = document.getElementById('previewImage');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg'); // New validation message for preview image
+    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
 
     productFileInput.addEventListener('change', () => {
       const file = productFileInput.files[0];
-      if (!file) return;
+      if (!file) {
+        fileValidationMsg.textContent = ''; // Clear message if no file selected
+        return;
+      }
       if (!allowedFileTypes.includes(file.type)) {
         fileValidationMsg.textContent = 'Error: Unsupported file type.';
-        productFileInput.value = '';
+        productFileInput.value = ''; // Clear the input
       } else if (file.size > 100 * 1024 * 1024) { // 100 MB limit
         fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-        productFileInput.value = '';
+        productFileInput.value = ''; // Clear the input
       } else {
         fileValidationMsg.textContent = '';
       }
@@ -245,104 +248,107 @@
 
     previewImageInput.addEventListener('change', () => {
       const file = previewImageInput.files[0];
-      if (!file) return;
+      if (!file) {
+        previewImageValidationMsg.textContent = ''; // Clear message if no file selected
+        return;
+      }
       if (!['image/jpeg', 'image/png'].includes(file.type)) {
         previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-        previewImageInput.value = '';
+        previewImageInput.value = ''; // Clear the input
       } else if (file.size > 5 * 1024 * 1024) { // 5 MB limit for preview image
         previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-        previewImageInput.value = '';
+        previewImageInput.value = ''; // Clear the input
       } else {
         previewImageValidationMsg.textContent = '';
       }
     });
 
-
     // Submit product form handler
-const productUploadForm = document.getElementById('productUploadForm'); // Form element
+    const productUploadForm = document.getElementById('productUploadForm');
 
-productUploadForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+    productUploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-  // Validate files again
-  const productFile = productFileInput.files[0];
-  const previewImage = previewImageInput.files[0];
-  if (!productFile || !previewImage) {
-    fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
-    return;
-  }
+      // Clear previous validation messages
+      fileValidationMsg.textContent = '';
+      previewImageValidationMsg.textContent = '';
 
-  // Disable submit button and show uploading text
-  const submitBtn = productUploadForm.querySelector('button[type="submit"]');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Uploading...';
+      const productFile = productFileInput.files[0];
+      const previewImage = previewImageInput.files[0];
 
-  try {
-    // Generate unique file paths using timestamp + random suffix to avoid collisions
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
+      if (!productFile && !previewImage) {
+        fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
+        return;
+      } else if (!productFile) {
+        fileValidationMsg.textContent = 'Please upload the digital product file.';
+        return;
+      } else if (!previewImage) {
+        previewImageValidationMsg.textContent = 'Please upload a preview image.';
+        return;
+      }
 
-    // Upload product file
-    const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
-    await productFileRef.put(productFile);
-    const productFileURL = await productFileRef.getDownloadURL();
+      // Re-validate file types and sizes before upload
+      if (!allowedFileTypes.includes(productFile.type) || productFile.size > 100 * 1024 * 1024) {
+          fileValidationMsg.textContent = 'Invalid product file: Check type or size.';
+          return;
+      }
+      if (!['image/jpeg', 'image/png'].includes(previewImage.type) || previewImage.size > 5 * 1024 * 1024) {
+          previewImageValidationMsg.textContent = 'Invalid preview image: Only JPEG/PNG up to 5MB.';
+          return;
+      }
 
-    // Upload preview image
-    const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
-    await previewImageRef.put(previewImage);
-    const previewImageURL = await previewImageRef.getDownloadURL();
+      const submitBtn = productUploadForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-    // Prepare product metadata
-    const productData = {
-      title: productUploadForm.title.value.trim(),
-      description: productUploadForm.description.value.trim(),
-      price: parseFloat(productUploadForm.price.value),
-      productFileURL,
-      previewImageURL,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      // You can add user ID or seller info here if you have auth implemented
-    };
+      try {
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
 
-    // Save product info in Firestore collection (e.g., 'products')
-    await db.collection('products').add(productData);
+        const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
+        await productFileRef.put(productFile);
+        const productFileURL = await productFileRef.getDownloadURL();
 
-    // Reset form and UI feedback
-    productUploadForm.reset();
-    productForm.classList.add('hidden');
-    startSellingBtn.disabled = false;
-    startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
+        await previewImageRef.put(previewImage);
+        const previewImageURL = await previewImageRef.getDownloadURL();
 
-    alert('Product listed successfully!');
+        const productData = {
+          title: productUploadForm.title.value.trim(),
+          description: productUploadForm.description.value.trim(),
+          price: parseFloat(productUploadForm.price.value),
+          productFileURL: productFileURL, // Corrected key name
+          previewImageURL: previewImageURL, // Corrected key name
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
 
-  } catch (error) {
-    console.error('Error uploading product:', error);
-    alert('Failed to list product. Please try again.');
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'List Product';
-  }
-});
+        await db.collection('products').add(productData);
 
-
-
-        // Reload products to show new product
-        loadProducts();
+        productUploadForm.reset();
+        productForm.classList.add('hidden');
+        startSellingBtn.disabled = false;
+        startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        alert('Product listed successfully!');
+        loadProducts(); // Reload products to show the newly added one
 
       } catch (error) {
-        console.error('Upload failed:', error);
-        fileValidationMsg.textContent = 'Upload failed, please try again.';
-        productUploadForm.querySelector('button[type="submit"]').disabled = false;
-        productUploadForm.querySelector('button[type="submit"]').textContent = 'List Product';
+        console.error('Error uploading product:', error);
+        alert('Failed to list product. Please try again. Error: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'List Product';
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       }
     });
 
     // Load products from Firestore and show on Home tab
     async function loadProducts() {
       const productList = document.getElementById('productList');
-      productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading...</p>';
+      productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
 
       try {
-        const snapshot = await db.collection('products').orderBy('timestamp', 'desc').limit(50).get();
+        const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(50).get(); // Order by 'createdAt'
         if (snapshot.empty) {
           productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>';
           return;
@@ -354,12 +360,12 @@ productUploadForm.addEventListener('submit', async (e) => {
           const card = document.createElement('div');
           card.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
           card.innerHTML = `
-            <img src="${product.previewURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
+            <img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
             <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
             <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
             <div class="mt-auto flex justify-between items-center pt-2">
               <span class="font-bold text-blue-600">$${product.price.toFixed(2)}</span>
-              <a href="${product.productURL}" download="${product.title.replace(/\s/g, '_')}_by_TradeDeck" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
+              <a href="${product.productFileURL}" download="${product.title}.zip" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
             </div>
           `;
           productList.appendChild(card);
@@ -370,6 +376,7 @@ productUploadForm.addEventListener('submit', async (e) => {
       }
     }
 
+    // Initial load of products when the page loads
     loadProducts();
   </script>
 </body>
