@@ -234,14 +234,7 @@
     const paypalEmailContainer = document.getElementById('paypalEmailContainer'); 
     const paypalEmailInput = document.getElementById('paypalEmail'); 
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); 
-    const priceInput = document.getElementById('price'); // New
-
-    // Show PayPal email field when the form is visible
-    startSellingBtn.addEventListener('click', () => {
-      sellLandingContent.classList.add('hidden');
-      productForm.classList.remove('hidden');
-      // The PayPal email container will now be shown/hidden based on price input
-    });
+    const priceInput = document.getElementById('price'); 
 
     // Event listener for price input to show/hide PayPal email field
     priceInput.addEventListener('input', () => {
