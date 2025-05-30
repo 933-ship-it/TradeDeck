@@ -165,12 +165,16 @@
                   class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
+                <div id="previewContainer" class="mt-4 hidden">
+                  <img id="previewImageDisplay" src="" alt="Preview Image" class="mx-auto rounded-md max-h-48 shadow-lg" />
+                </div>
               </div>
               <button
                 type="submit"
-                class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                id="uploadProductBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
               >
-                List Product
+                Upload Product
               </button>
             </form>
           </div>
@@ -178,16 +182,17 @@
       </section>
 
       <section id="dashboard" class="hidden">
-        <div class="max-w-4xl mx-auto text-center mt-24">
-          <h2 class="text-2xl font-bold text-gray-700">Your Dashboard</h2>
-          <p class="text-gray-500 mt-2">Coming soon: view your sales, products, and more.</p>
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <h2 class="text-4xl font-bold mb-8">Your Dashboard</h2>
+          <div id="userProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
         </div>
       </section>
     </main>
   </div>
 
   <script>
-    // Firebase config
+    // Firebase config (replace with your own)
     const firebaseConfig = {
       apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
       authDomain: "tradedeck-82bbb.firebaseapp.com",
@@ -203,38 +208,62 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const tabs = document.querySelectorAll("aside a");
-    const sections = document.querySelectorAll("main section");
+    // Tab navigation logic
+    const tabs = document.querySelectorAll('aside nav a[data-tab]');
+    const sections = document.querySelectorAll('main section');
 
-    tabs.forEach((tab, index) => {
-      tab.addEventListener("click", (e) => {
+    tabs.forEach(tab => {
+      tab.addEventListener('click', e => {
         e.preventDefault();
-        sections.forEach((sec) => sec.classList.add("hidden"));
-        sections[index].classList.remove("hidden");
-        tabs.forEach((t) => t.classList.remove("bg-blue-100"));
-        tab.classList.add("bg-blue-100");
+        const target = tab.getAttribute('data-tab');
+        tabs.forEach(t => t.classList.remove('bg-blue-100'));
+        tab.classList.add('bg-blue-100');
+        sections.forEach(sec => {
+          if (sec.id === target) {
+            sec.classList.remove('hidden');
+          } else {
+            sec.classList.add('hidden');
+          }
+        });
       });
     });
 
-    const sellLandingContent = document.getElementById('sellLandingContent');
+    // Show Sell form on clicking "Start Selling Now"
     const startSellingBtn = document.getElementById('startSellingBtn');
+    const sellLandingContent = document.getElementById('sellLandingContent');
     const productForm = document.getElementById('productForm');
 
     startSellingBtn.addEventListener('click', () => {
       sellLandingContent.classList.add('hidden');
       productForm.classList.remove('hidden');
+      // Show the Sell tab visually
+      tabs.forEach(t => t.classList.remove('bg-blue-100'));
+      tabs.forEach(t => {
+        if (t.getAttribute('data-tab') === 'sell') {
+          t.classList.add('bg-blue-100');
+        }
+      });
+      sections.forEach(sec => {
+        if (sec.id === 'sell') {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
     });
 
-    // --- MODIFIED CODE START ---
-    
+    // Get elements for product form
+    const priceInput = document.getElementById('price');
+    const paypalEmailContainer = document.getElementById('paypalEmailContainer');
+    const paypalEmailInput = document.getElementById('paypalEmail');
+    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
     const productFileInput = document.getElementById('productFile');
-    const previewImageInput = document.getElementById('previewImage');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
-    const paypalEmailContainer = document.getElementById('paypalEmailContainer'); 
-    const paypalEmailInput = document.getElementById('paypalEmail'); 
-    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); 
-    const priceInput = document.getElementById('price'); 
+    const previewImageInput = document.getElementById('previewImage');
+    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg'); // Changed ID from previewValidationMsg
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImageDisplay = document.getElementById('previewImageDisplay');
+    const productUploadForm = document.getElementById('productUploadForm');
 
     // Event listener for price input to show/hide PayPal email field
     priceInput.addEventListener('input', () => {
@@ -248,39 +277,56 @@
       }
     });
 
+    // File input validation for product file
     productFileInput.addEventListener('change', () => {
       const file = productFileInput.files[0];
       if (!file) {
-        fileValidationMsg.textContent = '';
+        fileValidationMsg.textContent = 'Please select a product file.';
         return;
       }
-      if (file.size > 100 * 1024 * 1024) { // Still keep the 100 MB limit
+      if (file.size > 100 * 1024 * 1024) { // 100 MB limit
         fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-        productFileInput.value = '';
+        productFileInput.value = ''; // Clear the input
       } else {
         fileValidationMsg.textContent = '';
       }
     });
 
+    // Preview image validation and preview display
     previewImageInput.addEventListener('change', () => {
       const file = previewImageInput.files[0];
       if (!file) {
-        previewImageValidationMsg.textContent = '';
+        previewImageValidationMsg.textContent = 'Please select a preview image.';
+        previewContainer.classList.add('hidden');
+        previewImageDisplay.src = '';
         return;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      const validTypes = ['image/jpeg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
         previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-        previewImageInput.value = '';
-      } else if (file.size > 5 * 1024 * 1024) { // 5 MB limit for preview image
-        previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-        previewImageInput.value = '';
-      } else {
-        previewImageValidationMsg.textContent = '';
+        previewContainer.classList.add('hidden');
+        previewImageDisplay.src = '';
+        previewImageInput.value = ''; // Clear invalid file
+        return;
       }
+      if (file.size > 5 * 1024 * 1024) { // 5 MB limit
+        previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
+        previewContainer.classList.add('hidden');
+        previewImageDisplay.src = '';
+        previewImageInput.value = ''; // Clear invalid file
+        return;
+      }
+
+      previewImageValidationMsg.textContent = '';
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImageDisplay.src = e.target.result;
+        previewContainer.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
     });
 
-    const productUploadForm = document.getElementById('productUploadForm');
-
+    // Form submission handler
     productUploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -374,8 +420,6 @@
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       }
     });
-
-    // --- MODIFIED CODE END ---
 
     async function loadProducts() {
       const productList = document.getElementById('productList');
