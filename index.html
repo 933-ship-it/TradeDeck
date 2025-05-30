@@ -43,6 +43,16 @@
     .file-upload-status.loading {
         @apply text-blue-500 italic;
     }
+
+    /* DEBUG: Make hidden inputs visible for testing */
+    .debug-visible {
+        display: block !important;
+        background-color: yellow;
+        color: black;
+        padding: 5px;
+        margin-top: 5px;
+        border: 1px dashed red;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -174,8 +184,7 @@
               <div>
                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
                 <input type="file" id="previewImageInput" name="previewImage" class="cloudinary-file-input" accept="image/*" required>
-                <input type="hidden" id="previewImageUrl" name="previewImageUrl">
-                <p id="previewImageStatus" class="file-upload-status"></p>
+                <input type="hidden" id="previewImageUrl" name="previewImageUrl" class="debug-visible"> <p id="previewImageStatus" class="file-upload-status"></p>
                 <div id="previewImageContainer" class="mt-2 hidden">
                     <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-xs h-32 object-cover rounded-md border border-gray-300" />
                 </div>
@@ -184,8 +193,7 @@
               <div>
                 <label for="productFileInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File</label>
                 <input type="file" id="productFileInput" name="productFile" class="cloudinary-file-input" required>
-                <input type="hidden" id="productFileUrl" name="productFileUrl">
-                <input type="hidden" id="productFilePublicId" name="productFilePublicId">
+                <input type="hidden" id="productFileUrl" name="productFileUrl" class="debug-visible"> <input type="hidden" id="productFilePublicId" name="productFilePublicId">
                 <p id="productFileStatus" class="file-upload-status"></p>
               </div>
 
@@ -215,7 +223,7 @@
   <script>
     // --- Cloudinary Configuration ---
     const CLOUDINARY_CLOUD_NAME = 'desejdvif';
-    const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products'; // Use a generic preset or create two specific ones
+    const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 
     // --- Firebase Configuration ---
     const firebaseConfig = {
@@ -249,12 +257,12 @@
     const productFileInput = document.getElementById('productFileInput');
     const productFileUrlInput = document.getElementById('productFileUrl');
     const productFilePublicIdInput = document.getElementById('productFilePublicId');
-    const productFileStatus = document.getElementById('productFileStatus'); // Renamed for clarity
+    const productFileStatus = document.getElementById('productFileStatus');
 
     // Preview Image Elements
     const previewImageInput = document.getElementById('previewImageInput');
     const previewImageUrlInput = document.getElementById('previewImageUrl');
-    const previewImageStatus = document.getElementById('previewImageStatus'); // Renamed for clarity
+    const previewImageStatus = document.getElementById('previewImageStatus');
     const previewImageContainer = document.getElementById('previewImageContainer');
     const currentPreviewImage = document.getElementById('currentPreviewImage');
 
@@ -394,12 +402,14 @@
             fieldName: 'productFile'
         },
         (error, result) => {
+            console.log("Product File Widget Event:", result.event, result.info); // DEBUG
             if (!error && result && result.event === "success") {
                 productFileUrlInput.value = result.info.secure_url;
                 productFilePublicIdInput.value = result.info.public_id;
                 setFileInputStatus(productFileStatus, `File uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
                 productFileInput.classList.remove('border-red-500');
                 isProductFileUploading = false;
+                console.log("Product File URL after success:", productFileUrlInput.value); // DEBUG
                 checkAllUploadsComplete();
             } else if (error) {
                 console.error("Cloudinary product file upload error:", error);
@@ -410,23 +420,23 @@
                 isProductFileUploading = false;
                 checkAllUploadsComplete();
             } else if (result && result.event === "close") {
-                // If widget closed and no file was successfully uploaded
+                // Widget closed. If no file was successfully uploaded, show error.
                 if (productFileUrlInput.value === '') {
-                    setFileInputStatus(productFileStatus, 'Please select a digital product file.', 'error');
+                    setFileInputStatus(productFileStatus, 'No product file selected or upload cancelled.', 'error');
                     productFileInput.classList.add('border-red-500');
                 }
                 isProductFileUploading = false;
                 checkAllUploadsComplete();
             } else if (result && result.event === "abort") {
-                 // User explicitly cancelled the upload
+                 // User explicitly cancelled the upload within the widget
                 if (productFileUrlInput.value === '') { // Only if no file was uploaded yet
-                    setFileInputStatus(productFileStatus, 'File selection cancelled.', 'error');
+                    setFileInputStatus(productFileStatus, 'Product file selection cancelled.', 'error');
                     productFileInput.classList.add('border-red-500');
                 }
                 isProductFileUploading = false;
                 checkAllUploadsComplete();
             } else if (result && result.event === "asset_selected") {
-                // User selected a file, but it hasn't uploaded yet
+                // User selected a file, upload is about to begin
                 setFileInputStatus(productFileStatus, `Uploading ${result.info.original_filename}...`, 'loading');
                 isProductFileUploading = true;
                 disableSubmitButton();
@@ -449,6 +459,7 @@
             fieldName: 'previewImage'
         },
         (error, result) => {
+            console.log("Preview Image Widget Event:", result.event, result.info); // DEBUG
             if (!error && result && result.event === "success") {
                 previewImageUrlInput.value = result.info.secure_url;
                 setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
@@ -456,6 +467,7 @@
                 currentPreviewImage.src = result.info.secure_url;
                 previewImageContainer.classList.remove('hidden');
                 isPreviewImageUploading = false;
+                console.log("Preview Image URL after success:", previewImageUrlInput.value); // DEBUG
                 checkAllUploadsComplete();
             } else if (error) {
                 console.error("Cloudinary preview image upload error:", error);
@@ -468,14 +480,14 @@
                 checkAllUploadsComplete();
             } else if (result && result.event === "close") {
                 if (previewImageUrlInput.value === '') {
-                    setFileInputStatus(previewImageStatus, 'Please select a preview image.', 'error');
+                    setFileInputStatus(previewImageStatus, 'No preview image selected or upload cancelled.', 'error');
                     previewImageInput.classList.add('border-red-500');
                 }
                 isPreviewImageUploading = false;
                 checkAllUploadsComplete();
             } else if (result && result.event === "abort") {
                 if (previewImageUrlInput.value === '') {
-                    setFileInputStatus(previewImageStatus, 'Image selection cancelled.', 'error');
+                    setFileInputStatus(previewImageStatus, 'Preview image selection cancelled.', 'error');
                     previewImageInput.classList.add('border-red-500');
                 }
                 isPreviewImageUploading = false;
@@ -495,14 +507,27 @@
     }
 
     function enableSubmitButton() {
-        submitProductBtn.disabled = false;
-        submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        // Only enable if no uploads are currently in progress AND
+        // both required files have a URL (meaning successful upload or already present)
+        if (!isProductFileUploading && !isPreviewImageUploading &&
+            productFileUrlInput.value !== '' && previewImageUrlInput.value !== '') {
+            submitProductBtn.disabled = false;
+            submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+             // Keep disabled if conditions aren't met
+            disableSubmitButton();
+        }
     }
 
     function checkAllUploadsComplete() {
-        if (!isProductFileUploading && !isPreviewImageUploading) {
+        // Debounce to ensure all event listeners have settled.
+        // This is a common pattern for async operations before re-enabling UI.
+        setTimeout(() => {
+            console.log("Checking uploads complete: ProductFileUploading:", isProductFileUploading, "PreviewImageUploading:", isPreviewImageUploading); // DEBUG
+            console.log("Current productFileUrl:", productFileUrlInput.value); // DEBUG
+            console.log("Current previewImageUrl:", previewImageUrlInput.value); // DEBUG
             enableSubmitButton();
-        }
+        }, 500); // Give it a small delay
     }
 
 
@@ -529,10 +554,9 @@
             previewImageContainer.classList.add('hidden');
             currentPreviewImage.src = '';
 
-            // Ensure submit button is re-enabled if user navigates away and back
-            enableSubmitButton();
             isProductFileUploading = false;
             isPreviewImageUploading = false;
+            enableSubmitButton(); // Re-enable for a fresh start
 
             toggleProductForm(false);
         }
@@ -555,6 +579,11 @@
     if (startSellingBtn) {
       startSellingBtn.addEventListener('click', () => {
         toggleProductForm(true);
+        // Initially disable submit button when form is shown until files are processed
+        disableSubmitButton();
+        // Also clear any previous status messages
+        setFileInputStatus(productFileStatus, '');
+        setFileInputStatus(previewImageStatus, '');
       });
     }
 
@@ -562,7 +591,6 @@
     if (priceInput) {
       priceInput.addEventListener('input', () => {
         const priceValue = parseFloat(priceInput.value);
-        // Show PayPal if price is not NaN and is greater than 0
         if (!isNaN(priceValue) && priceValue > 0) {
           paypalEmailContainer.classList.remove('hidden');
         } else {
@@ -578,9 +606,9 @@
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Re-check upload status before submission, just in case
+        // Final check for upload status and URL presence
         if (isProductFileUploading || isPreviewImageUploading) {
-            alert('Please wait for files to finish uploading before submitting.');
+            alert('Please wait for all files to finish uploading before submitting.');
             return;
         }
 
@@ -603,19 +631,17 @@
 
         if (!title) { isValid = false; alert('Please enter a product title.'); }
         if (!description) { isValid = false; alert('Please enter a product description.'); }
-        // Price validation: Must be a number and 0 or greater
         if (isNaN(price) || price < 0) { isValid = false; alert('Please enter a valid price (0 or greater).'); }
 
-        // Crucial: Check if Cloudinary upload was successful and URL is present for main file
+        // Crucial: Check if Cloudinary hidden URL input is actually populated
         if (!productFileUrl) {
-          setFileInputStatus(productFileStatus, 'Please select a digital product file.', 'error');
+          setFileInputStatus(productFileStatus, 'Digital product file is required.', 'error'); // More direct message
           productFileInput.classList.add('border-red-500');
           isValid = false;
         }
 
-        // Crucial: Check for preview image
         if (!previewImageUrl) {
-            setFileInputStatus(previewImageStatus, 'Please select a product preview image.', 'error');
+            setFileInputStatus(previewImageStatus, 'Product preview image is required.', 'error'); // More direct message
             previewImageInput.classList.add('border-red-500');
             isValid = false;
         }
@@ -635,7 +661,6 @@
           return;
         }
 
-        // Disable submit button and show loading state for final submission
         submitProductBtn.disabled = true;
         submitProductBtn.textContent = 'Listing Product...';
         submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -653,7 +678,6 @@
 
             alert('Product listed successfully!');
 
-            // Reset form and UI states
             productUploadForm.reset();
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
@@ -673,8 +697,7 @@
             console.error("Error adding document to Firestore:", error);
             alert('Failed to list product. Please check console for details.');
         } finally {
-            // Re-enable submit button
-            enableSubmitButton();
+            enableSubmitButton(); // Ensure button is re-enabled or stays disabled based on file URLs
         }
       });
     }
