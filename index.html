@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -93,7 +93,8 @@
                 </div>
               </div>
             </div>
-          </div> <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
+          </div>
+          <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
             <form id="productUploadForm" class="space-y-6">
               <div>
@@ -130,6 +131,17 @@
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                   placeholder="e.g., 29.99"
                 />
+              </div>
+              <div id="paypalEmailContainer" class="hidden">
+                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
+                <input
+                  type="email"
+                  id="paypalEmail"
+                  name="paypalEmail"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., yourname@example.com"
+                />
+                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
               </div>
               <div>
                 <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Any type)</label>
@@ -214,16 +226,21 @@
     });
 
     // --- MODIFIED CODE START ---
-
-    // No specific allowedFileTypes array needed if allowing any type.
-    // If you want to keep it but allow all, you could make it an empty array,
-    // but the includes check would still fail unless removed.
-    // So, we'll remove the type check directly.
     
     const productFileInput = document.getElementById('productFile');
     const previewImageInput = document.getElementById('previewImage');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
     const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
+    const paypalEmailContainer = document.getElementById('paypalEmailContainer'); // New
+    const paypalEmailInput = document.getElementById('paypalEmail'); // New
+    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); // New
+
+    // Show PayPal email field when the form is visible
+    startSellingBtn.addEventListener('click', () => {
+      sellLandingContent.classList.add('hidden');
+      productForm.classList.remove('hidden');
+      paypalEmailContainer.classList.remove('hidden'); // Show PayPal email field
+    });
 
     productFileInput.addEventListener('change', () => {
       const file = productFileInput.files[0];
@@ -231,7 +248,6 @@
         fileValidationMsg.textContent = '';
         return;
       }
-      // REMOVED: if (!allowedFileTypes.includes(file.type)) { ... }
       if (file.size > 100 * 1024 * 1024) { // Still keep the 100 MB limit
         fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
         productFileInput.value = '';
@@ -264,9 +280,11 @@
 
       fileValidationMsg.textContent = '';
       previewImageValidationMsg.textContent = '';
+      paypalEmailValidationMsg.textContent = ''; // Clear PayPal email validation message
 
       const productFile = productFileInput.files[0];
       const previewImage = previewImageInput.files[0];
+      const paypalEmail = paypalEmailInput.value.trim(); // Get PayPal email value
 
       if (!productFile && !previewImage) {
         fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
@@ -279,14 +297,22 @@
         return;
       }
 
-      // REMOVED: if (!allowedFileTypes.includes(productFile.type) || productFile.size > 100 * 1024 * 1024) { ... }
-      // RETAINED: Only the size check for the product file
+      // Validate PayPal email
+      if (!paypalEmail) {
+        paypalEmailValidationMsg.textContent = 'PayPal email is required.';
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(paypalEmail)) {
+        paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
+        return;
+      }
+
       if (productFile.size > 100 * 1024 * 1024) {
           fileValidationMsg.textContent = 'Invalid product file: File size exceeds 100 MB.';
           return;
       }
 
-      // Keep validation for preview image as it's specifically for images
       if (!['image/jpeg', 'image/png'].includes(previewImage.type) || previewImage.size > 5 * 1024 * 1024) {
           previewImageValidationMsg.textContent = 'Invalid preview image: Only JPEG/PNG up to 5MB.';
           return;
@@ -301,11 +327,11 @@
         const timestamp = Date.now();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
 
-        const productFileRef = storage.ref().child(products/${timestamp}_${randomSuffix}_${productFile.name});
+        const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
         await productFileRef.put(productFile);
         const productFileURL = await productFileRef.getDownloadURL();
 
-        const previewImageRef = storage.ref().child(previewImages/${timestamp}_${randomSuffix}_${previewImage.name});
+        const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
         await previewImageRef.put(previewImage);
         const previewImageURL = await previewImageRef.getDownloadURL();
 
@@ -313,6 +339,7 @@
           title: productUploadForm.title.value.trim(),
           description: productUploadForm.description.value.trim(),
           price: parseFloat(productUploadForm.price.value),
+          paypalEmail: paypalEmail, // Add PayPal email to product data
           productFileURL: productFileURL,
           previewImageURL: previewImageURL,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -355,14 +382,13 @@
           const card = document.createElement('div');
           card.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
           card.innerHTML = 
-            <img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
+            `<img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
             <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
             <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
             <div class="mt-auto flex justify-between items-center pt-2">
               <span class="font-bold text-blue-600">$${product.price.toFixed(2)}</span>
               <a href="${product.productFileURL}" download="${product.title}.zip" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
-            </div>
-          ;
+            </div>`;
           productList.appendChild(card);
         });
       } catch (error) {
