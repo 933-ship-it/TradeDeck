@@ -51,6 +51,10 @@
             id="productList"
             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
+            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products found matching your search.</p>
+          </div>
+        </div>
+      </section>
 
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
@@ -157,21 +161,6 @@
                 />
                 <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
               </div>
-              <div>
-                <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image (JPEG, PNG)</label>
-                <input
-                  type="file"
-                  id="previewImage"
-                  name="previewImage"
-                  accept="image/jpeg, image/png"
-                  required
-                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                <div id="previewContainer" class="mt-4 hidden">
-                  <img id="previewImageDisplay" src="" alt="Preview Image" class="mx-auto rounded-md max-h-48 shadow-lg" />
-                </div>
-              </div>
               <button
                 type="submit"
                 id="uploadProductBtn"
@@ -220,12 +209,12 @@
     const productFileInput = document.getElementById('productFile');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
 
-    const previewImageInput = document.getElementById('previewImage');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
-    const previewContainer = document.getElementById('previewContainer');
-    const previewImageDisplay = document.getElementById('previewImageDisplay');
-
     const productUploadForm = document.getElementById('productUploadForm');
+
+    // Home page search elements
+    const searchBar = document.getElementById('searchBar');
+    const productList = document.getElementById('productList');
+    const noProductsMessage = document.getElementById('noProductsMessage');
 
 
     // --- Functions ---
@@ -273,6 +262,15 @@
       }
     }
 
+    /**
+     * Simulates searching for products. For now, it always returns no results.
+     * @param {string} query - The search query.
+     */
+    function searchProducts(query) {
+      productList.innerHTML = ''; // Clear existing products
+      noProductsMessage.classList.remove('hidden'); // Show "no products" message
+    }
+
 
     // --- Event Listeners ---
 
@@ -286,9 +284,13 @@
         // If navigating away from the sell form, reset it
         if (target !== 'sell' && !productForm.classList.contains('hidden')) {
             productUploadForm.reset();
-            previewContainer.classList.add('hidden'); // Hide preview after reset
-            previewImageDisplay.src = ''; // Clear preview image src
             toggleProductForm(false); // Go back to sell landing page
+        }
+
+        // If navigating to home, perform an empty search to show no products
+        if (target === 'home') {
+            searchProducts('');
+            searchBar.value = ''; // Clear search bar on tab switch
         }
       });
     });
@@ -328,52 +330,16 @@
       });
     }
 
-    // 5. Preview image input validation and display
-    if (previewImageInput) {
-      previewImageInput.addEventListener('change', () => {
-        const file = previewImageInput.files[0];
-        previewImageValidationMsg.textContent = ''; // Clear previous message
-        previewContainer.classList.add('hidden'); // Hide until valid
-        previewImageDisplay.src = ''; // Clear src
-
-        if (!file) {
-          previewImageValidationMsg.textContent = 'Please select a preview image.';
-          return;
-        }
-
-        const validTypes = ['image/jpeg', 'image/png'];
-        if (!validTypes.includes(file.type)) {
-          previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-          previewImageInput.value = ''; // Clear invalid file
-          return;
-        }
-        if (file.size > 5 * 1024 * 1024) { // 5 MB limit
-          previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-          previewImageInput.value = ''; // Clear invalid file
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          previewImageDisplay.src = e.target.result;
-          previewContainer.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // 6. Product upload form submission handler (client-side validation and demonstration only)
+    // 5. Product upload form submission handler (client-side validation and demonstration only)
     if (productUploadForm) {
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
 
         // Clear all validation messages
         fileValidationMsg.textContent = '';
-        previewImageValidationMsg.textContent = '';
         paypalEmailValidationMsg.textContent = '';
 
         const productFile = productFileInput.files[0];
-        const previewImage = previewImageInput.files[0];
         const priceValue = parseFloat(priceInput.value);
         const paypalEmailValue = paypalEmailInput.value.trim();
 
@@ -385,18 +351,6 @@
           isValid = false;
         } else if (productFile.size > 100 * 1024 * 1024) {
           fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-          isValid = false;
-        }
-
-        // Validate preview image
-        if (!previewImage) {
-          previewImageValidationMsg.textContent = 'Please upload a preview image.';
-          isValid = false;
-        } else if (!['image/jpeg', 'image/png'].includes(previewImage.type)) {
-          previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-          isValid = false;
-        } else if (previewImage.size > 5 * 1024 * 1024) {
-          previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
           isValid = false;
         }
 
@@ -429,8 +383,6 @@
 
         // Reset form and return to sell landing page
         productUploadForm.reset();
-        previewContainer.classList.add('hidden'); // Hide preview after reset
-        previewImageDisplay.src = ''; // Clear preview image src
         toggleProductForm(false); // Go back to sell landing page
 
         // Re-enable button
@@ -440,33 +392,21 @@
       });
     }
 
+    // 6. Search bar input event
+    if (searchBar) {
+        searchBar.addEventListener('input', () => {
+            const query = searchBar.value.trim();
+            searchProducts(query); // Call search function on input
+        });
+    }
+
+
     // --- Initial Load Logic ---
     // Ensure the home tab is active and visible on page load
     document.addEventListener('DOMContentLoaded', () => {
         showTab('home');
+        searchProducts(''); // Perform initial empty search to show "no products" message
     });
-
-    // The following function is commented out as it relied on Firebase.
-    // If you need products displayed, they must be hardcoded in the HTML
-    // or loaded from another non-Firebase source using fetch/AJAX.
-    /*
-    async function loadProducts() {
-        const productList = document.getElementById('productList');
-        productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
-
-        try {
-            // This part would typically fetch from an API or a static JSON file
-            // Since Firebase is removed, this function is essentially disabled.
-            productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Products would be loaded here (if a data source was connected).</p>';
-            // You could populate it with static HTML examples here if needed.
-
-        } catch (error) {
-            productList.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products.</p>';
-            console.error('Error loading products:', error);
-        }
-    }
-    // loadProducts(); // Don't call this if Firebase is removed.
-    */
   </script>
 </body>
 </html>
