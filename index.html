@@ -383,7 +383,7 @@
       }
     }
 
-    function renderProducts(productArray, container, noResultsMsgElement, filterQuery = '', isDashboard = false) { // Added isDashboard parameter
+    function renderProducts(productArray, container, noResultsMsgElement, filterQuery = '') {
         container.innerHTML = '';
         noResultsMsgElement.classList.add('hidden');
 
@@ -395,7 +395,7 @@
 
         if (filteredProducts.length === 0) {
             noResultsMsgElement.classList.remove('hidden');
-            noResultsMsgElement.textContent = filterQuery ? 'No products found matching your search.' : (isDashboard ? 'You haven\'t listed any products yet.' : 'No products listed yet.');
+            noResultsMsgElement.textContent = filterQuery ? 'No products found matching your search.' : 'No products listed yet.';
             return;
         }
 
@@ -404,91 +404,257 @@
             productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col product-card';
             const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
-            // Conditional rendering of the "Delist" button for the dashboard
-            const actionButton = isDashboard
-                ? `<button data-id="${product.id}" class="delist-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition" aria-label="Delist ${product.title}">Delist</button>`
-                : (product.fileUrl ? `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>` : '');
-
             productCard.innerHTML = `
                 <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
                 <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
                 <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
                 <div class="mt-auto flex justify-between items-center pt-2">
                     <span class="font-bold text-blue-600">${displayPrice}</span>
-                    ${actionButton}
+                    ${product.fileUrl ? `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>` : ''}
                 </div>
             `;
             container.appendChild(productCard);
         });
+    }
 
-        // If it's the dashboard, attach event listeners to the new delist buttons
-        if (isDashboard) {
-            attachDelistEventListeners();
+    async function loadProducts(filterQuery = '') {
+        productListContainer.innerHTML = '';
+        noProductsMessage.textContent = 'Loading products...';
+        noProductsMessage.classList.remove('hidden');
+
+        try {
+            const productsRef = db.collection('products').orderBy('createdAt', 'desc');
+            const snapshot = await productsRef.get();
+            const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            window.allProducts = fetchedProducts;
+
+            renderProducts(window.allProducts, productListContainer, noProductsMessage, filterQuery);
+
+        } catch (error) {
+            console.error("Error loading products:", error);
+            noProductsMessage.textContent = 'Error loading products. Please try again.';
+            noProductsMessage.classList.remove('hidden');
+        }
+    }
+
+    // --- Cloudinary Widget Setup for Preview Image ---
+    const previewImageWidget = cloudinary.createUploadWidget(
+        {
+            cloudName: CLOUDINARY_CLOUD_NAME,
+            uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+            sources: ['local'],
+            resourceType: 'image',
+            clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+            maxFileSize: 10 * 1024 * 1024,
+            multiple: false,
+            folder: 'tradedeck_product_previews',
+            // No form or fieldName needed when we're manually handling the hidden input
+        },
+        (error, result) => {
+            console.log("Preview Image Widget Event:", result.event, result.info);
+            if (!error && result && result.event === "success") {
+                previewImageUrlInput.value = result.info.secure_url;
+                setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+                openPreviewImageWidgetBtn.classList.remove('input-invalid'); // Remove error class on success
+                currentPreviewImage.src = result.info.secure_url;
+                previewImageContainer.classList.remove('hidden');
+                isPreviewImageUploading = false;
+                console.log("Preview Image URL after success:", previewImageUrlInput.value);
+                enableSubmitButton(); // Call enableSubmitButton immediately after successful upload
+            } else if (error) {
+                console.error("Cloudinary preview image upload error:", error);
+                setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
+                previewImageUrlInput.value = '';
+                openPreviewImageWidgetBtn.classList.add('input-invalid'); // Add error class on failure
+                previewImageContainer.classList.add('hidden');
+                currentPreviewImage.src = '';
+                isPreviewImageUploading = false;
+                enableSubmitButton(); // Re-check button state after error
+            } else if (result && (result.event === "close" || result.event === "abort")) {
+                // If widget is closed or aborted AND no URL was previously set, mark as error
+                if (previewImageUrlInput.value === '') {
+                    setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
+                    openPreviewImageWidgetBtn.classList.add('input-invalid');
+                }
+                isPreviewImageUploading = false;
+                enableSubmitButton(); // Re-check button state after closing/aborting
+            } else if (result && result.event === "asset_selected") {
+                setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
+                isPreviewImageUploading = true;
+                disableSubmitButton(); // Disable button while uploading
+            }
+        }
+    );
+
+    // --- Submit Button Management ---
+    function disableSubmitButton() {
+        submitProductBtn.disabled = true;
+        submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function enableSubmitButton() {
+        const titleFilled = titleInput.value.trim() !== '';
+        const descriptionFilled = descriptionInput.value.trim() !== '';
+        const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0;
+        const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim());
+        const previewImageUrlPresent = previewImageUrlInput.value !== '';
+        const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== '');
+
+        // Add/remove error classes based on validity
+        titleInput.classList.toggle('input-invalid', !titleFilled);
+        descriptionInput.classList.toggle('input-invalid', !descriptionFilled);
+        priceInput.classList.toggle('input-invalid', !priceValid);
+        productFileUrlInput.classList.toggle('input-invalid', !productFileUrlPresentAndValid);
+        openPreviewImageWidgetBtn.classList.toggle('input-invalid', !previewImageUrlPresent); // Apply to the button that opens the widget
+
+        if (!paypalEmailContainer.classList.contains('hidden')) {
+            paypalEmailInput.classList.toggle('input-invalid', !paypalEmailValid);
+            paypalEmailValidationMsg.textContent = !paypalEmailValid && paypalEmailInput.value.trim() !== '' ? 'Please enter a valid PayPal email.' : '';
+        } else {
+            paypalEmailInput.classList.remove('input-invalid');
+            paypalEmailValidationMsg.textContent = '';
+        }
+
+
+        if (!isPreviewImageUploading &&
+            titleFilled &&
+            descriptionFilled &&
+            priceValid &&
+            productFileUrlPresentAndValid &&
+            previewImageUrlPresent &&
+            paypalEmailValid) {
+            submitProductBtn.disabled = false;
+            submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            disableSubmitButton();
         }
     }
 
 
-    // 2. Add the attachDelistEventListeners function (new function)
-    function attachDelistEventListeners() {
-        document.querySelectorAll('.delist-btn').forEach(button => {
-            button.addEventListener('click', async (e) => {
-                const productId = e.target.dataset.id;
-                const productName = e.target.closest('.product-card').querySelector('h3').textContent; // Get product name for confirmation
+    // --- Event Listeners ---
 
-                if (confirm(`Are you sure you want to delist "${productName}"? This action cannot be undone.`)) {
-                    try {
-                        await db.collection('products').doc(productId).delete();
-                        alert(`"${productName}" has been delisted successfully.`);
-                        // After deletion, refresh the dashboard view
-                        await loadProducts(); // Reload all products to update window.allProducts
-                        renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage, '', true); // Re-render dashboard
-                    } catch (error) {
-                        console.error("Error delisting product:", error);
-                        alert(`Failed to delist "${productName}". Please try again.`);
-                    }
-                }
-            });
-        });
-    }
-
-
-    // 3. Update the dashboard tab click event listener (replace your existing one)
-    // This ensures renderProducts is called with isDashboard = true for the dashboard tab
+    // 1. Sidebar Tab Navigation
     tabs.forEach(tab => {
-        tab.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const target = tab.getAttribute('data-tab');
-            showTab(target);
+      tab.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const target = tab.getAttribute('data-tab');
+        showTab(target);
 
-            if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-                toggleProductForm(false);
-            }
+        if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+            toggleProductForm(false);
+        }
 
-            if (target === 'home') {
-                await loadProducts(searchBar.value.trim());
-                searchBar.value = '';
-            } else if (target === 'dashboard') {
-                // Pass true for isDashboard when rendering user products
-                renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage, '', true);
-            }
-        });
+        if (target === 'home') {
+            await loadProducts(searchBar.value.trim());
+            searchBar.value = '';
+        } else if (target === 'dashboard') {
+            renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
+        }
+      });
     });
 
-    // 4. Update the initial load call for the dashboard (modify existing line)
-    // Make sure this is also called with true for isDashboard if the initial tab is 'dashboard'
+    // 2. "Start Selling Now" button to show the product form
+    if (startSellingBtn) {
+      startSellingBtn.addEventListener('click', () => {
+        toggleProductForm(true);
+      });
+    }
+
+    // 3. Price input to show/hide PayPal email field (adjusted for 0 price)
+    if (priceInput) {
+      priceInput.addEventListener('input', () => {
+        const priceValue = parseFloat(priceInput.value);
+        if (!isNaN(priceValue) && priceValue > 0) {
+          paypalEmailContainer.classList.remove('hidden');
+        } else {
+          paypalEmailContainer.classList.add('hidden');
+          paypalEmailInput.value = '';
+          paypalEmailValidationMsg.textContent = '';
+        }
+        enableSubmitButton();
+      });
+    }
+
+    // 4. Input listeners for real-time button enabling/disabling and validation feedback
+    titleInput.addEventListener('input', enableSubmitButton);
+    descriptionInput.addEventListener('input', enableSubmitButton);
+    // Price input handled above
+    paypalEmailInput.addEventListener('input', enableSubmitButton);
+
+    // New: Event listener for the "Choose file" button to open Cloudinary widget
+    if (openPreviewImageWidgetBtn) {
+        openPreviewImageWidgetBtn.addEventListener('click', () => {
+            previewImageWidget.open();
+        });
+    }
+
+    // Event listener for the manual product file URL input to convert link and trigger button enable check
+    if (productFileUrlInput) {
+        productFileUrlInput.addEventListener('input', () => {
+            const originalUrl = productFileUrlInput.value;
+            const convertedUrl = convertToGoogleDriveDirectDownload(originalUrl);
+            if (originalUrl !== convertedUrl) {
+                productFileUrlInput.value = convertedUrl;
+            }
+            enableSubmitButton();
+        });
+    }
+
+
+    // 5. Product upload form submission handler
+    if (productUploadForm) {
+      productUploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Re-run enableSubmitButton to highlight any final missing fields
+        enableSubmitButton();
+
+        if (submitProductBtn.disabled) { // If button is disabled, some validation failed
+            alert('Please fill in all required fields and ensure URLs/emails are valid before listing your product.');
+            return;
+        }
+
+        if (isPreviewImageUploading) {
+            alert('Please wait for the preview image to finish uploading before submitting.');
+            return;
+        }
+
+        submitProductBtn.disabled = true;
+        submitProductBtn.textContent = 'Listing Product...';
+        submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        try {
+            const newProduct = {
+                title: titleInput.value.trim(),
+                description: descriptionInput.value.trim(),
+                price: parseFloat(priceInput.value),
+                fileUrl: productFileUrlInput.value,
+                previewImageUrl: previewImageUrlInput.value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await db.collection('products').add(newProduct);
+
+            alert('Product listed successfully!');
+
+            toggleProductForm(false);
+            await loadProducts('');
+
+        } catch (error) {
+            console.error("Error adding document to Firestore:", error);
+            alert('Failed to list product. Please check console for details.');
+        } finally {
+            enableSubmitButton();
+            submitProductBtn.textContent = 'List Product';
+        }
+      });
+    }
+
+    // 6. Initial load when the page loads
     const initialTab = window.location.hash.substring(1) || 'home';
     showTab(initialTab);
-    loadProducts(); // Load all products initially
-
-    // If you want the dashboard to load on page refresh to its current state,
-    // you might need to adjust the initial rendering of the dashboard to include `true` for `isDashboard`
-    if (initialTab === 'dashboard') {
-        // A small delay might be needed if loadProducts is async and takes time
-        // Alternatively, ensure loadProducts populates window.allProducts before this is called
-        setTimeout(() => {
-            renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage, '', true);
-        }, 100); // Adjust delay if necessary, or make rendering dependent on loadProducts completion
-    }
+    loadProducts();
 
     // Initial check for button state if form is visible on page load (e.g., after refresh)
     if (productForm && !productForm.classList.contains('hidden')) {
