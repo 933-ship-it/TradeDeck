@@ -188,7 +188,7 @@
 
               <div>
                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
-                <input type="file" id="previewImageInput" name="previewImage" class="cloudinary-file-input" accept="image/*" required>
+                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input">Choose file</button>
                 <input type="hidden" id="previewImageUrl" name="previewImageUrl">
                 <p id="previewImageStatus" class="file-upload-status"></p>
                 <div id="previewImageContainer" class="mt-2 hidden">
@@ -271,7 +271,7 @@
     const productFileUrlInput = document.getElementById('productFileUrlInput');
 
     // Preview Image Elements
-    const previewImageInput = document.getElementById('previewImageInput');
+    const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget'); // Changed from input
     const previewImageUrlInput = document.getElementById('previewImageUrl');
     const previewImageStatus = document.getElementById('previewImageStatus');
     const previewImageContainer = document.getElementById('previewImageContainer');
@@ -287,7 +287,7 @@
     const userProductsContainer = document.getElementById('userProducts');
     const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
-    // Track upload status (only for preview image now)
+    // Track upload status
     let isPreviewImageUploading = false;
 
     // --- Helper for setting file input status messages ---
@@ -309,7 +309,6 @@
 
         let convertedUrl = url;
 
-        // Pattern for Google Drive view links (e.g., https://drive.google.com/file/d/FILE_ID/view?usp=sharing)
         const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
         const match = url.match(driveViewPattern);
 
@@ -318,7 +317,6 @@
             convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
             console.log(`Converted Google Drive view link to direct download: ${convertedUrl}`);
         } else if (url.includes('drive.google.com/open?id=')) {
-            // Another common older Google Drive share link format
             const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
             if (idMatch && idMatch[1]) {
                  const fileId = idMatch[1];
@@ -363,12 +361,19 @@
         productFileUrlInput.value = '';
         previewImageUrlInput.value = '';
         setFileInputStatus(previewImageStatus, '');
-        previewImageInput.classList.remove('input-invalid');
+        // Clear previous visual error states
+        titleInput.classList.remove('input-invalid');
+        descriptionInput.classList.remove('input-invalid');
+        priceInput.classList.remove('input-invalid');
+        openPreviewImageWidgetBtn.classList.remove('input-invalid');
+        productFileUrlInput.classList.remove('input-invalid');
+        paypalEmailInput.classList.remove('input-invalid');
+        paypalEmailValidationMsg.textContent = '';
+
+
         previewImageContainer.classList.add('hidden');
         currentPreviewImage.src = '';
         paypalEmailContainer.classList.add('hidden');
-        paypalEmailValidationMsg.textContent = '';
-        productFileUrlInput.classList.remove('input-invalid');
 
         // Immediately check button state after clearing
         enableSubmitButton();
@@ -396,7 +401,6 @@
 
         filteredProducts.forEach(product => {
             const productCard = document.createElement('div');
-            // Added product-card class for hover effect
             productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col product-card';
             const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
@@ -423,7 +427,7 @@
             const snapshot = await productsRef.get();
             const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            window.allProducts = fetchedProducts; // Store for dashboard
+            window.allProducts = fetchedProducts;
 
             renderProducts(window.allProducts, productListContainer, noProductsMessage, filterQuery);
 
@@ -445,15 +449,14 @@
             maxFileSize: 10 * 1024 * 1024,
             multiple: false,
             folder: 'tradedeck_product_previews',
-            form: '#productUploadForm',
-            fieldName: 'previewImage'
+            // No form or fieldName needed when we're manually handling the hidden input
         },
         (error, result) => {
             console.log("Preview Image Widget Event:", result.event, result.info);
             if (!error && result && result.event === "success") {
                 previewImageUrlInput.value = result.info.secure_url;
                 setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-                previewImageInput.classList.remove('input-invalid'); // Remove error class on success
+                openPreviewImageWidgetBtn.classList.remove('input-invalid'); // Remove error class on success
                 currentPreviewImage.src = result.info.secure_url;
                 previewImageContainer.classList.remove('hidden');
                 isPreviewImageUploading = false;
@@ -463,21 +466,21 @@
                 console.error("Cloudinary preview image upload error:", error);
                 setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
                 previewImageUrlInput.value = '';
-                previewImageInput.classList.add('input-invalid'); // Add error class on failure
+                openPreviewImageWidgetBtn.classList.add('input-invalid'); // Add error class on failure
                 previewImageContainer.classList.add('hidden');
                 currentPreviewImage.src = '';
                 isPreviewImageUploading = false;
                 enableSubmitButton(); // Re-check button state after error
-            } else if (result && result.event === "close" || result.event === "abort") {
-                // If widget is closed or aborted and no URL was set, mark as error
+            } else if (result && (result.event === "close" || result.event === "abort")) {
+                // If widget is closed or aborted AND no URL was previously set, mark as error
                 if (previewImageUrlInput.value === '') {
                     setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
-                    previewImageInput.classList.add('input-invalid');
+                    openPreviewImageWidgetBtn.classList.add('input-invalid');
                 }
                 isPreviewImageUploading = false;
                 enableSubmitButton(); // Re-check button state after closing/aborting
             } else if (result && result.event === "asset_selected") {
-                setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename}...`, 'loading');
+                setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
                 isPreviewImageUploading = true;
                 disableSubmitButton(); // Disable button while uploading
             }
@@ -494,7 +497,7 @@
         const titleFilled = titleInput.value.trim() !== '';
         const descriptionFilled = descriptionInput.value.trim() !== '';
         const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0;
-        const productFileUrlPresent = productFileUrlInput.value.trim() !== '';
+        const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim());
         const previewImageUrlPresent = previewImageUrlInput.value !== '';
         const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== '');
 
@@ -502,8 +505,8 @@
         titleInput.classList.toggle('input-invalid', !titleFilled);
         descriptionInput.classList.toggle('input-invalid', !descriptionFilled);
         priceInput.classList.toggle('input-invalid', !priceValid);
-        productFileUrlInput.classList.toggle('input-invalid', !productFileUrlPresent || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())); // Check URL format
-        previewImageInput.classList.toggle('input-invalid', !previewImageUrlPresent);
+        productFileUrlInput.classList.toggle('input-invalid', !productFileUrlPresentAndValid);
+        openPreviewImageWidgetBtn.classList.toggle('input-invalid', !previewImageUrlPresent); // Apply to the button that opens the widget
 
         if (!paypalEmailContainer.classList.contains('hidden')) {
             paypalEmailInput.classList.toggle('input-invalid', !paypalEmailValid);
@@ -518,8 +521,7 @@
             titleFilled &&
             descriptionFilled &&
             priceValid &&
-            productFileUrlPresent &&
-            /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim()) && // Ensure URL format is also checked here
+            productFileUrlPresentAndValid &&
             previewImageUrlPresent &&
             paypalEmailValid) {
             submitProductBtn.disabled = false;
@@ -540,7 +542,7 @@
         showTab(target);
 
         if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-            toggleProductForm(false); // Hide the form if navigating away from sell tab
+            toggleProductForm(false);
         }
 
         if (target === 'home') {
@@ -555,7 +557,7 @@
     // 2. "Start Selling Now" button to show the product form
     if (startSellingBtn) {
       startSellingBtn.addEventListener('click', () => {
-        toggleProductForm(true); // This now clears the form and calls enableSubmitButton
+        toggleProductForm(true);
       });
     }
 
@@ -570,24 +572,34 @@
           paypalEmailInput.value = '';
           paypalEmailValidationMsg.textContent = '';
         }
-        enableSubmitButton(); // Re-evaluate button state
+        enableSubmitButton();
       });
     }
 
     // 4. Input listeners for real-time button enabling/disabling and validation feedback
     titleInput.addEventListener('input', enableSubmitButton);
     descriptionInput.addEventListener('input', enableSubmitButton);
-    priceInput.addEventListener('input', enableSubmitButton);
-    paypalEmailInput.addEventListener('input', enableSubmitButton); // For real-time email validation
-    productFileUrlInput.addEventListener('input', () => {
-        // Immediately convert Google Drive link
-        const originalUrl = productFileUrlInput.value;
-        const convertedUrl = convertToGoogleDriveDirectDownload(originalUrl);
-        if (originalUrl !== convertedUrl) {
-            productFileUrlInput.value = convertedUrl;
-        }
-        enableSubmitButton(); // Check validity after potential conversion
-    });
+    // Price input handled above
+    paypalEmailInput.addEventListener('input', enableSubmitButton);
+
+    // New: Event listener for the "Choose file" button to open Cloudinary widget
+    if (openPreviewImageWidgetBtn) {
+        openPreviewImageWidgetBtn.addEventListener('click', () => {
+            previewImageWidget.open();
+        });
+    }
+
+    // Event listener for the manual product file URL input to convert link and trigger button enable check
+    if (productFileUrlInput) {
+        productFileUrlInput.addEventListener('input', () => {
+            const originalUrl = productFileUrlInput.value;
+            const convertedUrl = convertToGoogleDriveDirectDownload(originalUrl);
+            if (originalUrl !== convertedUrl) {
+                productFileUrlInput.value = convertedUrl;
+            }
+            enableSubmitButton();
+        });
+    }
 
 
     // 5. Product upload form submission handler
@@ -617,7 +629,7 @@
                 title: titleInput.value.trim(),
                 description: descriptionInput.value.trim(),
                 price: parseFloat(priceInput.value),
-                fileUrl: productFileUrlInput.value, // This value is already converted if it was a GDrive link
+                fileUrl: productFileUrlInput.value,
                 previewImageUrl: previewImageUrlInput.value,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
@@ -626,15 +638,15 @@
 
             alert('Product listed successfully!');
 
-            toggleProductForm(false); // Go back to sell landing and clear form
-            await loadProducts(''); // Reload products on homepage to show new item
+            toggleProductForm(false);
+            await loadProducts('');
 
         } catch (error) {
             console.error("Error adding document to Firestore:", error);
             alert('Failed to list product. Please check console for details.');
         } finally {
-            enableSubmitButton(); // Ensure button is re-enabled on success or failure
-            submitProductBtn.textContent = 'List Product'; // Reset button text
+            enableSubmitButton();
+            submitProductBtn.textContent = 'List Product';
         }
       });
     }
@@ -642,11 +654,11 @@
     // 6. Initial load when the page loads
     const initialTab = window.location.hash.substring(1) || 'home';
     showTab(initialTab);
-    loadProducts(); // Load products on initial page load
+    loadProducts();
 
     // Initial check for button state if form is visible on page load (e.g., after refresh)
     if (productForm && !productForm.classList.contains('hidden')) {
-        enableSubmitButton(); // Evaluate the form's state immediately
+        enableSubmitButton();
     }
   </script>
 </body>
