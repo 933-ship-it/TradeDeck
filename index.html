@@ -31,6 +31,18 @@
     .cloudinary-file-input {
       @apply w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer;
     }
+    .file-upload-status {
+        @apply text-sm mt-1;
+    }
+    .file-upload-status.success {
+        @apply text-green-600;
+    }
+    .file-upload-status.error {
+        @apply text-red-500;
+    }
+    .file-upload-status.loading {
+        @apply text-blue-500 italic;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -163,8 +175,7 @@
                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
                 <input type="file" id="previewImageInput" name="previewImage" class="cloudinary-file-input" accept="image/*" required>
                 <input type="hidden" id="previewImageUrl" name="previewImageUrl">
-                <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                <p id="uploadedPreviewImageName" class="text-gray-600 text-xs mt-1 italic hidden"></p>
+                <p id="previewImageStatus" class="file-upload-status"></p>
                 <div id="previewImageContainer" class="mt-2 hidden">
                     <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-xs h-32 object-cover rounded-md border border-gray-300" />
                 </div>
@@ -175,8 +186,7 @@
                 <input type="file" id="productFileInput" name="productFile" class="cloudinary-file-input" required>
                 <input type="hidden" id="productFileUrl" name="productFileUrl">
                 <input type="hidden" id="productFilePublicId" name="productFilePublicId">
-                <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                <p id="uploadedFileName" class="text-gray-600 text-xs mt-1 italic hidden"></p>
+                <p id="productFileStatus" class="file-upload-status"></p>
               </div>
 
               <button
@@ -239,14 +249,12 @@
     const productFileInput = document.getElementById('productFileInput');
     const productFileUrlInput = document.getElementById('productFileUrl');
     const productFilePublicIdInput = document.getElementById('productFilePublicId');
-    const fileValidationMsg = document.getElementById('fileValidationMsg');
-    const uploadedFileName = document.getElementById('uploadedFileName');
+    const productFileStatus = document.getElementById('productFileStatus'); // Renamed for clarity
 
     // Preview Image Elements
     const previewImageInput = document.getElementById('previewImageInput');
     const previewImageUrlInput = document.getElementById('previewImageUrl');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
-    const uploadedPreviewImageName = document.getElementById('uploadedPreviewImageName');
+    const previewImageStatus = document.getElementById('previewImageStatus'); // Renamed for clarity
     const previewImageContainer = document.getElementById('previewImageContainer');
     const currentPreviewImage = document.getElementById('currentPreviewImage');
 
@@ -259,6 +267,24 @@
 
     const userProductsContainer = document.getElementById('userProducts');
     const noUserProductsMessage = document.getElementById('noUserProductsMessage');
+
+    // Track upload status
+    let isProductFileUploading = false;
+    let isPreviewImageUploading = false;
+
+    // --- Helper for setting file input status messages ---
+    function setFileInputStatus(statusElement, message, type = 'default') {
+        statusElement.textContent = message;
+        statusElement.classList.remove('success', 'error', 'loading');
+        if (type === 'success') {
+            statusElement.classList.add('success');
+        } else if (type === 'error') {
+            statusElement.classList.add('error');
+        } else if (type === 'loading') {
+            statusElement.classList.add('loading');
+        }
+    }
+
 
     // --- Functions ---
 
@@ -312,7 +338,6 @@
         filteredProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
-            // Determine price display
             const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
             productCard.innerHTML = `
@@ -334,7 +359,7 @@
         noProductsMessage.classList.remove('hidden');
 
         try {
-            const productsRef = db.collection('products').orderBy('createdAt', 'desc'); // Order by newest first
+            const productsRef = db.collection('products').orderBy('createdAt', 'desc');
             const snapshot = await productsRef.get();
             const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -364,33 +389,47 @@
             clientAllowedFormats: ['pdf', 'zip', 'rar', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'exe', 'txt', 'js', 'css', 'html', 'json', 'csv', 'svg', 'ai', 'psd', 'cdr', 'sketch', 'indd', 'eps'],
             maxFileSize: 100 * 1024 * 1024,
             multiple: false,
-            folder: 'tradedeck_product_files', // Specific folder for product files
+            folder: 'tradedeck_product_files',
             form: '#productUploadForm',
-            fieldName: 'productFile' // Matches the name of the input
+            fieldName: 'productFile'
         },
         (error, result) => {
             if (!error && result && result.event === "success") {
                 productFileUrlInput.value = result.info.secure_url;
                 productFilePublicIdInput.value = result.info.public_id;
-                uploadedFileName.textContent = `File uploaded: ${result.info.original_filename}.${result.info.format}`;
-                uploadedFileName.classList.remove('hidden');
-                fileValidationMsg.textContent = '';
-                productFileInput.classList.remove('border-red-500'); // Remove error border
+                setFileInputStatus(productFileStatus, `File uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+                productFileInput.classList.remove('border-red-500');
+                isProductFileUploading = false;
+                checkAllUploadsComplete();
             } else if (error) {
                 console.error("Cloudinary product file upload error:", error);
-                fileValidationMsg.textContent = 'File upload failed. Please try again.';
+                setFileInputStatus(productFileStatus, 'File upload failed. Please try again.', 'error');
                 productFileUrlInput.value = '';
                 productFilePublicIdInput.value = '';
-                uploadedFileName.classList.add('hidden');
-                productFileInput.classList.add('border-red-500'); // Add error border
-            } else if (result && result.event === "abort") {
+                productFileInput.classList.add('border-red-500');
+                isProductFileUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "close") {
+                // If widget closed and no file was successfully uploaded
                 if (productFileUrlInput.value === '') {
-                    fileValidationMsg.textContent = 'File upload cancelled.';
+                    setFileInputStatus(productFileStatus, 'Please select a digital product file.', 'error');
                     productFileInput.classList.add('border-red-500');
                 }
-            } else if (result && result.event === "close" && productFileUrlInput.value === '') {
-                fileValidationMsg.textContent = 'Please select a digital product file.';
-                productFileInput.classList.add('border-red-500');
+                isProductFileUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "abort") {
+                 // User explicitly cancelled the upload
+                if (productFileUrlInput.value === '') { // Only if no file was uploaded yet
+                    setFileInputStatus(productFileStatus, 'File selection cancelled.', 'error');
+                    productFileInput.classList.add('border-red-500');
+                }
+                isProductFileUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "asset_selected") {
+                // User selected a file, but it hasn't uploaded yet
+                setFileInputStatus(productFileStatus, `Uploading ${result.info.original_filename}...`, 'loading');
+                isProductFileUploading = true;
+                disableSubmitButton();
             }
         }
     );
@@ -401,42 +440,71 @@
             cloudName: CLOUDINARY_CLOUD_NAME,
             uploadPreset: CLOUDINARY_UPLOAD_PRESET,
             sources: ['local'],
-            resourceType: 'image', // Only allow image files
+            resourceType: 'image',
             clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
-            maxFileSize: 10 * 1024 * 1024, // 10 MB limit for preview images
+            maxFileSize: 10 * 1024 * 1024,
             multiple: false,
-            folder: 'tradedeck_product_previews', // Specific folder for preview images
+            folder: 'tradedeck_product_previews',
             form: '#productUploadForm',
-            fieldName: 'previewImage' // Matches the name of the input
+            fieldName: 'previewImage'
         },
         (error, result) => {
             if (!error && result && result.event === "success") {
                 previewImageUrlInput.value = result.info.secure_url;
-                uploadedPreviewImageName.textContent = `Image uploaded: ${result.info.original_filename}.${result.info.format}`;
-                uploadedPreviewImageName.classList.remove('hidden');
-                previewImageValidationMsg.textContent = '';
-                previewImageInput.classList.remove('border-red-500'); // Remove error border
-                currentPreviewImage.src = result.info.secure_url; // Show preview
+                setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+                previewImageInput.classList.remove('border-red-500');
+                currentPreviewImage.src = result.info.secure_url;
                 previewImageContainer.classList.remove('hidden');
+                isPreviewImageUploading = false;
+                checkAllUploadsComplete();
             } else if (error) {
                 console.error("Cloudinary preview image upload error:", error);
-                previewImageValidationMsg.textContent = 'Image upload failed. Please try again.';
+                setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
                 previewImageUrlInput.value = '';
-                uploadedPreviewImageName.classList.add('hidden');
                 previewImageInput.classList.add('border-red-500');
                 previewImageContainer.classList.add('hidden');
                 currentPreviewImage.src = '';
-            } else if (result && result.event === "abort") {
+                isPreviewImageUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "close") {
                 if (previewImageUrlInput.value === '') {
-                    previewImageValidationMsg.textContent = 'Image upload cancelled.';
+                    setFileInputStatus(previewImageStatus, 'Please select a preview image.', 'error');
                     previewImageInput.classList.add('border-red-500');
                 }
-            } else if (result && result.event === "close" && previewImageUrlInput.value === '') {
-                previewImageValidationMsg.textContent = 'Please select a preview image.';
-                previewImageInput.classList.add('border-red-500');
+                isPreviewImageUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "abort") {
+                if (previewImageUrlInput.value === '') {
+                    setFileInputStatus(previewImageStatus, 'Image selection cancelled.', 'error');
+                    previewImageInput.classList.add('border-red-500');
+                }
+                isPreviewImageUploading = false;
+                checkAllUploadsComplete();
+            } else if (result && result.event === "asset_selected") {
+                setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename}...`, 'loading');
+                isPreviewImageUploading = true;
+                disableSubmitButton();
             }
         }
     );
+
+    // --- Submit Button Management ---
+    function disableSubmitButton() {
+        submitProductBtn.disabled = true;
+        submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    function enableSubmitButton() {
+        submitProductBtn.disabled = false;
+        submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    function checkAllUploadsComplete() {
+        if (!isProductFileUploading && !isPreviewImageUploading) {
+            enableSubmitButton();
+        }
+    }
+
 
     // --- Event Listeners ---
 
@@ -452,18 +520,19 @@
             // Clear Cloudinary specific inputs and messages on form reset
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
-            uploadedFileName.classList.add('hidden');
-            uploadedFileName.textContent = '';
-            fileValidationMsg.textContent = '';
+            setFileInputStatus(productFileStatus, '');
             productFileInput.classList.remove('border-red-500');
 
             previewImageUrlInput.value = '';
-            uploadedPreviewImageName.classList.add('hidden');
-            uploadedPreviewImageName.textContent = '';
-            previewImageValidationMsg.textContent = '';
+            setFileInputStatus(previewImageStatus, '');
             previewImageInput.classList.remove('border-red-500');
             previewImageContainer.classList.add('hidden');
             currentPreviewImage.src = '';
+
+            // Ensure submit button is re-enabled if user navigates away and back
+            enableSubmitButton();
+            isProductFileUploading = false;
+            isPreviewImageUploading = false;
 
             toggleProductForm(false);
         }
@@ -493,7 +562,8 @@
     if (priceInput) {
       priceInput.addEventListener('input', () => {
         const priceValue = parseFloat(priceInput.value);
-        if (!isNaN(priceValue) && priceValue > 0) { // Only show PayPal if price > 0
+        // Show PayPal if price is not NaN and is greater than 0
+        if (!isNaN(priceValue) && priceValue > 0) {
           paypalEmailContainer.classList.remove('hidden');
         } else {
           paypalEmailContainer.classList.add('hidden');
@@ -508,10 +578,16 @@
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Re-check upload status before submission, just in case
+        if (isProductFileUploading || isPreviewImageUploading) {
+            alert('Please wait for files to finish uploading before submitting.');
+            return;
+        }
+
         // Clear all validation messages and error states
-        fileValidationMsg.textContent = '';
+        setFileInputStatus(productFileStatus, '');
+        setFileInputStatus(previewImageStatus, '');
         paypalEmailValidationMsg.textContent = '';
-        previewImageValidationMsg.textContent = '';
         productFileInput.classList.remove('border-red-500');
         previewImageInput.classList.remove('border-red-500');
 
@@ -520,25 +596,26 @@
         const description = document.getElementById('description').value.trim();
         const price = parseFloat(document.getElementById('price').value);
         const productFileUrl = productFileUrlInput.value;
-        const previewImageUrl = previewImageUrlInput.value; // Get preview image URL
+        const previewImageUrl = previewImageUrlInput.value;
         const paypalEmailValue = paypalEmailInput.value.trim();
 
         let isValid = true;
 
         if (!title) { isValid = false; alert('Please enter a product title.'); }
         if (!description) { isValid = false; alert('Please enter a product description.'); }
-        if (isNaN(price) || price < 0) { isValid = false; alert('Please enter a valid price (0 or greater).'); } // Allow 0
+        // Price validation: Must be a number and 0 or greater
+        if (isNaN(price) || price < 0) { isValid = false; alert('Please enter a valid price (0 or greater).'); }
 
         // Crucial: Check if Cloudinary upload was successful and URL is present for main file
         if (!productFileUrl) {
-          fileValidationMsg.textContent = 'Please select a digital product file.';
+          setFileInputStatus(productFileStatus, 'Please select a digital product file.', 'error');
           productFileInput.classList.add('border-red-500');
           isValid = false;
         }
 
         // Crucial: Check for preview image
         if (!previewImageUrl) {
-            previewImageValidationMsg.textContent = 'Please select a product preview image.';
+            setFileInputStatus(previewImageStatus, 'Please select a product preview image.', 'error');
             previewImageInput.classList.add('border-red-500');
             isValid = false;
         }
@@ -558,6 +635,7 @@
           return;
         }
 
+        // Disable submit button and show loading state for final submission
         submitProductBtn.disabled = true;
         submitProductBtn.textContent = 'Listing Product...';
         submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -568,42 +646,35 @@
                 description: description,
                 price: price,
                 fileUrl: productFileUrl,
-                previewImageUrl: previewImageUrl, // Store the uploaded preview image URL
+                previewImageUrl: previewImageUrl,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await db.collection('products').add(newProduct);
 
             alert('Product listed successfully!');
 
-            // Reset form and return to sell landing page
+            // Reset form and UI states
             productUploadForm.reset();
-            // Clear Cloudinary specific inputs and messages on form reset
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
-            uploadedFileName.classList.add('hidden');
-            uploadedFileName.textContent = '';
-            fileValidationMsg.textContent = '';
+            setFileInputStatus(productFileStatus, '');
             productFileInput.classList.remove('border-red-500');
 
             previewImageUrlInput.value = '';
-            uploadedPreviewImageName.classList.add('hidden');
-            uploadedPreviewImageName.textContent = '';
-            previewImageValidationMsg.textContent = '';
+            setFileInputStatus(previewImageStatus, '');
             previewImageInput.classList.remove('border-red-500');
             previewImageContainer.classList.add('hidden');
             currentPreviewImage.src = '';
 
             toggleProductForm(false);
-
-            await loadProducts(''); // Reload products to display the new one
+            await loadProducts('');
 
         } catch (error) {
             console.error("Error adding document to Firestore:", error);
             alert('Failed to list product. Please check console for details.');
         } finally {
-            submitProductBtn.disabled = false;
-            submitProductBtn.textContent = 'List Product';
-            submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            // Re-enable submit button
+            enableSubmitButton();
         }
       });
     }
