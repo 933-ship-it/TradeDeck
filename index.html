@@ -2,373 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TradeDeck - Sell</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    main section { transition: opacity 0.3s ease-in-out; }
-    main section.hidden {
-      opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none;
-    }
-  </style>
 </head>
-<body class="bg-gray-100">
-  <div class="flex h-screen">
-    <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
-      <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
-      <nav class="space-y-4 flex-grow">
-        <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0">Home</a>
-        <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">Sell</a>
-        <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">Dashboard</a>
-      </nav>
-    </aside>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <div class="max-w-3xl mx-auto p-6 bg-white shadow-lg mt-12 rounded-md">
+    <h1 class="text-2xl font-bold mb-6">Sell a Product</h1>
 
-    <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
+    <!-- Status -->
+    <p id="status" class="text-blue-600 mb-4 hidden">Uploading...</p>
 
-      <section id="home" aria-label="Home Products" class="">
-        <div class="max-w-5xl mx-auto">
-          <input
-            type="search"
-            id="searchBar"
-            aria-label="Search products"
-            placeholder="Search products..."
-            class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <div
-            id="productList"
-            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          >
-            </div>
-        </div>
-      </section>
+    <!-- Form -->
+    <div class="space-y-4">
+      <input id="title" type="text" placeholder="Product Title"
+        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"/>
 
-      <section id="sell" class="hidden">
-  <div class="max-w-6xl mx-auto mt-16 px-4">
-    <div id="sellLandingContent">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
-          Turn Your Digital Assets Into Revenue
-        </h2>
-        <p class="text-lg text-gray-600 mb-6">
-          Sell eBooks, guides, code packs, templates, and more. Reach global buyers instantly with TradeDeck.
-        </p>
-        <button
-          id="startSellingBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
-        >
-          Start Selling Now
-        </button>
-      </div>
+      <textarea id="description" rows="4" placeholder="Product Description"
+        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"></textarea>
 
-      <div class="mb-20">
-        <h3 class="text-2xl font-semibold text-gray-800 mb-10 text-center">How It Works</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-            <div class="text-blue-600 text-4xl mb-4">📤</div>
-            <h4 class="text-lg font-semibold mb-2">Upload</h4>
-            <p class="text-gray-600 text-sm">Drag & drop your file—PDFs, ZIPs, images, anything.</p>
-          </div>
-          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-            <div class="text-green-500 text-4xl mb-4">💬</div>
-            <h4 class="text-lg font-semibold mb-2">Describe & Price</h4>
-            <p class="text-gray-600 text-sm">Set the price, add a description, and preview image.</p>
-          </div>
-          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-            <div class="text-purple-500 text-4xl mb-4">💳</div>
-            <h4 class="text-lg font-semibold mb-2">Get Paid</h4>
-            <p class="text-gray-600 text-sm">Earnings go straight to your linked PayPal account.</p>
-          </div>
-        </div>
-      </div>
+      <input id="price" type="number" placeholder="Price in USD"
+        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"/>
+
+      <label class="block">Upload Product File:
+        <input id="productFile" type="file" accept=".pdf,.zip,.docx,.pptx"
+          class="mt-2"/>
+      </label>
+
+      <label class="block">Upload Preview Image:
+        <input id="previewImage" type="file" accept="image/*"
+          class="mt-2"/>
+      </label>
+
+      <button id="submitButton"
+        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">Submit Product</button>
     </div>
-
-    <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
-      <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List a Digital Product</h3>
-      <form id="productUploadForm" class="space-y-6">
-        <div>
-          <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., Ultimate Guide to Freelancing"
-          />
-        </div>
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Describe your product in detail..."
-          ></textarea>
-        </div>
-        <div>
-          <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            min="0"
-            step="0.01"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            placeholder="e.g., 19.99"
-          />
-        </div>
-        <div>
-          <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Upload Product File</label>
-          <input
-            type="file"
-            id="productFile"
-            name="productFile"
-            required
-            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-100 file:text-blue-800 hover:file:bg-blue-200"
-          />
-          <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
-        </div>
-        <div>
-          <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image</label>
-          <input
-            type="file"
-            id="previewImage"
-            name="previewImage"
-            accept="image/jpeg, image/png"
-            required
-            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-100 file:text-purple-800 hover:file:bg-purple-200"
-          />
-          <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-        </div>
-        <button
-          type="submit"
-          class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          List Product
-        </button>
-      </form>
-    </div>
-  </div>
-</section>
-
-
-      <section id="dashboard" class="hidden">
-        <div class="max-w-4xl mx-auto text-center mt-24">
-          <h2 class="text-2xl font-bold text-gray-700">Your Dashboard</h2>
-          <p class="text-gray-500 mt-2">Coming soon: view your sales, products, and more.</p>
-        </div>
-      </section>
-    </main>
   </div>
 
   <script>
-    // Firebase config
+    // Firebase config (replace with your own project info)
     const firebaseConfig = {
-      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-      authDomain: "tradedeck-82bbb.firebaseapp.com",
-      projectId: "tradedeck-82bbb",
-      storageBucket: "tradedeck-82bbb.appspot.com",
-      messagingSenderId: "755235931546",
-      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-      measurementId: "G-4RXR7V9NCW"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
-    // Initialize Firebase
+    // Init Firebase
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const tabs = document.querySelectorAll("aside a");
-    const sections = document.querySelectorAll("main section");
+    const statusEl = document.getElementById("status");
+    const submitButton = document.getElementById("submitButton");
 
-    tabs.forEach((tab, index) => {
-      tab.addEventListener("click", (e) => {
-        e.preventDefault();
-        sections.forEach((sec) => sec.classList.add("hidden"));
-        sections[index].classList.remove("hidden");
-        tabs.forEach((t) => t.classList.remove("bg-blue-100"));
-        tab.classList.add("bg-blue-100");
-      });
-    });
-
-    const sellLandingContent = document.getElementById('sellLandingContent');
-    const startSellingBtn = document.getElementById('startSellingBtn');
-    const productForm = document.getElementById('productForm');
-
-    startSellingBtn.addEventListener('click', () => {
-      sellLandingContent.classList.add('hidden');
-      productForm.classList.remove('hidden');
-    });
-
-    // --- MODIFIED CODE START ---
-
-    // No specific allowedFileTypes array needed if allowing any type.
-    // If you want to keep it but allow all, you could make it an empty array,
-    // but the `includes` check would still fail unless removed.
-    // So, we'll remove the type check directly.
-    
-    const productFileInput = document.getElementById('productFile');
-    const previewImageInput = document.getElementById('previewImage');
-    const fileValidationMsg = document.getElementById('fileValidationMsg');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
-
-    productFileInput.addEventListener('change', () => {
-      const file = productFileInput.files[0];
-      if (!file) {
-        fileValidationMsg.textContent = '';
-        return;
-      }
-      // REMOVED: if (!allowedFileTypes.includes(file.type)) { ... }
-      if (file.size > 100 * 1024 * 1024) { // Still keep the 100 MB limit
-        fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-        productFileInput.value = '';
-      } else {
-        fileValidationMsg.textContent = '';
-      }
-    });
-
-    previewImageInput.addEventListener('change', () => {
-      const file = previewImageInput.files[0];
-      if (!file) {
-        previewImageValidationMsg.textContent = '';
-        return;
-      }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-        previewImageInput.value = '';
-      } else if (file.size > 5 * 1024 * 1024) { // 5 MB limit for preview image
-        previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-        previewImageInput.value = '';
-      } else {
-        previewImageValidationMsg.textContent = '';
-      }
-    });
-
-    const productUploadForm = document.getElementById('productUploadForm');
-
-    productUploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      fileValidationMsg.textContent = '';
-      previewImageValidationMsg.textContent = '';
-
-      const productFile = productFileInput.files[0];
-      const previewImage = previewImageInput.files[0];
-
-      if (!productFile && !previewImage) {
-        fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
-        return;
-      } else if (!productFile) {
-        fileValidationMsg.textContent = 'Please upload the digital product file.';
-        return;
-      } else if (!previewImage) {
-        previewImageValidationMsg.textContent = 'Please upload a preview image.';
-        return;
-      }
-
-      // REMOVED: if (!allowedFileTypes.includes(productFile.type) || productFile.size > 100 * 1024 * 1024) { ... }
-      // RETAINED: Only the size check for the product file
-      if (productFile.size > 100 * 1024 * 1024) {
-          fileValidationMsg.textContent = 'Invalid product file: File size exceeds 100 MB.';
-          return;
-      }
-
-      // Keep validation for preview image as it's specifically for images
-      if (!['image/jpeg', 'image/png'].includes(previewImage.type) || previewImage.size > 5 * 1024 * 1024) {
-          previewImageValidationMsg.textContent = 'Invalid preview image: Only JPEG/PNG up to 5MB.';
-          return;
-      }
-
-      const submitBtn = productUploadForm.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Uploading...';
-      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-      try {
-        const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-
-        const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
-        await productFileRef.put(productFile);
-        const productFileURL = await productFileRef.getDownloadURL();
-
-        const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
-        await previewImageRef.put(previewImage);
-        const previewImageURL = await previewImageRef.getDownloadURL();
-
-        const productData = {
-          title: productUploadForm.title.value.trim(),
-          description: productUploadForm.description.value.trim(),
-          price: parseFloat(productUploadForm.price.value),
-          productFileURL: productFileURL,
-          previewImageURL: previewImageURL,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-
-        await db.collection('products').add(productData);
-
-        productUploadForm.reset();
-        productForm.classList.add('hidden');
-        sellLandingContent.classList.remove('hidden');
-        alert('Product listed successfully!');
-        loadProducts();
-
-      } catch (error) {
-        console.error('Error uploading product:', error);
-        alert('Failed to list product. Please try again. Error: ' + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'List Product';
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      }
-    });
-
-    // --- MODIFIED CODE END ---
-
-    async function loadProducts() {
-      const productList = document.getElementById('productList');
-      productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
-
-      try {
-        const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(50).get();
-        if (snapshot.empty) {
-          productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>';
-          return;
-        }
-
-        productList.innerHTML = '';
-        snapshot.forEach(doc => {
-          const product = doc.data();
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
-          card.innerHTML = `
-            <img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
-            <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-            <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
-            <div class="mt-auto flex justify-between items-center pt-2">
-              <span class="font-bold text-blue-600">$${product.price.toFixed(2)}</span>
-              <a href="${product.productFileURL}" download="${product.title}.zip" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
-            </div>
-          `;
-          productList.appendChild(card);
+    // Require Sign-In
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => {
+          alert("Sign-in failed: " + err.message);
         });
-      } catch (error) {
-        productList.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products.</p>';
-        console.error('Error loading products:', error);
       }
-    }
+    });
 
-    loadProducts();
+    // Submit Logic
+    submitButton.onclick = async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Please sign in first.");
+
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const price = parseFloat(document.getElementById("price").value);
+      const productFile = document.getElementById("productFile").files[0];
+      const previewImage = document.getElementById("previewImage").files[0];
+
+      if (!title || !description || !price || !productFile || !previewImage) {
+        return alert("All fields are required.");
+      }
+
+      if (isNaN(price) || price <= 0) {
+        return alert("Please enter a valid price.");
+      }
+
+      // Show loading
+      statusEl.classList.remove("hidden");
+      statusEl.textContent = "Uploading...";
+
+      try {
+        // Upload product file
+        const productRef = storage.ref(`products/${user.uid}/${Date.now()}-${productFile.name}`);
+        await productRef.put(productFile);
+        const productURL = await productRef.getDownloadURL();
+
+        // Upload preview image
+        const previewRef = storage.ref(`previews/${user.uid}/${Date.now()}-${previewImage.name}`);
+        await previewRef.put(previewImage);
+        const previewURL = await previewRef.getDownloadURL();
+
+        // Save product to Firestore
+        await db.collection("products").add({
+          title,
+          description,
+          price,
+          productURL,
+          previewURL,
+          sellerUID: user.uid,
+          sellerEmail: user.email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        statusEl.textContent = "Product submitted successfully!";
+        submitButton.disabled = true;
+      } catch (err) {
+        console.error("Upload failed", err);
+        statusEl.textContent = "Error: " + err.message;
+      }
+    };
   </script>
 </body>
 </html>
