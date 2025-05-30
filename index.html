@@ -27,9 +27,9 @@
       pointer-events: none;
       visibility: hidden;
     }
-    /* Style for the Cloudinary upload button, integrating with Tailwind */
-    #uploadProductFileBtn {
-        @apply w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer;
+    /* Adjusted style for the file input itself */
+    #productFileInput {
+      @apply w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer;
     }
   </style>
 </head>
@@ -159,11 +159,9 @@
                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
               </div>
               <div>
-                <label for="productFileUpload" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Upload to Cloudinary)</label>
-                <button type="button" id="uploadProductFileBtn">
-                    Upload Product File
-                </button>
-                <input type="hidden" id="productFileUrl" name="productFileUrl" required>
+                <label for="productFileInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File</label>
+                <input type="file" id="productFileInput" name="productFile" required>
+                <input type="hidden" id="productFileUrl" name="productFileUrl">
                 <input type="hidden" id="productFilePublicId" name="productFilePublicId">
                 <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
                 <p id="uploadedFileName" class="text-gray-600 text-xs mt-1 italic hidden"></p>
@@ -210,7 +208,7 @@
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(); // Get a reference to Firestore
+    const db = firebase.firestore();
 
     // --- Global Variables ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
@@ -225,7 +223,7 @@
     const paypalEmailInput = document.getElementById('paypalEmail');
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 
-    const uploadProductFileBtn = document.getElementById('uploadProductFileBtn');
+    const productFileInput = document.getElementById('productFileInput'); // Renamed to accurately reflect HTML
     const productFileUrlInput = document.getElementById('productFileUrl');
     const productFilePublicIdInput = document.getElementById('productFilePublicId');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
@@ -234,21 +232,15 @@
     const productUploadForm = document.getElementById('productUploadForm');
     const submitProductBtn = document.getElementById('submitProductBtn');
 
-    // Home page search elements
     const searchBar = document.getElementById('searchBar');
     const productListContainer = document.getElementById('productList');
     const noProductsMessage = document.getElementById('noProductsMessage');
 
-    // Dashboard elements
     const userProductsContainer = document.getElementById('userProducts');
     const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
     // --- Functions ---
 
-    /**
-     * Handles tab switching: shows the selected section and updates active tab styling/aria.
-     * @param {string} targetTabId - The ID of the section to show (e.g., 'home', 'sell').
-     */
     function showTab(targetTabId) {
       tabs.forEach(t => {
         t.classList.remove('bg-blue-100');
@@ -270,10 +262,6 @@
       });
     }
 
-    /**
-     * Handles the display logic for the product form (showing/hiding landing content).
-     * @param {boolean} showForm - True to show the form, false to show the landing content.
-     */
     function toggleProductForm(showForm) {
       if (showForm) {
         sellLandingContent.classList.add('hidden');
@@ -285,16 +273,9 @@
       }
     }
 
-    /**
-     * Renders products to the specified container based on a filter.
-     * @param {Array} productArray - The array of products to render.
-     * @param {HTMLElement} container - The DOM element to render products into.
-     * @param {HTMLElement} noResultsMsgElement - The element to show if no products.
-     * @param {string} [filterQuery=''] - Optional search query to filter products.
-     */
     function renderProducts(productArray, container, noResultsMsgElement, filterQuery = '') {
-        container.innerHTML = ''; // Clear existing products
-        noResultsMsgElement.classList.add('hidden'); // Hide no results message by default
+        container.innerHTML = '';
+        noResultsMsgElement.classList.add('hidden');
 
         const lowerCaseQuery = filterQuery.toLowerCase();
         const filteredProducts = productArray.filter(product =>
@@ -323,10 +304,6 @@
         });
     }
 
-    /**
-     * Fetches products from Firestore and updates the UI.
-     * @param {string} [filterQuery=''] - Optional search query.
-     */
     async function loadProducts(filterQuery = '') {
         productListContainer.innerHTML = '';
         noProductsMessage.textContent = 'Loading products...';
@@ -337,8 +314,7 @@
             const snapshot = await productsRef.get();
             const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // Update global products array
-            window.allProducts = fetchedProducts; // Store in a global variable for easy access by other functions
+            window.allProducts = fetchedProducts;
 
             renderProducts(window.allProducts, productListContainer, noProductsMessage, filterQuery);
             if (window.allProducts.length === 0 && filterQuery === '') {
@@ -354,32 +330,46 @@
         }
     }
 
-    // --- Cloudinary Widget Setup ---
+    // --- Cloudinary Widget Setup (attached to the hidden file input) ---
+    // The widget will monitor the `productFileInput` for file selections
     const myWidget = cloudinary.createUploadWidget(
         {
             cloudName: CLOUDINARY_CLOUD_NAME,
             uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-            sources: ['local', 'url', 'camera'],
+            sources: ['local'], // Only allow local file selection
             resourceType: 'auto',
             clientAllowedFormats: ['pdf', 'zip', 'rar', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'exe', 'txt', 'js', 'css', 'html', 'json', 'csv', 'svg', 'ai', 'psd', 'cdr', 'sketch', 'indd', 'eps'],
             maxFileSize: 100 * 1024 * 1024,
             multiple: false,
-            folder: 'tradedeck_products'
+            folder: 'tradedeck_products',
+            // This is the key: attach the widget to the file input
+            form: '#productUploadForm', // The ID of the form containing the input
+            fieldName: 'productFile' // The 'name' attribute of your file input
         },
         (error, result) => {
             if (!error && result && result.event === "success") {
                 console.log('Done uploading product file:', result.info);
                 productFileUrlInput.value = result.info.secure_url;
                 productFilePublicIdInput.value = result.info.public_id;
-                uploadedFileName.textContent = `Uploaded: ${result.info.original_filename}.${result.info.format}`;
+                uploadedFileName.textContent = `File uploaded: ${result.info.original_filename}.${result.info.format}`;
                 uploadedFileName.classList.remove('hidden');
-                fileValidationMsg.textContent = '';
+                fileValidationMsg.textContent = ''; // Clear any previous validation error
             } else if (error) {
                 console.error("Cloudinary upload error:", error);
                 fileValidationMsg.textContent = 'File upload failed. Please try again.';
-                productFileUrlInput.value = '';
+                productFileUrlInput.value = ''; // Clear URL on error
                 productFilePublicIdInput.value = '';
                 uploadedFileName.classList.add('hidden');
+            } else if (result && result.event === "abort") {
+                // Handle user cancelling the upload or closing the widget
+                if (productFileUrlInput.value === '') { // Only if no file was previously selected/uploaded
+                    fileValidationMsg.textContent = 'File upload cancelled.';
+                }
+            } else if (result && result.event === "close") {
+                // Widget closed, check if a file was uploaded or not
+                if (productFileUrlInput.value === '') {
+                    fileValidationMsg.textContent = 'Please select a file to upload.';
+                }
             }
         }
     );
@@ -395,6 +385,7 @@
 
         if (target !== 'sell' && !productForm.classList.contains('hidden')) {
             productUploadForm.reset();
+            // Clear Cloudinary specific inputs and messages on form reset
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
             uploadedFileName.classList.add('hidden');
@@ -404,11 +395,10 @@
         }
 
         if (target === 'home') {
-            await loadProducts(searchBar.value.trim()); // Load products for home
-            searchBar.value = ''; // Clear search bar on tab switch
+            await loadProducts(searchBar.value.trim());
+            searchBar.value = '';
         } else if (target === 'dashboard') {
-            // Dashboard should show only products uploaded by the current user
-            // For now, it will show all products from Firestore, as we don't have user authentication yet.
+            // For now, dashboard shows all products. With user auth, this would be filtered.
             renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
             if (!window.allProducts || window.allProducts.length === 0) {
               noUserProductsMessage.textContent = 'You haven\'t listed any products yet.';
@@ -440,14 +430,11 @@
       });
     }
 
-    // 4. Trigger Cloudinary widget on button click
-    if (uploadProductFileBtn) {
-        uploadProductFileBtn.addEventListener('click', () => {
-            myWidget.open();
-        });
-    }
+    // --- IMPORTANT: No explicit event listener for productFileInput anymore ---
+    // The Cloudinary widget is now configured to automatically handle the 'change' event
+    // on productFileInput via `form` and `fieldName` options in `createUploadWidget`.
 
-    // 5. Product upload form submission handler
+    // 4. Product upload form submission handler
     if (productUploadForm) {
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -458,7 +445,7 @@
         const title = document.getElementById('title').value.trim();
         const description = document.getElementById('description').value.trim();
         const price = parseFloat(document.getElementById('price').value);
-        const productFileUrl = productFileUrlInput.value;
+        const productFileUrl = productFileUrlInput.value; // Get URL from hidden input, pre-filled by widget
         const paypalEmailValue = paypalEmailInput.value.trim();
 
         let isValid = true;
@@ -467,8 +454,9 @@
         if (!description) { isValid = false; alert('Please enter a product description.'); }
         if (isNaN(price) || price <= 0) { isValid = false; alert('Please enter a valid price greater than 0.'); }
 
+        // Crucial: Check if Cloudinary upload was successful and URL is present
         if (!productFileUrl) {
-          fileValidationMsg.textContent = 'Please upload the digital product file using the "Upload Product File" button.';
+          fileValidationMsg.textContent = 'Please select a digital product file.';
           isValid = false;
         }
 
@@ -491,22 +479,18 @@
         submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
-            // Add product data to Firestore
             const newProduct = {
                 title: title,
                 description: description,
                 price: price,
                 fileUrl: productFileUrl,
-                // Using a generic placeholder image for product display.
-                // If you want a user-uploaded preview, you'd need another Cloudinary upload.
-                imageUrl: 'https://via.placeholder.com/300x200?text=Digital+Product',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for ordering/tracking
+                imageUrl: 'https://via.placeholder.com/300x200?text=Digital+Product', // Placeholder image
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await db.collection('products').add(newProduct);
 
             alert('Product listed successfully!');
 
-            // Reset form and return to sell landing page
             productUploadForm.reset();
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
@@ -514,8 +498,7 @@
             uploadedFileName.textContent = '';
             toggleProductForm(false);
 
-            // Reload products to display the newly added one
-            await loadProducts('');
+            await loadProducts(''); // Reload products to display the new one
 
         } catch (error) {
             console.error("Error adding document to Firestore:", error);
@@ -528,11 +511,10 @@
       });
     }
 
-    // 6. Search bar input event
+    // 5. Search bar input event
     if (searchBar) {
         searchBar.addEventListener('input', () => {
             const query = searchBar.value.trim();
-            // Filter already loaded products instead of re-fetching from Firestore on every input
             renderProducts(window.allProducts || [], productListContainer, noProductsMessage, query);
         });
     }
@@ -540,7 +522,7 @@
     // --- Initial Load Logic ---
     document.addEventListener('DOMContentLoaded', async () => {
         showTab('home');
-        await loadProducts(''); // Load products from Firestore on page load
+        await loadProducts('');
     });
   </script>
 </body>
