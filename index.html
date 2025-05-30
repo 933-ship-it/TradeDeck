@@ -191,10 +191,16 @@
               </div>
 
               <div>
-                <label for="productFileInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File</label>
-                <input type="file" id="productFileInput" name="productFile" class="cloudinary-file-input" required>
-                <input type="hidden" id="productFileUrl" name="productFileUrl" class="debug-visible"> <input type="hidden" id="productFilePublicId" name="productFilePublicId">
-                <p id="productFileStatus" class="file-upload-status"></p>
+                <label for="productFileUrlInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
+                <input
+                  type="url"
+                  id="productFileUrlInput"
+                  name="productFileUrl"
+                  required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Paste your direct download link here (e.g., from Google Drive, Dropbox)"
+                />
+                <p class="text-sm text-gray-500 mt-1">Make sure this link is publicly accessible for download.</p>
               </div>
 
               <button
@@ -253,11 +259,11 @@
     const paypalEmailInput = document.getElementById('paypalEmail');
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 
-    // Digital Product File Elements
-    const productFileInput = document.getElementById('productFileInput');
-    const productFileUrlInput = document.getElementById('productFileUrl');
-    const productFilePublicIdInput = document.getElementById('productFilePublicId');
-    const productFileStatus = document.getElementById('productFileStatus');
+    // Digital Product File Elements (Manual URL Input)
+    const productFileUrlInput = document.getElementById('productFileUrlInput'); // UPDATED ID
+    // const productFilePublicIdInput = document.getElementById('productFilePublicId'); // REMOVED (no longer needed)
+    // const productFileStatus = document.getElementById('productFileStatus'); // REMOVED (no longer needed)
+
 
     // Preview Image Elements
     const previewImageInput = document.getElementById('previewImageInput');
@@ -276,8 +282,7 @@
     const userProductsContainer = document.getElementById('userProducts');
     const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
-    // Track upload status
-    let isProductFileUploading = false;
+    // Track upload status (only for preview image now)
     let isPreviewImageUploading = false;
 
     // --- Helper for setting file input status messages ---
@@ -387,63 +392,6 @@
         }
     }
 
-    // --- Cloudinary Widget Setup for Digital Product File ---
-    const productFileWidget = cloudinary.createUploadWidget(
-        {
-            cloudName: CLOUDINARY_CLOUD_NAME,
-            uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-            sources: ['local'],
-            resourceType: 'auto',
-            clientAllowedFormats: ['pdf', 'zip', 'rar', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'exe', 'txt', 'js', 'css', 'html', 'json', 'csv', 'svg', 'ai', 'psd', 'cdr', 'sketch', 'indd', 'eps'],
-            maxFileSize: 100 * 1024 * 1024,
-            multiple: false,
-            folder: 'tradedeck_product_files',
-            form: '#productUploadForm',
-            fieldName: 'productFile'
-        },
-        (error, result) => {
-            console.log("Product File Widget Event:", result.event, result.info); // DEBUG
-            if (!error && result && result.event === "success") {
-                productFileUrlInput.value = result.info.secure_url;
-                productFilePublicIdInput.value = result.info.public_id;
-                setFileInputStatus(productFileStatus, `File uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-                productFileInput.classList.remove('border-red-500');
-                isProductFileUploading = false;
-                console.log("Product File URL after success:", productFileUrlInput.value); // DEBUG
-                checkAllUploadsComplete();
-            } else if (error) {
-                console.error("Cloudinary product file upload error:", error);
-                setFileInputStatus(productFileStatus, 'File upload failed. Please try again.', 'error');
-                productFileUrlInput.value = '';
-                productFilePublicIdInput.value = '';
-                productFileInput.classList.add('border-red-500');
-                isProductFileUploading = false;
-                checkAllUploadsComplete();
-            } else if (result && result.event === "close") {
-                // Widget closed. If no file was successfully uploaded, show error.
-                if (productFileUrlInput.value === '') {
-                    setFileInputStatus(productFileStatus, 'No product file selected or upload cancelled.', 'error');
-                    productFileInput.classList.add('border-red-500');
-                }
-                isProductFileUploading = false;
-                checkAllUploadsComplete();
-            } else if (result && result.event === "abort") {
-                 // User explicitly cancelled the upload within the widget
-                if (productFileUrlInput.value === '') { // Only if no file was uploaded yet
-                    setFileInputStatus(productFileStatus, 'Product file selection cancelled.', 'error');
-                    productFileInput.classList.add('border-red-500');
-                }
-                isProductFileUploading = false;
-                checkAllUploadsComplete();
-            } else if (result && result.event === "asset_selected") {
-                // User selected a file, upload is about to begin
-                setFileInputStatus(productFileStatus, `Uploading ${result.info.original_filename}...`, 'loading');
-                isProductFileUploading = true;
-                disableSubmitButton();
-            }
-        }
-    );
-
     // --- Cloudinary Widget Setup for Preview Image ---
     const previewImageWidget = cloudinary.createUploadWidget(
         {
@@ -507,25 +455,29 @@
     }
 
     function enableSubmitButton() {
-        // Only enable if no uploads are currently in progress AND
-        // both required files have a URL (meaning successful upload or already present)
-        if (!isProductFileUploading && !isPreviewImageUploading &&
-            productFileUrlInput.value !== '' && previewImageUrlInput.value !== '') {
+        // Submit button is enabled ONLY IF:
+        // 1. Preview image is NOT uploading
+        // 2. Preview image URL is present (from Cloudinary)
+        // 3. Digital product file URL is present (from manual input)
+        // Note: isProductFileUploading is no longer used since it's a manual URL.
+        if (!isPreviewImageUploading &&
+            previewImageUrlInput.value !== '' &&
+            productFileUrlInput.value !== '') { // Now check both manual URL and preview image URL
             submitProductBtn.disabled = false;
             submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
-             // Keep disabled if conditions aren't met
-            disableSubmitButton();
+             disableSubmitButton();
         }
     }
 
+    // Only needed for Cloudinary parts
     function checkAllUploadsComplete() {
-        // Debounce to ensure all event listeners have settled.
-        // This is a common pattern for async operations before re-enabling UI.
+        // Debounce to ensure all event listeners have settled for the *preview image*.
         setTimeout(() => {
-            console.log("Checking uploads complete: ProductFileUploading:", isProductFileUploading, "PreviewImageUploading:", isPreviewImageUploading); // DEBUG
-            console.log("Current productFileUrl:", productFileUrlInput.value); // DEBUG
+            console.log("Checking uploads complete for preview image. isPreviewImageUploading:", isPreviewImageUploading); // DEBUG
             console.log("Current previewImageUrl:", previewImageUrlInput.value); // DEBUG
+            // Now also check the manual product file URL
+            console.log("Current productFileUrl (manual):", productFileUrlInput.value); // DEBUG
             enableSubmitButton();
         }, 500); // Give it a small delay
     }
@@ -543,10 +495,10 @@
         if (target !== 'sell' && !productForm.classList.contains('hidden')) {
             productUploadForm.reset();
             // Clear Cloudinary specific inputs and messages on form reset
-            productFileUrlInput.value = '';
-            productFilePublicIdInput.value = '';
-            setFileInputStatus(productFileStatus, '');
-            productFileInput.classList.remove('border-red-500');
+            productFileUrlInput.value = ''; // Reset the manual URL input
+            // productFilePublicIdInput.value = ''; // REMOVED
+            // setFileInputStatus(productFileStatus, ''); // REMOVED
+            // productFileInput.classList.remove('border-red-500'); // REMOVED
 
             previewImageUrlInput.value = '';
             setFileInputStatus(previewImageStatus, '');
@@ -554,7 +506,7 @@
             previewImageContainer.classList.add('hidden');
             currentPreviewImage.src = '';
 
-            isProductFileUploading = false;
+            // isProductFileUploading = false; // REMOVED
             isPreviewImageUploading = false;
             enableSubmitButton(); // Re-enable for a fresh start
 
@@ -582,7 +534,7 @@
         // Initially disable submit button when form is shown until files are processed
         disableSubmitButton();
         // Also clear any previous status messages
-        setFileInputStatus(productFileStatus, '');
+        // setFileInputStatus(productFileStatus, ''); // REMOVED
         setFileInputStatus(previewImageStatus, '');
       });
     }
@@ -607,23 +559,23 @@
         e.preventDefault();
 
         // Final check for upload status and URL presence
-        if (isProductFileUploading || isPreviewImageUploading) {
-            alert('Please wait for all files to finish uploading before submitting.');
+        if (isPreviewImageUploading) { // Only check for preview image upload now
+            alert('Please wait for the preview image to finish uploading before submitting.');
             return;
         }
 
         // Clear all validation messages and error states
-        setFileInputStatus(productFileStatus, '');
+        // setFileInputStatus(productFileStatus, ''); // REMOVED
         setFileInputStatus(previewImageStatus, '');
         paypalEmailValidationMsg.textContent = '';
-        productFileInput.classList.remove('border-red-500');
+        // productFileInput.classList.remove('border-red-500'); // REMOVED
         previewImageInput.classList.remove('border-red-500');
 
 
         const title = document.getElementById('title').value.trim();
         const description = document.getElementById('description').value.trim();
         const price = parseFloat(document.getElementById('price').value);
-        const productFileUrl = productFileUrlInput.value;
+        const productFileUrl = productFileUrlInput.value.trim(); // Get value from the new input
         const previewImageUrl = previewImageUrlInput.value;
         const paypalEmailValue = paypalEmailInput.value.trim();
 
@@ -633,11 +585,17 @@
         if (!description) { isValid = false; alert('Please enter a product description.'); }
         if (isNaN(price) || price < 0) { isValid = false; alert('Please enter a valid price (0 or greater).'); }
 
-        // Crucial: Check if Cloudinary hidden URL input is actually populated
+        // Check if manual Digital Product File URL input is populated and valid
         if (!productFileUrl) {
-          setFileInputStatus(productFileStatus, 'Digital product file is required.', 'error'); // More direct message
-          productFileInput.classList.add('border-red-500');
+          alert('Please enter a link for your digital product file.'); // Use a simple alert
+          productFileUrlInput.classList.add('border-red-500'); // Add red border to the new input
           isValid = false;
+        } else if (!/^https?:\/\/.+\..+/.test(productFileUrl)) { // Basic URL format check
+            alert('Please enter a valid URL for your digital product file.');
+            productFileUrlInput.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            productFileUrlInput.classList.remove('border-red-500'); // Remove error style if valid
         }
 
         if (!previewImageUrl) {
@@ -679,10 +637,10 @@
             alert('Product listed successfully!');
 
             productUploadForm.reset();
-            productFileUrlInput.value = '';
-            productFilePublicIdInput.value = '';
-            setFileInputStatus(productFileStatus, '');
-            productFileInput.classList.remove('border-red-500');
+            productFileUrlInput.value = ''; // Clear the manual URL input
+            // productFilePublicIdInput.value = ''; // REMOVED
+            // setFileInputStatus(productFileStatus, ''); // REMOVED
+            // productFileInput.classList.remove('border-red-500'); // REMOVED
 
             previewImageUrlInput.value = '';
             setFileInputStatus(previewImageStatus, '');
@@ -697,24 +655,26 @@
             console.error("Error adding document to Firestore:", error);
             alert('Failed to list product. Please check console for details.');
         } finally {
-            enableSubmitButton(); // Ensure button is re-enabled or stays disabled based on file URLs
+            enableSubmitButton(); // Ensure button is re-enabled on success or failure
         }
       });
     }
 
-    // 5. Search bar input event
-    if (searchBar) {
-        searchBar.addEventListener('input', () => {
-            const query = searchBar.value.trim();
-            renderProducts(window.allProducts || [], productListContainer, noProductsMessage, query);
-        });
+    // 5. Initial load when the page loads
+    // Determine initial tab based on hash or default to home
+    const initialTab = window.location.hash.substring(1) || 'home';
+    showTab(initialTab);
+    loadProducts(); // Load products on initial page load
+
+    // Initial check to disable button if form is visible (e.g., after refresh)
+    if (productForm && !productForm.classList.contains('hidden')) {
+        disableSubmitButton();
     }
 
-    // --- Initial Load Logic ---
-    document.addEventListener('DOMContentLoaded', async () => {
-        showTab('home');
-        await loadProducts('');
-    });
+    // Event listener for the manual product file URL input to trigger button enable check
+    if (productFileUrlInput) {
+        productFileUrlInput.addEventListener('input', enableSubmitButton);
+    }
   </script>
 </body>
 </html>
