@@ -7,11 +7,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
     }
-    /* Ensures sections transition smoothly when their visibility changes */
     main section {
       transition: opacity 0.3s ease-in-out;
     }
@@ -19,9 +23,13 @@
       opacity: 0;
       height: 0;
       overflow: hidden;
-      position: absolute; /* Keeps hidden sections from taking up space */
-      pointer-events: none; /* Prevents interaction with hidden elements */
-      visibility: hidden; /* Ensures content is fully hidden from screen readers and layout */
+      position: absolute;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    /* Style for the Cloudinary upload button, integrating with Tailwind */
+    #uploadProductFileBtn {
+        @apply w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer;
     }
   </style>
 </head>
@@ -51,7 +59,7 @@
             id="productList"
             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
-            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products found matching your search.</p>
+            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">Loading products...</p>
           </div>
         </div>
       </section>
@@ -151,22 +159,22 @@
                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
               </div>
               <div>
-                <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Any type)</label>
-                <input
-                  type="file"
-                  id="productFile"
-                  name="productFile"
-                  required
-                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
+                <label for="productFileUpload" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Upload to Cloudinary)</label>
+                <button type="button" id="uploadProductFileBtn">
+                    Upload Product File
+                </button>
+                <input type="hidden" id="productFileUrl" name="productFileUrl" required>
+                <input type="hidden" id="productFilePublicId" name="productFilePublicId">
                 <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
+                <p id="uploadedFileName" class="text-gray-600 text-xs mt-1 italic hidden"></p>
               </div>
+
               <button
                 type="submit"
-                id="uploadProductBtn"
+                id="submitProductBtn"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
               >
-                Upload Product
+                List Product
               </button>
             </form>
           </div>
@@ -177,15 +185,7 @@
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <h2 class="text-4xl font-bold mb-8">Your Dashboard</h2>
           <div id="userProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="bg-white rounded-lg shadow p-4 flex flex-col">
-                <img src="https://via.placeholder.com/300x200?text=My+Product" alt="My Product preview" class="rounded mb-3 h-48 object-cover w-full" />
-                <h3 class="font-semibold text-lg mb-1">My Awesome Template</h3>
-                <p class="text-gray-600 text-sm flex-grow mb-2">A template I created for productivity.</p>
-                <div class="mt-auto flex justify-between items-center pt-2">
-                    <span class="font-bold text-blue-600">$15.00</span>
-                    <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition">Delete</button>
-                </div>
-            </div>
+            <p id="noUserProductsMessage" class="col-span-full text-center text-gray-500 hidden">You haven't listed any products yet.</p>
           </div>
         </div>
       </section>
@@ -193,6 +193,25 @@
   </div>
 
   <script>
+    // --- Cloudinary Configuration ---
+    const CLOUDINARY_CLOUD_NAME = 'desejdvif';
+    const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
+
+    // --- Firebase Configuration ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+      authDomain: "tradedeck-82bbb.firebaseapp.com",
+      projectId: "tradedeck-82bbb",
+      storageBucket: "tradedeck-82bbb.firebasestorage.app",
+      messagingSenderId: "755235931546",
+      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+      measurementId: "G-4RXR7V9NCW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(); // Get a reference to Firestore
+
     // --- Global Variables ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
     const sections = document.querySelectorAll('main section');
@@ -206,16 +225,23 @@
     const paypalEmailInput = document.getElementById('paypalEmail');
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 
-    const productFileInput = document.getElementById('productFile');
+    const uploadProductFileBtn = document.getElementById('uploadProductFileBtn');
+    const productFileUrlInput = document.getElementById('productFileUrl');
+    const productFilePublicIdInput = document.getElementById('productFilePublicId');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
+    const uploadedFileName = document.getElementById('uploadedFileName');
 
     const productUploadForm = document.getElementById('productUploadForm');
+    const submitProductBtn = document.getElementById('submitProductBtn');
 
     // Home page search elements
     const searchBar = document.getElementById('searchBar');
-    const productList = document.getElementById('productList');
+    const productListContainer = document.getElementById('productList');
     const noProductsMessage = document.getElementById('noProductsMessage');
 
+    // Dashboard elements
+    const userProductsContainer = document.getElementById('userProducts');
+    const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
     // --- Functions ---
 
@@ -224,20 +250,17 @@
      * @param {string} targetTabId - The ID of the section to show (e.g., 'home', 'sell').
      */
     function showTab(targetTabId) {
-      // Deactivate all tabs
       tabs.forEach(t => {
         t.classList.remove('bg-blue-100');
         t.removeAttribute('aria-current');
       });
 
-      // Activate the target tab
       const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
       if (currentTab) {
         currentTab.classList.add('bg-blue-100');
         currentTab.setAttribute('aria-current', 'page');
       }
 
-      // Hide all sections and show the target section
       sections.forEach(sec => {
         if (sec.id === targetTabId) {
           sec.classList.remove('hidden');
@@ -253,44 +276,145 @@
      */
     function toggleProductForm(showForm) {
       if (showForm) {
-        if (sellLandingContent) sellLandingContent.classList.add('hidden');
-        if (productForm) productForm.classList.remove('hidden');
-        showTab('sell'); // Ensure 'Sell' tab is active when form is shown
+        sellLandingContent.classList.add('hidden');
+        productForm.classList.remove('hidden');
+        showTab('sell');
       } else {
-        if (sellLandingContent) sellLandingContent.classList.remove('hidden');
-        if (productForm) productForm.classList.add('hidden');
+        sellLandingContent.classList.remove('hidden');
+        productForm.classList.add('hidden');
       }
     }
 
     /**
-     * Simulates searching for products. For now, it always returns no results.
-     * @param {string} query - The search query.
+     * Renders products to the specified container based on a filter.
+     * @param {Array} productArray - The array of products to render.
+     * @param {HTMLElement} container - The DOM element to render products into.
+     * @param {HTMLElement} noResultsMsgElement - The element to show if no products.
+     * @param {string} [filterQuery=''] - Optional search query to filter products.
      */
-    function searchProducts(query) {
-      productList.innerHTML = ''; // Clear existing products
-      noProductsMessage.classList.remove('hidden'); // Show "no products" message
+    function renderProducts(productArray, container, noResultsMsgElement, filterQuery = '') {
+        container.innerHTML = ''; // Clear existing products
+        noResultsMsgElement.classList.add('hidden'); // Hide no results message by default
+
+        const lowerCaseQuery = filterQuery.toLowerCase();
+        const filteredProducts = productArray.filter(product =>
+            product.title.toLowerCase().includes(lowerCaseQuery) ||
+            product.description.toLowerCase().includes(lowerCaseQuery)
+        );
+
+        if (filteredProducts.length === 0) {
+            noResultsMsgElement.classList.remove('hidden');
+            return;
+        }
+
+        filteredProducts.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
+            productCard.innerHTML = `
+                <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=Digital+Product'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
+                <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
+                <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
+                <div class="mt-auto flex justify-between items-center pt-2">
+                    <span class="font-bold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+                    <a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
+                </div>
+            `;
+            container.appendChild(productCard);
+        });
     }
 
+    /**
+     * Fetches products from Firestore and updates the UI.
+     * @param {string} [filterQuery=''] - Optional search query.
+     */
+    async function loadProducts(filterQuery = '') {
+        productListContainer.innerHTML = '';
+        noProductsMessage.textContent = 'Loading products...';
+        noProductsMessage.classList.remove('hidden');
+
+        try {
+            const productsRef = db.collection('products');
+            const snapshot = await productsRef.get();
+            const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Update global products array
+            window.allProducts = fetchedProducts; // Store in a global variable for easy access by other functions
+
+            renderProducts(window.allProducts, productListContainer, noProductsMessage, filterQuery);
+            if (window.allProducts.length === 0 && filterQuery === '') {
+                noProductsMessage.textContent = 'No products listed yet.';
+            } else if (window.allProducts.length === 0 && filterQuery !== '') {
+                noProductsMessage.textContent = 'No products found matching your search.';
+            }
+
+        } catch (error) {
+            console.error("Error loading products:", error);
+            noProductsMessage.textContent = 'Error loading products. Please try again.';
+            noProductsMessage.classList.remove('hidden');
+        }
+    }
+
+    // --- Cloudinary Widget Setup ---
+    const myWidget = cloudinary.createUploadWidget(
+        {
+            cloudName: CLOUDINARY_CLOUD_NAME,
+            uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+            sources: ['local', 'url', 'camera'],
+            resourceType: 'auto',
+            clientAllowedFormats: ['pdf', 'zip', 'rar', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'exe', 'txt', 'js', 'css', 'html', 'json', 'csv', 'svg', 'ai', 'psd', 'cdr', 'sketch', 'indd', 'eps'],
+            maxFileSize: 100 * 1024 * 1024,
+            multiple: false,
+            folder: 'tradedeck_products'
+        },
+        (error, result) => {
+            if (!error && result && result.event === "success") {
+                console.log('Done uploading product file:', result.info);
+                productFileUrlInput.value = result.info.secure_url;
+                productFilePublicIdInput.value = result.info.public_id;
+                uploadedFileName.textContent = `Uploaded: ${result.info.original_filename}.${result.info.format}`;
+                uploadedFileName.classList.remove('hidden');
+                fileValidationMsg.textContent = '';
+            } else if (error) {
+                console.error("Cloudinary upload error:", error);
+                fileValidationMsg.textContent = 'File upload failed. Please try again.';
+                productFileUrlInput.value = '';
+                productFilePublicIdInput.value = '';
+                uploadedFileName.classList.add('hidden');
+            }
+        }
+    );
 
     // --- Event Listeners ---
 
     // 1. Sidebar Tab Navigation
     tabs.forEach(tab => {
-      tab.addEventListener('click', e => {
+      tab.addEventListener('click', async (e) => {
         e.preventDefault();
         const target = tab.getAttribute('data-tab');
         showTab(target);
 
-        // If navigating away from the sell form, reset it
         if (target !== 'sell' && !productForm.classList.contains('hidden')) {
             productUploadForm.reset();
-            toggleProductForm(false); // Go back to sell landing page
+            productFileUrlInput.value = '';
+            productFilePublicIdInput.value = '';
+            uploadedFileName.classList.add('hidden');
+            uploadedFileName.textContent = '';
+            fileValidationMsg.textContent = '';
+            toggleProductForm(false);
         }
 
-        // If navigating to home, perform an empty search to show no products
         if (target === 'home') {
-            searchProducts('');
+            await loadProducts(searchBar.value.trim()); // Load products for home
             searchBar.value = ''; // Clear search bar on tab switch
+        } else if (target === 'dashboard') {
+            // Dashboard should show only products uploaded by the current user
+            // For now, it will show all products from Firestore, as we don't have user authentication yet.
+            renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
+            if (!window.allProducts || window.allProducts.length === 0) {
+              noUserProductsMessage.textContent = 'You haven\'t listed any products yet.';
+            } else {
+              noUserProductsMessage.classList.add('hidden');
+            }
         }
       });
     });
@@ -310,85 +434,97 @@
           paypalEmailContainer.classList.remove('hidden');
         } else {
           paypalEmailContainer.classList.add('hidden');
-          paypalEmailInput.value = ''; // Clear email if price is 0 or less
+          paypalEmailInput.value = '';
           paypalEmailValidationMsg.textContent = '';
         }
       });
     }
 
-    // 4. Product file input validation
-    if (productFileInput) {
-      productFileInput.addEventListener('change', () => {
-        const file = productFileInput.files[0];
-        fileValidationMsg.textContent = ''; // Clear previous message
-        if (!file) {
-          fileValidationMsg.textContent = 'Please select a product file.';
-        } else if (file.size > 100 * 1024 * 1024) { // 100 MB limit
-          fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-          productFileInput.value = ''; // Clear the input if too large
-        }
-      });
+    // 4. Trigger Cloudinary widget on button click
+    if (uploadProductFileBtn) {
+        uploadProductFileBtn.addEventListener('click', () => {
+            myWidget.open();
+        });
     }
 
-    // 5. Product upload form submission handler (client-side validation and demonstration only)
+    // 5. Product upload form submission handler
     if (productUploadForm) {
       productUploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault();
 
-        // Clear all validation messages
         fileValidationMsg.textContent = '';
         paypalEmailValidationMsg.textContent = '';
 
-        const productFile = productFileInput.files[0];
-        const priceValue = parseFloat(priceInput.value);
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const price = parseFloat(document.getElementById('price').value);
+        const productFileUrl = productFileUrlInput.value;
         const paypalEmailValue = paypalEmailInput.value.trim();
 
-        let isValid = true; // Flag to track overall form validity
+        let isValid = true;
 
-        // Validate product file
-        if (!productFile) {
-          fileValidationMsg.textContent = 'Please upload the digital product file.';
-          isValid = false;
-        } else if (productFile.size > 100 * 1024 * 1024) {
-          fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
+        if (!title) { isValid = false; alert('Please enter a product title.'); }
+        if (!description) { isValid = false; alert('Please enter a product description.'); }
+        if (isNaN(price) || price <= 0) { isValid = false; alert('Please enter a valid price greater than 0.'); }
+
+        if (!productFileUrl) {
+          fileValidationMsg.textContent = 'Please upload the digital product file using the "Upload Product File" button.';
           isValid = false;
         }
 
-        // Validate PayPal email if price is set (and price is valid)
-        if (!isNaN(priceValue) && priceValue > 0) {
+        if (!isNaN(price) && price > 0) {
           if (!paypalEmailValue) {
             paypalEmailValidationMsg.textContent = 'Please enter your PayPal email to receive payments.';
             isValid = false;
-          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) { // Basic email regex
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) {
             paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
             isValid = false;
           }
         }
 
         if (!isValid) {
-          alert('Please correct the errors in the form before submitting.');
-          return; // Stop submission if validation fails
+          return;
         }
 
-        // If validation passes, simulate submission
-        const submitBtn = productUploadForm.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Processing...';
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        submitProductBtn.disabled = true;
+        submitProductBtn.textContent = 'Listing Product...';
+        submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-        // Simulate an asynchronous operation (e.g., a network request)
-        await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds delay
+        try {
+            // Add product data to Firestore
+            const newProduct = {
+                title: title,
+                description: description,
+                price: price,
+                fileUrl: productFileUrl,
+                // Using a generic placeholder image for product display.
+                // If you want a user-uploaded preview, you'd need another Cloudinary upload.
+                imageUrl: 'https://via.placeholder.com/300x200?text=Digital+Product',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp for ordering/tracking
+            };
+            await db.collection('products').add(newProduct);
 
-        alert('Product form submitted successfully (no actual upload/save without a backend)!');
+            alert('Product listed successfully!');
 
-        // Reset form and return to sell landing page
-        productUploadForm.reset();
-        toggleProductForm(false); // Go back to sell landing page
+            // Reset form and return to sell landing page
+            productUploadForm.reset();
+            productFileUrlInput.value = '';
+            productFilePublicIdInput.value = '';
+            uploadedFileName.classList.add('hidden');
+            uploadedFileName.textContent = '';
+            toggleProductForm(false);
 
-        // Re-enable button
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Upload Product';
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            // Reload products to display the newly added one
+            await loadProducts('');
+
+        } catch (error) {
+            console.error("Error adding document to Firestore:", error);
+            alert('Failed to list product. Please check console for details.');
+        } finally {
+            submitProductBtn.disabled = false;
+            submitProductBtn.textContent = 'List Product';
+            submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
       });
     }
 
@@ -396,16 +532,15 @@
     if (searchBar) {
         searchBar.addEventListener('input', () => {
             const query = searchBar.value.trim();
-            searchProducts(query); // Call search function on input
+            // Filter already loaded products instead of re-fetching from Firestore on every input
+            renderProducts(window.allProducts || [], productListContainer, noProductsMessage, query);
         });
     }
 
-
     // --- Initial Load Logic ---
-    // Ensure the home tab is active and visible on page load
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         showTab('home');
-        searchProducts(''); // Perform initial empty search to show "no products" message
+        await loadProducts(''); // Load products from Firestore on page load
     });
   </script>
 </body>
