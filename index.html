@@ -7,15 +7,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-
   <style>
     body {
       font-family: 'Inter', sans-serif;
     }
-    /* Keeping original transition for sections */
+    /* Ensures sections transition smoothly when their visibility changes */
     main section {
       transition: opacity 0.3s ease-in-out;
     }
@@ -23,9 +19,9 @@
       opacity: 0;
       height: 0;
       overflow: hidden;
-      position: absolute; /* Ensures hidden content doesn't affect layout */
+      position: absolute; /* Keeps hidden sections from taking up space */
       pointer-events: none; /* Prevents interaction with hidden elements */
-      visibility: hidden; /* Added for better accessibility and hiding */
+      visibility: hidden; /* Ensures content is fully hidden from screen readers and layout */
     }
   </style>
 </head>
@@ -42,7 +38,7 @@
 
     <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
 
-      <section id="home" aria-label="Home Products" class="">
+      <section id="home" aria-label="Home Products">
         <div class="max-w-5xl mx-auto">
           <input
             type="search"
@@ -229,77 +225,103 @@
   </div>
 
   <script>
-    // Tab navigation logic
+    // --- Global Variables ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
     const sections = document.querySelectorAll('main section');
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', e => {
-        e.preventDefault();
-        const target = tab.getAttribute('data-tab');
-
-        // Remove active class from all tabs and add to the clicked one
-        tabs.forEach(t => t.classList.remove('bg-blue-100'));
-        tab.classList.add('bg-blue-100');
-
-        // Update aria-current for accessibility
-        tabs.forEach(t => t.removeAttribute('aria-current'));
-        tab.setAttribute('aria-current', 'page');
-
-        // Hide all sections and show the target section
-        sections.forEach(sec => {
-          if (sec.id === target) {
-            sec.classList.remove('hidden');
-          } else {
-            sec.classList.add('hidden');
-          }
-        });
-      });
-    });
-
-    // Show Sell form on clicking "Start Selling Now"
     const startSellingBtn = document.getElementById('startSellingBtn');
     const sellLandingContent = document.getElementById('sellLandingContent');
     const productForm = document.getElementById('productForm');
 
-    if (startSellingBtn) {
-      startSellingBtn.addEventListener('click', () => {
-        sellLandingContent.classList.add('hidden');
-        productForm.classList.remove('hidden');
-
-        // Visually activate the Sell tab
-        tabs.forEach(t => t.classList.remove('bg-blue-100', 'aria-current'));
-        const sellTab = document.querySelector('a[data-tab="sell"]');
-        if (sellTab) {
-          sellTab.classList.add('bg-blue-100');
-          sellTab.setAttribute('aria-current', 'page');
-        }
-
-        // Ensure the sell section is visible
-        sections.forEach(sec => {
-          if (sec.id === 'sell') {
-            sec.classList.remove('hidden');
-          } else {
-            sec.classList.add('hidden');
-          }
-        });
-      });
-    }
-
-    // Get elements for product form
     const priceInput = document.getElementById('price');
     const paypalEmailContainer = document.getElementById('paypalEmailContainer');
     const paypalEmailInput = document.getElementById('paypalEmail');
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+
     const productFileInput = document.getElementById('productFile');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
+
     const previewImageInput = document.getElementById('previewImage');
     const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
     const previewContainer = document.getElementById('previewContainer');
     const previewImageDisplay = document.getElementById('previewImageDisplay');
+
     const productUploadForm = document.getElementById('productUploadForm');
 
-    // Event listener for price input to show/hide PayPal email field
+
+    // --- Functions ---
+
+    /**
+     * Handles tab switching: shows the selected section and updates active tab styling/aria.
+     * @param {string} targetTabId - The ID of the section to show (e.g., 'home', 'sell').
+     */
+    function showTab(targetTabId) {
+      // Deactivate all tabs
+      tabs.forEach(t => {
+        t.classList.remove('bg-blue-100');
+        t.removeAttribute('aria-current');
+      });
+
+      // Activate the target tab
+      const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
+      if (currentTab) {
+        currentTab.classList.add('bg-blue-100');
+        currentTab.setAttribute('aria-current', 'page');
+      }
+
+      // Hide all sections and show the target section
+      sections.forEach(sec => {
+        if (sec.id === targetTabId) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+    }
+
+    /**
+     * Handles the display logic for the product form (showing/hiding landing content).
+     * @param {boolean} showForm - True to show the form, false to show the landing content.
+     */
+    function toggleProductForm(showForm) {
+      if (showForm) {
+        if (sellLandingContent) sellLandingContent.classList.add('hidden');
+        if (productForm) productForm.classList.remove('hidden');
+        showTab('sell'); // Ensure 'Sell' tab is active when form is shown
+      } else {
+        if (sellLandingContent) sellLandingContent.classList.remove('hidden');
+        if (productForm) productForm.classList.add('hidden');
+      }
+    }
+
+
+    // --- Event Listeners ---
+
+    // 1. Sidebar Tab Navigation
+    tabs.forEach(tab => {
+      tab.addEventListener('click', e => {
+        e.preventDefault();
+        const target = tab.getAttribute('data-tab');
+        showTab(target);
+
+        // If navigating away from the sell form, reset it
+        if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+            productUploadForm.reset();
+            previewContainer.classList.add('hidden'); // Hide preview after reset
+            previewImageDisplay.src = ''; // Clear preview image src
+            toggleProductForm(false); // Go back to sell landing page
+        }
+      });
+    });
+
+    // 2. "Start Selling Now" button to show the product form
+    if (startSellingBtn) {
+      startSellingBtn.addEventListener('click', () => {
+        toggleProductForm(true);
+      });
+    }
+
+    // 3. Price input to show/hide PayPal email field
     if (priceInput) {
       priceInput.addEventListener('input', () => {
         const priceValue = parseFloat(priceInput.value);
@@ -307,56 +329,51 @@
           paypalEmailContainer.classList.remove('hidden');
         } else {
           paypalEmailContainer.classList.add('hidden');
-          paypalEmailInput.value = '';
+          paypalEmailInput.value = ''; // Clear email if price is 0 or less
           paypalEmailValidationMsg.textContent = '';
         }
       });
     }
 
-    // File input validation for product file
+    // 4. Product file input validation
     if (productFileInput) {
       productFileInput.addEventListener('change', () => {
         const file = productFileInput.files[0];
+        fileValidationMsg.textContent = ''; // Clear previous message
         if (!file) {
           fileValidationMsg.textContent = 'Please select a product file.';
-          return;
-        }
-        if (file.size > 100 * 1024 * 1024) { // 100 MB limit
+        } else if (file.size > 100 * 1024 * 1024) { // 100 MB limit
           fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-          productFileInput.value = ''; // Clear the input
-        } else {
-          fileValidationMsg.textContent = '';
+          productFileInput.value = ''; // Clear the input if too large
         }
       });
     }
 
-    // Preview image validation and preview display
+    // 5. Preview image input validation and display
     if (previewImageInput) {
       previewImageInput.addEventListener('change', () => {
         const file = previewImageInput.files[0];
+        previewImageValidationMsg.textContent = ''; // Clear previous message
+        previewContainer.classList.add('hidden'); // Hide until valid
+        previewImageDisplay.src = ''; // Clear src
+
         if (!file) {
           previewImageValidationMsg.textContent = 'Please select a preview image.';
-          previewContainer.classList.add('hidden');
-          previewImageDisplay.src = '';
           return;
         }
+
         const validTypes = ['image/jpeg', 'image/png'];
         if (!validTypes.includes(file.type)) {
           previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-          previewContainer.classList.add('hidden');
-          previewImageDisplay.src = '';
           previewImageInput.value = ''; // Clear invalid file
           return;
         }
         if (file.size > 5 * 1024 * 1024) { // 5 MB limit
           previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-          previewContainer.classList.add('hidden');
-          previewImageDisplay.src = '';
           previewImageInput.value = ''; // Clear invalid file
           return;
         }
 
-        previewImageValidationMsg.textContent = '';
         const reader = new FileReader();
         reader.onload = (e) => {
           previewImageDisplay.src = e.target.result;
@@ -366,12 +383,12 @@
       });
     }
 
-    // Form submission handler (client-side validation and demonstration only)
+    // 6. Product upload form submission handler (client-side validation and demonstration only)
     if (productUploadForm) {
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
 
-        // Clear previous validation messages
+        // Clear all validation messages
         fileValidationMsg.textContent = '';
         previewImageValidationMsg.textContent = '';
         paypalEmailValidationMsg.textContent = '';
@@ -381,7 +398,7 @@
         const priceValue = parseFloat(priceInput.value);
         const paypalEmailValue = paypalEmailInput.value.trim();
 
-        let isValid = true;
+        let isValid = true; // Flag to track overall form validity
 
         // Validate product file
         if (!productFile) {
@@ -404,44 +421,51 @@
           isValid = false;
         }
 
-        // Validate PayPal email if price is set
+        // Validate PayPal email if price is set (and price is valid)
         if (!isNaN(priceValue) && priceValue > 0) {
           if (!paypalEmailValue) {
             paypalEmailValidationMsg.textContent = 'Please enter your PayPal email to receive payments.';
             isValid = false;
-          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) {
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) { // Basic email regex
             paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
             isValid = false;
           }
         }
 
         if (!isValid) {
-          alert('Please correct the errors in the form.');
-          return;
+          alert('Please correct the errors in the form before submitting.');
+          return; // Stop submission if validation fails
         }
 
+        // If validation passes, simulate submission
         const submitBtn = productUploadForm.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Processing...';
         submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-        // Simulate an asynchronous operation (like a network request)
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate 1.5 seconds delay
+        // Simulate an asynchronous operation (e.g., a network request)
+        await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds delay
 
         alert('Product form submitted successfully (no actual upload/save without a backend)!');
+
+        // Reset form and return to sell landing page
         productUploadForm.reset();
         previewContainer.classList.add('hidden'); // Hide preview after reset
         previewImageDisplay.src = ''; // Clear preview image src
+        toggleProductForm(false); // Go back to sell landing page
 
-        // Return to the sell landing content
-        productForm.classList.add('hidden');
-        sellLandingContent.classList.remove('hidden');
-
+        // Re-enable button
         submitBtn.disabled = false;
         submitBtn.textContent = 'Upload Product';
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       });
     }
+
+    // --- Initial Load Logic ---
+    // Ensure the home tab is active and visible on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        showTab('home');
+    });
 
     // The following function is commented out as it relied on Firebase.
     // If you need products displayed, they must be hardcoded in the HTML
