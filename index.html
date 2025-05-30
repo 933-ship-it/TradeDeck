@@ -192,26 +192,46 @@
   </div>
 
   <script>
-    // Firebase config (replace with your own)
+    // Firebase config (replace with your new project's config!)
     const firebaseConfig = {
-      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-      authDomain: "tradedeck-82bbb.firebaseapp.com",
-      projectId: "tradedeck-82bbb",
-      storageBucket: "tradedeck-82bbb.appspot.com",
-      messagingSenderId: "755235931546",
-      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-      measurementId: "G-4RXR7V9NCW"
+      apiKey: "YOUR_API_KEY", // Make sure to update this!
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // Make sure to update this!
+      projectId: "YOUR_PROJECT_ID", // Make sure to update this!
+      storageBucket: "YOUR_PROJECT_ID.appspot.com", // Make sure to update this!
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID" // Optional, if Analytics enabled
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // Tab navigation logic
+    // --- DOM Elements ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
     const sections = document.querySelectorAll('main section');
+    const startSellingBtn = document.getElementById('startSellingBtn');
+    const sellLandingContent = document.getElementById('sellLandingContent');
+    const productForm = document.getElementById('productForm');
 
+    const productUploadForm = document.getElementById('productUploadForm');
+    const titleInput = document.getElementById('title'); // Changed from productNameInput
+    const descriptionInput = document.getElementById('description'); // Changed from productDescriptionInput
+    const priceInput = document.getElementById('price');
+    const productFileInput = document.getElementById('productFile');
+    const previewImageInput = document.getElementById('previewImage');
+    const paypalEmailInput = document.getElementById('paypalEmail');
+
+    const paypalEmailContainer = document.getElementById('paypalEmailContainer');
+    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+    const fileValidationMsg = document.getElementById('fileValidationMsg');
+    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImageDisplay = document.getElementById('previewImageDisplay');
+    const productListContainer = document.getElementById('productList'); // Renamed for clarity
+
+    // --- Tab Navigation Logic ---
     tabs.forEach(tab => {
       tab.addEventListener('click', e => {
         e.preventDefault();
@@ -225,24 +245,21 @@
             sec.classList.add('hidden');
           }
         });
+        // If navigating to home, load products
+        if (target === 'home') {
+          loadProducts();
+        }
       });
     });
 
-    // Show Sell form on clicking "Start Selling Now"
-    const startSellingBtn = document.getElementById('startSellingBtn');
-    const sellLandingContent = document.getElementById('sellLandingContent');
-    const productForm = document.getElementById('productForm');
-
+    // --- Show Sell form on clicking "Start Selling Now" ---
     startSellingBtn.addEventListener('click', () => {
       sellLandingContent.classList.add('hidden');
       productForm.classList.remove('hidden');
-      // Show the Sell tab visually
+      // Update active tab visually
       tabs.forEach(t => t.classList.remove('bg-blue-100'));
-      tabs.forEach(t => {
-        if (t.getAttribute('data-tab') === 'sell') {
-          t.classList.add('bg-blue-100');
-        }
-      });
+      document.querySelector('a[data-tab="sell"]').classList.add('bg-blue-100');
+      // Show sell section
       sections.forEach(sec => {
         if (sec.id === 'sell') {
           sec.classList.remove('hidden');
@@ -252,20 +269,7 @@
       });
     });
 
-    // Get elements for product form
-    const priceInput = document.getElementById('price');
-    const paypalEmailContainer = document.getElementById('paypalEmailContainer');
-    const paypalEmailInput = document.getElementById('paypalEmail');
-    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
-    const productFileInput = document.getElementById('productFile');
-    const fileValidationMsg = document.getElementById('fileValidationMsg');
-    const previewImageInput = document.getElementById('previewImage');
-    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg'); // Changed ID from previewValidationMsg
-    const previewContainer = document.getElementById('previewContainer');
-    const previewImageDisplay = document.getElementById('previewImageDisplay');
-    const productUploadForm = document.getElementById('productUploadForm');
-
-    // Event listener for price input to show/hide PayPal email field
+    // --- Dynamic PayPal Email Field (based on price) ---
     priceInput.addEventListener('input', () => {
       const priceValue = parseFloat(priceInput.value);
       if (!isNaN(priceValue) && priceValue > 0) {
@@ -277,7 +281,7 @@
       }
     });
 
-    // File input validation for product file
+    // --- File Input Validations and Preview ---
     productFileInput.addEventListener('change', () => {
       const file = productFileInput.files[0];
       if (!file) {
@@ -292,7 +296,6 @@
       }
     });
 
-    // Preview image validation and preview display
     previewImageInput.addEventListener('change', () => {
       const file = previewImageInput.files[0];
       if (!file) {
@@ -326,7 +329,7 @@
       reader.readAsDataURL(file);
     });
 
-    // Form submission handler
+    // --- Product Upload Form Submission Handler ---
     productUploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -335,44 +338,31 @@
       previewImageValidationMsg.textContent = '';
       paypalEmailValidationMsg.textContent = '';
 
+      const title = titleInput.value.trim();
+      const description = descriptionInput.value.trim();
+      const price = parseFloat(priceInput.value);
       const productFile = productFileInput.files[0];
       const previewImage = previewImageInput.files[0];
-      const priceValue = parseFloat(priceInput.value);
-      const paypalEmailValue = paypalEmailInput.value.trim();
+      const paypalEmail = paypalEmailInput.value.trim();
 
-      // Validate product file
-      if (!productFile) {
-        fileValidationMsg.textContent = 'Please upload the digital product file.';
-        return;
-      } else if (productFile.size > 100 * 1024 * 1024) {
-        fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
-        return;
-      }
-
-      // Validate preview image
-      if (!previewImage) {
-        previewImageValidationMsg.textContent = 'Please upload a preview image.';
-        return;
-      } else if (!['image/jpeg', 'image/png'].includes(previewImage.type)) {
-        previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
-        return;
-      } else if (previewImage.size > 5 * 1024 * 1024) {
-        previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
-        return;
-      }
-
-      // Validate PayPal email if price is set
-      if (!isNaN(priceValue) && priceValue > 0) {
-        if (!paypalEmailValue) {
-          paypalEmailValidationMsg.textContent = 'Please enter your PayPal email to receive payments.';
+      // Basic form validation (redundant with input event listeners but good for final check)
+      if (!title || !description || isNaN(price)) {
+          alert('Please fill in all product details.');
           return;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) {
+      }
+      if (!productFile) {
+          fileValidationMsg.textContent = 'Please upload the digital product file.';
+          return;
+      }
+      if (!previewImage) {
+          previewImageValidationMsg.textContent = 'Please upload a preview image.';
+          return;
+      }
+      if (price > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmail)) {
           paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
           return;
-        }
       }
 
-      // Proceed with uploading files and saving product data to Firebase
       const submitBtn = productUploadForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Uploading...';
@@ -380,35 +370,47 @@
 
       try {
         const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const randomSuffix = Math.random().toString(36).substring(2, 8); // To make file names unique
 
-        const productFileRef = storage.ref().child(`products/${timestamp}_${randomSuffix}_${productFile.name}`);
+        // Upload Product File to Firebase Storage
+        const productFileName = `products/${timestamp}_${randomSuffix}_${productFile.name}`;
+        const productFileRef = storage.ref().child(productFileName);
         await productFileRef.put(productFile);
         const productFileURL = await productFileRef.getDownloadURL();
+        console.log('Product file uploaded:', productFileURL);
 
-        const previewImageRef = storage.ref().child(`previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`);
+
+        // Upload Preview Image to Firebase Storage
+        const previewImageFileName = `previewImages/${timestamp}_${randomSuffix}_${previewImage.name}`;
+        const previewImageRef = storage.ref().child(previewImageFileName);
         await previewImageRef.put(previewImage);
         const previewImageURL = await previewImageRef.getDownloadURL();
+        console.log('Preview image uploaded:', previewImageURL);
 
+        // Save Product Details to Firestore
         const productData = {
-          title: productUploadForm.title.value.trim(),
-          description: productUploadForm.description.value.trim(),
-          price: isNaN(priceValue) ? 0 : priceValue,
+          title: title,
+          description: description,
+          price: price,
           productFileURL: productFileURL,
           previewImageURL: previewImageURL,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(), // Use server timestamp for consistent ordering
         };
 
-        if (!isNaN(priceValue) && priceValue > 0) {
-          productData.paypalEmail = paypalEmailValue;
+        if (price > 0) {
+          productData.paypalEmail = paypalEmail; // Only save if price > 0
         }
 
         await db.collection('products').add(productData);
 
-        productUploadForm.reset();
-        productForm.classList.add('hidden');
-        sellLandingContent.classList.remove('hidden');
         alert('Product listed successfully!');
+        productUploadForm.reset(); // Clear the form
+        previewContainer.classList.add('hidden'); // Hide preview image container
+        previewImageDisplay.src = ''; // Clear preview image
+        sellLandingContent.classList.remove('hidden'); // Go back to landing page
+        productForm.classList.add('hidden'); // Hide the form
+
+        // Load products on homepage to show the new one
         loadProducts();
 
       } catch (error) {
@@ -416,44 +418,52 @@
         alert('Failed to list product. Please try again. Error: ' + error.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'List Product';
+        submitBtn.textContent = 'Upload Product';
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       }
     });
 
+    // --- Display Products on Homepage ---
     async function loadProducts() {
-      const productList = document.getElementById('productList');
-      productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
+      productListContainer.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
 
-      try {
-        const snapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(50).get();
-        if (snapshot.empty) {
-          productList.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>';
-          return;
-        }
+      // Use onSnapshot for real-time updates
+      db.collection('products').orderBy('createdAt', 'desc')
+        .onSnapshot((snapshot) => {
+          if (snapshot.empty) {
+            productListContainer.innerHTML = '<p class="col-span-full text-center text-gray-500">No products found.</p>';
+            return;
+          }
 
-        productList.innerHTML = '';
-        snapshot.forEach(doc => {
-          const product = doc.data();
-          const card = document.createElement('div');
-          card.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
-          card.innerHTML = 
-            `<img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
-            <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-            <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
-            <div class="mt-auto flex justify-between items-center pt-2">
-              <span class="font-bold text-blue-600">$${product.price.toFixed(2)}</span>
-              <a href="${product.productFileURL}" download="${product.title}.zip" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
-            </div>`;
-          productList.appendChild(card);
+          productListContainer.innerHTML = ''; // Clear existing products
+          snapshot.forEach(doc => {
+            const product = doc.data();
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow p-4 flex flex-col'; // Tailwind classes for card
+
+            // Construct the card HTML
+            card.innerHTML = `
+              <img src="${product.previewImageURL}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
+              <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
+              <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
+              <div class="mt-auto flex justify-between items-center pt-2">
+                <span class="font-bold text-blue-600">$${product.price.toFixed(2)}</span>
+                <a href="${product.productFileURL}" target="_blank" download="${product.title.replace(/ /g, '_')}_product" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
+              </div>
+            `;
+            productListContainer.appendChild(card);
+          });
+        }, (error) => {
+          productListContainer.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products.</p>';
+          console.error('Error loading products:', error);
         });
-      } catch (error) {
-        productList.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products.</p>';
-        console.error('Error loading products:', error);
-      }
     }
 
-    loadProducts();
+    // Load products when the DOM is fully loaded and on initial tab load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure 'home' tab is active on load and load products
+      document.querySelector('a[data-tab="home"]').click();
+    });
   </script>
 </body>
 </html>
