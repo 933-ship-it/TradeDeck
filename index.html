@@ -12,9 +12,13 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body {
+      font-family: 'Inter', sans-serif;
+    }
     /* Keeping original transition for sections */
-    main section { transition: opacity 0.3s ease-in-out; }
+    main section {
+      transition: opacity 0.3s ease-in-out;
+    }
     main section.hidden {
       opacity: 0;
       height: 0;
@@ -51,7 +55,25 @@
             id="productList"
             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
+            <div class="bg-white rounded-lg shadow p-4 flex flex-col">
+              <img src="https://via.placeholder.com/300x200?text=Product+1" alt="Product 1 preview" class="rounded mb-3 h-48 object-cover w-full" />
+              <h3 class="font-semibold text-lg mb-1">Digital Art Pack</h3>
+              <p class="text-gray-600 text-sm flex-grow mb-2">A collection of high-resolution digital art assets for your projects.</p>
+              <div class="mt-auto flex justify-between items-center pt-2">
+                <span class="font-bold text-blue-600">$19.99</span>
+                <a href="#" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download Digital Art Pack">Download</a>
+              </div>
             </div>
+            <div class="bg-white rounded-lg shadow p-4 flex flex-col">
+              <img src="https://via.placeholder.com/300x200?text=Product+2" alt="Product 2 preview" class="rounded mb-3 h-48 object-cover w-full" />
+              <h3 class="font-semibold text-lg mb-1">E-book: Web Dev Basics</h3>
+              <p class="text-gray-600 text-sm flex-grow mb-2">Learn the fundamentals of web development with this comprehensive e-book.</p>
+              <div class="mt-auto flex justify-between items-center pt-2">
+                <span class="font-bold text-blue-600">$9.99</span>
+                <a href="#" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download E-book: Web Dev Basics">Download</a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -171,4 +193,277 @@
                   class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                <div id="preview
+                <div id="previewContainer" class="mt-4 hidden">
+                  <img id="previewImageDisplay" src="" alt="Preview Image" class="mx-auto rounded-md max-h-48 shadow-lg" />
+                </div>
+              </div>
+              <button
+                type="submit"
+                id="uploadProductBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
+              >
+                Upload Product
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="hidden">
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <h2 class="text-4xl font-bold mb-8">Your Dashboard</h2>
+          <div id="userProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-lg shadow p-4 flex flex-col">
+                <img src="https://via.placeholder.com/300x200?text=My+Product" alt="My Product preview" class="rounded mb-3 h-48 object-cover w-full" />
+                <h3 class="font-semibold text-lg mb-1">My Awesome Template</h3>
+                <p class="text-gray-600 text-sm flex-grow mb-2">A template I created for productivity.</p>
+                <div class="mt-auto flex justify-between items-center pt-2">
+                    <span class="font-bold text-blue-600">$15.00</span>
+                    <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition">Delete</button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Tab navigation logic
+    const tabs = document.querySelectorAll('aside nav a[data-tab]');
+    const sections = document.querySelectorAll('main section');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', e => {
+        e.preventDefault();
+        const target = tab.getAttribute('data-tab');
+
+        // Remove active class from all tabs and add to the clicked one
+        tabs.forEach(t => t.classList.remove('bg-blue-100'));
+        tab.classList.add('bg-blue-100');
+
+        // Update aria-current for accessibility
+        tabs.forEach(t => t.removeAttribute('aria-current'));
+        tab.setAttribute('aria-current', 'page');
+
+        // Hide all sections and show the target section
+        sections.forEach(sec => {
+          if (sec.id === target) {
+            sec.classList.remove('hidden');
+          } else {
+            sec.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // Show Sell form on clicking "Start Selling Now"
+    const startSellingBtn = document.getElementById('startSellingBtn');
+    const sellLandingContent = document.getElementById('sellLandingContent');
+    const productForm = document.getElementById('productForm');
+
+    if (startSellingBtn) {
+      startSellingBtn.addEventListener('click', () => {
+        sellLandingContent.classList.add('hidden');
+        productForm.classList.remove('hidden');
+
+        // Visually activate the Sell tab
+        tabs.forEach(t => t.classList.remove('bg-blue-100', 'aria-current'));
+        const sellTab = document.querySelector('a[data-tab="sell"]');
+        if (sellTab) {
+          sellTab.classList.add('bg-blue-100');
+          sellTab.setAttribute('aria-current', 'page');
+        }
+
+        // Ensure the sell section is visible
+        sections.forEach(sec => {
+          if (sec.id === 'sell') {
+            sec.classList.remove('hidden');
+          } else {
+            sec.classList.add('hidden');
+          }
+        });
+      });
+    }
+
+    // Get elements for product form
+    const priceInput = document.getElementById('price');
+    const paypalEmailContainer = document.getElementById('paypalEmailContainer');
+    const paypalEmailInput = document.getElementById('paypalEmail');
+    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+    const productFileInput = document.getElementById('productFile');
+    const fileValidationMsg = document.getElementById('fileValidationMsg');
+    const previewImageInput = document.getElementById('previewImage');
+    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImageDisplay = document.getElementById('previewImageDisplay');
+    const productUploadForm = document.getElementById('productUploadForm');
+
+    // Event listener for price input to show/hide PayPal email field
+    if (priceInput) {
+      priceInput.addEventListener('input', () => {
+        const priceValue = parseFloat(priceInput.value);
+        if (!isNaN(priceValue) && priceValue > 0) {
+          paypalEmailContainer.classList.remove('hidden');
+        } else {
+          paypalEmailContainer.classList.add('hidden');
+          paypalEmailInput.value = '';
+          paypalEmailValidationMsg.textContent = '';
+        }
+      });
+    }
+
+    // File input validation for product file
+    if (productFileInput) {
+      productFileInput.addEventListener('change', () => {
+        const file = productFileInput.files[0];
+        if (!file) {
+          fileValidationMsg.textContent = 'Please select a product file.';
+          return;
+        }
+        if (file.size > 100 * 1024 * 1024) { // 100 MB limit
+          fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
+          productFileInput.value = ''; // Clear the input
+        } else {
+          fileValidationMsg.textContent = '';
+        }
+      });
+    }
+
+    // Preview image validation and preview display
+    if (previewImageInput) {
+      previewImageInput.addEventListener('change', () => {
+        const file = previewImageInput.files[0];
+        if (!file) {
+          previewImageValidationMsg.textContent = 'Please select a preview image.';
+          previewContainer.classList.add('hidden');
+          previewImageDisplay.src = '';
+          return;
+        }
+        const validTypes = ['image/jpeg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
+          previewContainer.classList.add('hidden');
+          previewImageDisplay.src = '';
+          previewImageInput.value = ''; // Clear invalid file
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5 MB limit
+          previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
+          previewContainer.classList.add('hidden');
+          previewImageDisplay.src = '';
+          previewImageInput.value = ''; // Clear invalid file
+          return;
+        }
+
+        previewImageValidationMsg.textContent = '';
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImageDisplay.src = e.target.result;
+          previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Form submission handler (client-side validation and demonstration only)
+    if (productUploadForm) {
+      productUploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Prevent default form submission
+
+        // Clear previous validation messages
+        fileValidationMsg.textContent = '';
+        previewImageValidationMsg.textContent = '';
+        paypalEmailValidationMsg.textContent = '';
+
+        const productFile = productFileInput.files[0];
+        const previewImage = previewImageInput.files[0];
+        const priceValue = parseFloat(priceInput.value);
+        const paypalEmailValue = paypalEmailInput.value.trim();
+
+        let isValid = true;
+
+        // Validate product file
+        if (!productFile) {
+          fileValidationMsg.textContent = 'Please upload the digital product file.';
+          isValid = false;
+        } else if (productFile.size > 100 * 1024 * 1024) {
+          fileValidationMsg.textContent = 'Error: File size exceeds 100 MB.';
+          isValid = false;
+        }
+
+        // Validate preview image
+        if (!previewImage) {
+          previewImageValidationMsg.textContent = 'Please upload a preview image.';
+          isValid = false;
+        } else if (!['image/jpeg', 'image/png'].includes(previewImage.type)) {
+          previewImageValidationMsg.textContent = 'Error: Only JPEG and PNG images are allowed.';
+          isValid = false;
+        } else if (previewImage.size > 5 * 1024 * 1024) {
+          previewImageValidationMsg.textContent = 'Error: Preview image size exceeds 5 MB.';
+          isValid = false;
+        }
+
+        // Validate PayPal email if price is set
+        if (!isNaN(priceValue) && priceValue > 0) {
+          if (!paypalEmailValue) {
+            paypalEmailValidationMsg.textContent = 'Please enter your PayPal email to receive payments.';
+            isValid = false;
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailValue)) {
+            paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
+            isValid = false;
+          }
+        }
+
+        if (!isValid) {
+          alert('Please correct the errors in the form.');
+          return;
+        }
+
+        const submitBtn = productUploadForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        // Simulate an asynchronous operation (like a network request)
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate 1.5 seconds delay
+
+        alert('Product form submitted successfully (no actual upload/save without a backend)!');
+        productUploadForm.reset();
+        previewContainer.classList.add('hidden'); // Hide preview after reset
+        previewImageDisplay.src = ''; // Clear preview image src
+
+        // Return to the sell landing content
+        productForm.classList.add('hidden');
+        sellLandingContent.classList.remove('hidden');
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Upload Product';
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      });
+    }
+
+    // The following function is commented out as it relied on Firebase.
+    // If you need products displayed, they must be hardcoded in the HTML
+    // or loaded from another non-Firebase source using fetch/AJAX.
+    /*
+    async function loadProducts() {
+        const productList = document.getElementById('productList');
+        productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Loading products...</p>';
+
+        try {
+            // This part would typically fetch from an API or a static JSON file
+            // Since Firebase is removed, this function is essentially disabled.
+            productList.innerHTML = '<p class="col-span-full text-center text-gray-500">Products would be loaded here (if a data source was connected).</p>';
+            // You could populate it with static HTML examples here if needed.
+
+        } catch (error) {
+            productList.innerHTML = '<p class="col-span-full text-center text-red-500">Failed to load products.</p>';
+            console.error('Error loading products:', error);
+        }
+    }
+    // loadProducts(); // Don't call this if Firebase is removed.
+    */
+  </script>
+</body>
+</html>
