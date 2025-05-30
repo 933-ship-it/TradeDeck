@@ -260,10 +260,7 @@
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 
     // Digital Product File Elements (Manual URL Input)
-    const productFileUrlInput = document.getElementById('productFileUrlInput'); // UPDATED ID
-    // const productFilePublicIdInput = document.getElementById('productFilePublicId'); // REMOVED (no longer needed)
-    // const productFileStatus = document.getElementById('productFileStatus'); // REMOVED (no longer needed)
-
+    const productFileUrlInput = document.getElementById('productFileUrlInput');
 
     // Preview Image Elements
     const previewImageInput = document.getElementById('previewImageInput');
@@ -296,6 +293,34 @@
         } else if (type === 'loading') {
             statusElement.classList.add('loading');
         }
+    }
+
+    // Helper function to convert Google Drive share link to direct download link
+    function convertToGoogleDriveDirectDownload(url) {
+        if (!url) return url; // Return if URL is empty
+
+        let convertedUrl = url;
+
+        // Pattern for Google Drive view links (e.g., https://drive.google.com/file/d/FILE_ID/view?usp=sharing)
+        const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
+        const match = url.match(driveViewPattern);
+
+        if (match && match[1]) {
+            const fileId = match[1];
+            convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            console.log(`Converted Google Drive view link to direct download: ${convertedUrl}`); // DEBUG
+        } else if (url.includes('drive.google.com/open?id=')) {
+            // Another common older Google Drive share link format
+            const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (idMatch && idMatch[1]) {
+                 const fileId = idMatch[1];
+                 convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                 console.log(`Converted old Google Drive share link to direct download: ${convertedUrl}`); // DEBUG
+            }
+        }
+        // This function focuses on direct file links.
+
+        return convertedUrl;
     }
 
 
@@ -459,7 +484,6 @@
         // 1. Preview image is NOT uploading
         // 2. Preview image URL is present (from Cloudinary)
         // 3. Digital product file URL is present (from manual input)
-        // Note: isProductFileUploading is no longer used since it's a manual URL.
         if (!isPreviewImageUploading &&
             previewImageUrlInput.value !== '' &&
             productFileUrlInput.value !== '') { // Now check both manual URL and preview image URL
@@ -496,9 +520,6 @@
             productUploadForm.reset();
             // Clear Cloudinary specific inputs and messages on form reset
             productFileUrlInput.value = ''; // Reset the manual URL input
-            // productFilePublicIdInput.value = ''; // REMOVED
-            // setFileInputStatus(productFileStatus, ''); // REMOVED
-            // productFileInput.classList.remove('border-red-500'); // REMOVED
 
             previewImageUrlInput.value = '';
             setFileInputStatus(previewImageStatus, '');
@@ -506,7 +527,6 @@
             previewImageContainer.classList.add('hidden');
             currentPreviewImage.src = '';
 
-            // isProductFileUploading = false; // REMOVED
             isPreviewImageUploading = false;
             enableSubmitButton(); // Re-enable for a fresh start
 
@@ -534,7 +554,6 @@
         // Initially disable submit button when form is shown until files are processed
         disableSubmitButton();
         // Also clear any previous status messages
-        // setFileInputStatus(productFileStatus, ''); // REMOVED
         setFileInputStatus(previewImageStatus, '');
       });
     }
@@ -565,10 +584,8 @@
         }
 
         // Clear all validation messages and error states
-        // setFileInputStatus(productFileStatus, ''); // REMOVED
         setFileInputStatus(previewImageStatus, '');
         paypalEmailValidationMsg.textContent = '';
-        // productFileInput.classList.remove('border-red-500'); // REMOVED
         previewImageInput.classList.remove('border-red-500');
 
 
@@ -638,9 +655,6 @@
 
             productUploadForm.reset();
             productFileUrlInput.value = ''; // Clear the manual URL input
-            // productFilePublicIdInput.value = ''; // REMOVED
-            // setFileInputStatus(productFileStatus, ''); // REMOVED
-            // productFileInput.classList.remove('border-red-500'); // REMOVED
 
             previewImageUrlInput.value = '';
             setFileInputStatus(previewImageStatus, '');
@@ -671,9 +685,23 @@
         disableSubmitButton();
     }
 
-    // Event listener for the manual product file URL input to trigger button enable check
+    // Event listener for the manual product file URL input to convert link and trigger button enable check
     if (productFileUrlInput) {
-        productFileUrlInput.addEventListener('input', enableSubmitButton);
+        productFileUrlInput.addEventListener('input', () => {
+            // Attempt to convert the Google Drive link
+            const originalUrl = productFileUrlInput.value;
+            const convertedUrl = convertToGoogleDriveDirectDownload(originalUrl);
+
+            // If a conversion happened, update the input field
+            if (originalUrl !== convertedUrl) {
+                productFileUrlInput.value = convertedUrl;
+                // You could add some visual feedback here, e.g., a tiny "Link converted!" message.
+                // For now, it will just update the input silently.
+            }
+
+            // Also call enableSubmitButton to check form validity
+            enableSubmitButton();
+        });
     }
   </script>
 </body>
