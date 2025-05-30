@@ -28,7 +28,7 @@
       visibility: hidden;
     }
     /* Adjusted style for the file input itself */
-    #productFileInput {
+    .cloudinary-file-input {
       @apply w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer;
     }
   </style>
@@ -144,7 +144,7 @@
                   step="0.01"
                   required
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., 29.99"
+                  placeholder="e.g., 29.99 (enter 0 for free)"
                 />
               </div>
               <div id="paypalEmailContainer" class="hidden">
@@ -158,9 +158,21 @@
                 />
                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
               </div>
+
+              <div>
+                <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
+                <input type="file" id="previewImageInput" name="previewImage" class="cloudinary-file-input" accept="image/*" required>
+                <input type="hidden" id="previewImageUrl" name="previewImageUrl">
+                <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
+                <p id="uploadedPreviewImageName" class="text-gray-600 text-xs mt-1 italic hidden"></p>
+                <div id="previewImageContainer" class="mt-2 hidden">
+                    <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-xs h-32 object-cover rounded-md border border-gray-300" />
+                </div>
+              </div>
+
               <div>
                 <label for="productFileInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File</label>
-                <input type="file" id="productFileInput" name="productFile" required>
+                <input type="file" id="productFileInput" name="productFile" class="cloudinary-file-input" required>
                 <input type="hidden" id="productFileUrl" name="productFileUrl">
                 <input type="hidden" id="productFilePublicId" name="productFilePublicId">
                 <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
@@ -193,7 +205,7 @@
   <script>
     // --- Cloudinary Configuration ---
     const CLOUDINARY_CLOUD_NAME = 'desejdvif';
-    const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
+    const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products'; // Use a generic preset or create two specific ones
 
     // --- Firebase Configuration ---
     const firebaseConfig = {
@@ -223,11 +235,20 @@
     const paypalEmailInput = document.getElementById('paypalEmail');
     const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 
-    const productFileInput = document.getElementById('productFileInput'); // Renamed to accurately reflect HTML
+    // Digital Product File Elements
+    const productFileInput = document.getElementById('productFileInput');
     const productFileUrlInput = document.getElementById('productFileUrl');
     const productFilePublicIdInput = document.getElementById('productFilePublicId');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
     const uploadedFileName = document.getElementById('uploadedFileName');
+
+    // Preview Image Elements
+    const previewImageInput = document.getElementById('previewImageInput');
+    const previewImageUrlInput = document.getElementById('previewImageUrl');
+    const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
+    const uploadedPreviewImageName = document.getElementById('uploadedPreviewImageName');
+    const previewImageContainer = document.getElementById('previewImageContainer');
+    const currentPreviewImage = document.getElementById('currentPreviewImage');
 
     const productUploadForm = document.getElementById('productUploadForm');
     const submitProductBtn = document.getElementById('submitProductBtn');
@@ -291,13 +312,16 @@
         filteredProducts.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
+            // Determine price display
+            const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+
             productCard.innerHTML = `
-                <img src="${product.imageUrl || 'https://via.placeholder.com/300x200?text=Digital+Product'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
+                <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
                 <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
                 <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
                 <div class="mt-auto flex justify-between items-center pt-2">
-                    <span class="font-bold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
-                    <a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>
+                    <span class="font-bold text-blue-600">${displayPrice}</span>
+                    ${product.fileUrl ? `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>` : ''}
                 </div>
             `;
             container.appendChild(productCard);
@@ -310,7 +334,7 @@
         noProductsMessage.classList.remove('hidden');
 
         try {
-            const productsRef = db.collection('products');
+            const productsRef = db.collection('products').orderBy('createdAt', 'desc'); // Order by newest first
             const snapshot = await productsRef.get();
             const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -330,46 +354,86 @@
         }
     }
 
-    // --- Cloudinary Widget Setup (attached to the hidden file input) ---
-    // The widget will monitor the `productFileInput` for file selections
-    const myWidget = cloudinary.createUploadWidget(
+    // --- Cloudinary Widget Setup for Digital Product File ---
+    const productFileWidget = cloudinary.createUploadWidget(
         {
             cloudName: CLOUDINARY_CLOUD_NAME,
             uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-            sources: ['local'], // Only allow local file selection
+            sources: ['local'],
             resourceType: 'auto',
             clientAllowedFormats: ['pdf', 'zip', 'rar', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'exe', 'txt', 'js', 'css', 'html', 'json', 'csv', 'svg', 'ai', 'psd', 'cdr', 'sketch', 'indd', 'eps'],
             maxFileSize: 100 * 1024 * 1024,
             multiple: false,
-            folder: 'tradedeck_products',
-            // This is the key: attach the widget to the file input
-            form: '#productUploadForm', // The ID of the form containing the input
-            fieldName: 'productFile' // The 'name' attribute of your file input
+            folder: 'tradedeck_product_files', // Specific folder for product files
+            form: '#productUploadForm',
+            fieldName: 'productFile' // Matches the name of the input
         },
         (error, result) => {
             if (!error && result && result.event === "success") {
-                console.log('Done uploading product file:', result.info);
                 productFileUrlInput.value = result.info.secure_url;
                 productFilePublicIdInput.value = result.info.public_id;
                 uploadedFileName.textContent = `File uploaded: ${result.info.original_filename}.${result.info.format}`;
                 uploadedFileName.classList.remove('hidden');
-                fileValidationMsg.textContent = ''; // Clear any previous validation error
+                fileValidationMsg.textContent = '';
+                productFileInput.classList.remove('border-red-500'); // Remove error border
             } else if (error) {
-                console.error("Cloudinary upload error:", error);
+                console.error("Cloudinary product file upload error:", error);
                 fileValidationMsg.textContent = 'File upload failed. Please try again.';
-                productFileUrlInput.value = ''; // Clear URL on error
+                productFileUrlInput.value = '';
                 productFilePublicIdInput.value = '';
                 uploadedFileName.classList.add('hidden');
+                productFileInput.classList.add('border-red-500'); // Add error border
             } else if (result && result.event === "abort") {
-                // Handle user cancelling the upload or closing the widget
-                if (productFileUrlInput.value === '') { // Only if no file was previously selected/uploaded
-                    fileValidationMsg.textContent = 'File upload cancelled.';
-                }
-            } else if (result && result.event === "close") {
-                // Widget closed, check if a file was uploaded or not
                 if (productFileUrlInput.value === '') {
-                    fileValidationMsg.textContent = 'Please select a file to upload.';
+                    fileValidationMsg.textContent = 'File upload cancelled.';
+                    productFileInput.classList.add('border-red-500');
                 }
+            } else if (result && result.event === "close" && productFileUrlInput.value === '') {
+                fileValidationMsg.textContent = 'Please select a digital product file.';
+                productFileInput.classList.add('border-red-500');
+            }
+        }
+    );
+
+    // --- Cloudinary Widget Setup for Preview Image ---
+    const previewImageWidget = cloudinary.createUploadWidget(
+        {
+            cloudName: CLOUDINARY_CLOUD_NAME,
+            uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+            sources: ['local'],
+            resourceType: 'image', // Only allow image files
+            clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+            maxFileSize: 10 * 1024 * 1024, // 10 MB limit for preview images
+            multiple: false,
+            folder: 'tradedeck_product_previews', // Specific folder for preview images
+            form: '#productUploadForm',
+            fieldName: 'previewImage' // Matches the name of the input
+        },
+        (error, result) => {
+            if (!error && result && result.event === "success") {
+                previewImageUrlInput.value = result.info.secure_url;
+                uploadedPreviewImageName.textContent = `Image uploaded: ${result.info.original_filename}.${result.info.format}`;
+                uploadedPreviewImageName.classList.remove('hidden');
+                previewImageValidationMsg.textContent = '';
+                previewImageInput.classList.remove('border-red-500'); // Remove error border
+                currentPreviewImage.src = result.info.secure_url; // Show preview
+                previewImageContainer.classList.remove('hidden');
+            } else if (error) {
+                console.error("Cloudinary preview image upload error:", error);
+                previewImageValidationMsg.textContent = 'Image upload failed. Please try again.';
+                previewImageUrlInput.value = '';
+                uploadedPreviewImageName.classList.add('hidden');
+                previewImageInput.classList.add('border-red-500');
+                previewImageContainer.classList.add('hidden');
+                currentPreviewImage.src = '';
+            } else if (result && result.event === "abort") {
+                if (previewImageUrlInput.value === '') {
+                    previewImageValidationMsg.textContent = 'Image upload cancelled.';
+                    previewImageInput.classList.add('border-red-500');
+                }
+            } else if (result && result.event === "close" && previewImageUrlInput.value === '') {
+                previewImageValidationMsg.textContent = 'Please select a preview image.';
+                previewImageInput.classList.add('border-red-500');
             }
         }
     );
@@ -391,6 +455,16 @@
             uploadedFileName.classList.add('hidden');
             uploadedFileName.textContent = '';
             fileValidationMsg.textContent = '';
+            productFileInput.classList.remove('border-red-500');
+
+            previewImageUrlInput.value = '';
+            uploadedPreviewImageName.classList.add('hidden');
+            uploadedPreviewImageName.textContent = '';
+            previewImageValidationMsg.textContent = '';
+            previewImageInput.classList.remove('border-red-500');
+            previewImageContainer.classList.add('hidden');
+            currentPreviewImage.src = '';
+
             toggleProductForm(false);
         }
 
@@ -398,7 +472,6 @@
             await loadProducts(searchBar.value.trim());
             searchBar.value = '';
         } else if (target === 'dashboard') {
-            // For now, dashboard shows all products. With user auth, this would be filtered.
             renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
             if (!window.allProducts || window.allProducts.length === 0) {
               noUserProductsMessage.textContent = 'You haven\'t listed any products yet.';
@@ -416,11 +489,11 @@
       });
     }
 
-    // 3. Price input to show/hide PayPal email field
+    // 3. Price input to show/hide PayPal email field (adjusted for 0 price)
     if (priceInput) {
       priceInput.addEventListener('input', () => {
         const priceValue = parseFloat(priceInput.value);
-        if (!isNaN(priceValue) && priceValue > 0) {
+        if (!isNaN(priceValue) && priceValue > 0) { // Only show PayPal if price > 0
           paypalEmailContainer.classList.remove('hidden');
         } else {
           paypalEmailContainer.classList.add('hidden');
@@ -430,36 +503,47 @@
       });
     }
 
-    // --- IMPORTANT: No explicit event listener for productFileInput anymore ---
-    // The Cloudinary widget is now configured to automatically handle the 'change' event
-    // on productFileInput via `form` and `fieldName` options in `createUploadWidget`.
-
     // 4. Product upload form submission handler
     if (productUploadForm) {
       productUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Clear all validation messages and error states
         fileValidationMsg.textContent = '';
         paypalEmailValidationMsg.textContent = '';
+        previewImageValidationMsg.textContent = '';
+        productFileInput.classList.remove('border-red-500');
+        previewImageInput.classList.remove('border-red-500');
+
 
         const title = document.getElementById('title').value.trim();
         const description = document.getElementById('description').value.trim();
         const price = parseFloat(document.getElementById('price').value);
-        const productFileUrl = productFileUrlInput.value; // Get URL from hidden input, pre-filled by widget
+        const productFileUrl = productFileUrlInput.value;
+        const previewImageUrl = previewImageUrlInput.value; // Get preview image URL
         const paypalEmailValue = paypalEmailInput.value.trim();
 
         let isValid = true;
 
         if (!title) { isValid = false; alert('Please enter a product title.'); }
         if (!description) { isValid = false; alert('Please enter a product description.'); }
-        if (isNaN(price) || price <= 0) { isValid = false; alert('Please enter a valid price greater than 0.'); }
+        if (isNaN(price) || price < 0) { isValid = false; alert('Please enter a valid price (0 or greater).'); } // Allow 0
 
-        // Crucial: Check if Cloudinary upload was successful and URL is present
+        // Crucial: Check if Cloudinary upload was successful and URL is present for main file
         if (!productFileUrl) {
           fileValidationMsg.textContent = 'Please select a digital product file.';
+          productFileInput.classList.add('border-red-500');
           isValid = false;
         }
 
+        // Crucial: Check for preview image
+        if (!previewImageUrl) {
+            previewImageValidationMsg.textContent = 'Please select a product preview image.';
+            previewImageInput.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        // Validate PayPal email only if price > 0
         if (!isNaN(price) && price > 0) {
           if (!paypalEmailValue) {
             paypalEmailValidationMsg.textContent = 'Please enter your PayPal email to receive payments.';
@@ -484,18 +568,31 @@
                 description: description,
                 price: price,
                 fileUrl: productFileUrl,
-                imageUrl: 'https://via.placeholder.com/300x200?text=Digital+Product', // Placeholder image
+                previewImageUrl: previewImageUrl, // Store the uploaded preview image URL
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             await db.collection('products').add(newProduct);
 
             alert('Product listed successfully!');
 
+            // Reset form and return to sell landing page
             productUploadForm.reset();
+            // Clear Cloudinary specific inputs and messages on form reset
             productFileUrlInput.value = '';
             productFilePublicIdInput.value = '';
             uploadedFileName.classList.add('hidden');
             uploadedFileName.textContent = '';
+            fileValidationMsg.textContent = '';
+            productFileInput.classList.remove('border-red-500');
+
+            previewImageUrlInput.value = '';
+            uploadedPreviewImageName.classList.add('hidden');
+            uploadedPreviewImageName.textContent = '';
+            previewImageValidationMsg.textContent = '';
+            previewImageInput.classList.remove('border-red-500');
+            previewImageContainer.classList.add('hidden');
+            currentPreviewImage.src = '';
+
             toggleProductForm(false);
 
             await loadProducts(''); // Reload products to display the new one
