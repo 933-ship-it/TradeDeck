@@ -50,120 +50,117 @@
       </section>
 
       <section id="sell" class="hidden">
-        <div class="max-w-6xl mx-auto mt-16 px-4">
-          <div id="sellLandingContent">
-            <div class="text-center mb-16">
-              <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
-                Turn Your Digital Assets Into Revenue
-              </h2>
-              <p class="text-lg text-gray-600 mb-6">
-                Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
-              </p>
-              <button
-                id="startSellingBtn"
-                class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
-              >
-                Start Selling Now
-              </button>
-            </div>
+  <div class="max-w-6xl mx-auto mt-16 px-4">
+    <div id="sellLandingContent">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
+          Turn Your Digital Assets Into Revenue
+        </h2>
+        <p class="text-lg text-gray-600 mb-6">
+          Sell eBooks, guides, code packs, templates, and more. Reach global buyers instantly with TradeDeck.
+        </p>
+        <button
+          id="startSellingBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300"
+        >
+          Start Selling Now
+        </button>
+      </div>
 
-            <div class="mb-20">
-              <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                <div class="bg-white p-6 rounded-xl shadow">
-                  <div class="text-blue-600 text-4xl mb-4">📁</div>
-                  <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
-                  <p class="text-gray-600 text-sm">
-                    PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.
-                  </p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow">
-                  <div class="text-green-500 text-4xl mb-4">⚙️</div>
-                  <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
-                  <p class="text-gray-600 text-sm">
-                    Set your price, description, preview images, and license terms.
-                  </p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow">
-                  <div class="text-purple-500 text-4xl mb-4">💸</div>
-                  <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
-                  <p class="text-gray-600 text-sm">
-                    Your sales are paid directly to your connected PayPal account.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div> <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
-            <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
-            <form id="productUploadForm" class="space-y-6">
-              <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., Ultimate eBook Template Pack"
-                />
-              </div>
-              <div>
-                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows="4"
-                  required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Describe your product in detail..."
-                ></textarea>
-              </div>
-              <div>
-                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  min="0"
-                  step="0.01"
-                  required
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g., 29.99"
-                />
-              </div>
-              <div>
-                <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File (Any type)</label>
-                <input
-                  type="file"
-                  id="productFile"
-                  name="productFile"
-                  required
-                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
-              </div>
-              <div>
-                <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image (JPEG, PNG)</label>
-                <input
-                  type="file"
-                  id="previewImage"
-                  name="previewImage"
-                  accept="image/jpeg, image/png"
-                  required
-                  class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
-              </div>
-              <button
-                type="submit"
-                class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                List Product
-              </button>
-            </form>
+      <div class="mb-20">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-10 text-center">How It Works</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+            <div class="text-blue-600 text-4xl mb-4">📤</div>
+            <h4 class="text-lg font-semibold mb-2">Upload</h4>
+            <p class="text-gray-600 text-sm">Drag & drop your file—PDFs, ZIPs, images, anything.</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+            <div class="text-green-500 text-4xl mb-4">💬</div>
+            <h4 class="text-lg font-semibold mb-2">Describe & Price</h4>
+            <p class="text-gray-600 text-sm">Set the price, add a description, and preview image.</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+            <div class="text-purple-500 text-4xl mb-4">💳</div>
+            <h4 class="text-lg font-semibold mb-2">Get Paid</h4>
+            <p class="text-gray-600 text-sm">Earnings go straight to your linked PayPal account.</p>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+
+    <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
+      <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List a Digital Product</h3>
+      <form id="productUploadForm" class="space-y-6">
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., Ultimate Guide to Freelancing"
+          />
+        </div>
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Describe your product in detail..."
+          ></textarea>
+        </div>
+        <div>
+          <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            min="0"
+            step="0.01"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., 19.99"
+          />
+        </div>
+        <div>
+          <label for="productFile" class="block text-sm font-medium text-gray-700 mb-1">Upload Product File</label>
+          <input
+            type="file"
+            id="productFile"
+            name="productFile"
+            required
+            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-100 file:text-blue-800 hover:file:bg-blue-200"
+          />
+          <p id="fileValidationMsg" class="text-red-500 text-sm mt-1"></p>
+        </div>
+        <div>
+          <label for="previewImage" class="block text-sm font-medium text-gray-700 mb-1">Preview Image</label>
+          <input
+            type="file"
+            id="previewImage"
+            name="previewImage"
+            accept="image/jpeg, image/png"
+            required
+            class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-100 file:text-purple-800 hover:file:bg-purple-200"
+          />
+          <p id="previewImageValidationMsg" class="text-red-500 text-sm mt-1"></p>
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          List Product
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
 
       <section id="dashboard" class="hidden">
         <div class="max-w-4xl mx-auto text-center mt-24">
