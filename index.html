@@ -231,15 +231,28 @@
     const previewImageInput = document.getElementById('previewImage');
     const fileValidationMsg = document.getElementById('fileValidationMsg');
     const previewImageValidationMsg = document.getElementById('previewImageValidationMsg');
-    const paypalEmailContainer = document.getElementById('paypalEmailContainer'); // New
-    const paypalEmailInput = document.getElementById('paypalEmail'); // New
-    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); // New
+    const paypalEmailContainer = document.getElementById('paypalEmailContainer'); 
+    const paypalEmailInput = document.getElementById('paypalEmail'); 
+    const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); 
+    const priceInput = document.getElementById('price'); // New
 
     // Show PayPal email field when the form is visible
     startSellingBtn.addEventListener('click', () => {
       sellLandingContent.classList.add('hidden');
       productForm.classList.remove('hidden');
-      paypalEmailContainer.classList.remove('hidden'); // Show PayPal email field
+      // The PayPal email container will now be shown/hidden based on price input
+    });
+
+    // Event listener for price input to show/hide PayPal email field
+    priceInput.addEventListener('input', () => {
+      const priceValue = parseFloat(priceInput.value);
+      if (!isNaN(priceValue) && priceValue > 0) {
+        paypalEmailContainer.classList.remove('hidden');
+      } else {
+        paypalEmailContainer.classList.add('hidden');
+        paypalEmailInput.value = '';
+        paypalEmailValidationMsg.textContent = '';
+      }
     });
 
     productFileInput.addEventListener('change', () => {
@@ -280,11 +293,12 @@
 
       fileValidationMsg.textContent = '';
       previewImageValidationMsg.textContent = '';
-      paypalEmailValidationMsg.textContent = ''; // Clear PayPal email validation message
+      paypalEmailValidationMsg.textContent = ''; 
 
       const productFile = productFileInput.files[0];
       const previewImage = previewImageInput.files[0];
-      const paypalEmail = paypalEmailInput.value.trim(); // Get PayPal email value
+      const paypalEmail = paypalEmailInput.value.trim(); 
+      const priceValue = parseFloat(priceInput.value);
 
       if (!productFile && !previewImage) {
         fileValidationMsg.textContent = 'Please upload both the digital file and a preview image.';
@@ -297,16 +311,19 @@
         return;
       }
 
-      // Validate PayPal email
-      if (!paypalEmail) {
-        paypalEmailValidationMsg.textContent = 'PayPal email is required.';
-        return;
+      // Validate PayPal email only if the price is greater than 0
+      if (!isNaN(priceValue) && priceValue > 0) {
+        if (!paypalEmail) {
+          paypalEmailValidationMsg.textContent = 'PayPal email is required for paid products.';
+          return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(paypalEmail)) {
+          paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
+          return;
+        }
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(paypalEmail)) {
-        paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email address.';
-        return;
-      }
+
 
       if (productFile.size > 100 * 1024 * 1024) {
           fileValidationMsg.textContent = 'Invalid product file: File size exceeds 100 MB.';
