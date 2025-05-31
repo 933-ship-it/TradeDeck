@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'blob:' https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com https://apis.google.com;">
+    <!-- 
+      If you are testing locally or on GitHub Pages, avoid using a <meta http-equiv="Content-Security-Policy"> 
+      unless you are 100% sure you need it and know all the required domains for your site.
+      Most static hosting does not need this tag, as CSP is best set via server headers.
+      A too-restrictive or wrong CSP meta tag will break scripts, fonts, or PayPal.
+      If you must use CSP as a meta tag, this is a safe version for your use case:
+    -->
+    <!--
+    <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com https://apis.google.com https://cdn.tailwindcss.com https://widget.cloudinary.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;">
+    -->
     <title>TradeDeck</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <!-- PAYPAL SMART BUTTON SDK (replace with your real client-id) -->
+    <!-- PAYPAL SMART BUTTON SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
     <style>
         body {
