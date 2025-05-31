@@ -173,17 +173,149 @@
                                     placeholder="e.g., 29.99 (enter 0 for free)"
                                 />
                             </div>
-                            <div id="paypalEmailContainer" class="hidden">
-                                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
-                                <input
-                                    type="email"
-                                    id="paypalEmail"
-                                    name="paypalEmail"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="e.g., yourname@example.com"
-                                />
-                                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                            </div>
+                         <div id="paypalEmailContainer" class="hidden">
+                 <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
+                 <input
+                     type="email"
+                     id="paypalEmail"
+                     name="paypalEmail"
+                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                     placeholder="e.g., yourname@example.com"
+                 />
+                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
+                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
+                     <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
+                     <details class="mt-2">
+                         <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
+                         <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, TradeDeck will unfortunately be unable to disburse your funds, and they will be forfeited. Double-check your PayPal account settings for the correct email.</p>
+                     </details>
+                 </div>
+                 </div>
+                    
+                           function enableSubmitButton() {
+            const titleFilled = titleInput.value.trim() !== ''; [cite: 145]
+            const descriptionFilled = descriptionInput.value.trim() !== ''; [cite: 145]
+            const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0; [cite: 146]
+            const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim()); [cite: 146]
+            const previewImageUrlPresent = previewImageUrlInput.value !== ''; [cite: 146]
+            const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== ''); [cite: 147]
+
+            // Add/remove error classes based on validity
+            titleInput.classList.toggle('input-invalid', !titleFilled); [cite: 148]
+            descriptionInput.classList.toggle('input-invalid', !descriptionFilled); [cite: 148]
+            priceInput.classList.toggle('input-invalid', !priceValid); [cite: 148]
+            productFileUrlInput.classList.toggle('input-invalid', !productFileUrlPresentAndValid); [cite: 148]
+            openPreviewImageWidgetBtn.classList.toggle('input-invalid', !previewImageUrlPresent); [cite: 148]
+
+            if (!paypalEmailContainer.classList.contains('hidden')) {
+                paypalEmailInput.classList.toggle('input-invalid', !paypalEmailValid); [cite: 149]
+                // Update validation message more precisely
+                if (!paypalEmailValid && paypalEmailInput.value.trim() !== '') {
+                    paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email.';
+                } else if (!paypalEmailValid && paypalEmailInput.value.trim() === '') {
+                    paypalEmailValidationMsg.textContent = 'PayPal email is required for paid products.';
+                } else {
+                    paypalEmailValidationMsg.textContent = ''; [cite: 151]
+                }
+            } else {
+                paypalEmailInput.classList.remove('input-invalid'); [cite: 150]
+                paypalEmailValidationMsg.textContent = ''; [cite: 151]
+            }
+
+            if (!isPreviewImageUploading &&
+                titleFilled &&
+                descriptionFilled &&
+                priceValid &&
+                productFileUrlPresentAndValid && [cite: 152]
+                previewImageUrlPresent && [cite: 152]
+                paypalEmailValid) { [cite: 152]
+                submitProductBtn.disabled = false; [cite: 153]
+                submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed'); [cite: 153]
+            } else {
+                disableSubmitButton(); [cite: 154]
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // 1. Sidebar Tab Navigation
+        tabs.forEach(tab => {
+            tab.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const target = tab.getAttribute('data-tab'); [cite: 155]
+                showTab(target); [cite: 155]
+
+                if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+                    toggleProductForm(false);
+                }
+
+                if (target === 'home') {
+                    await loadProducts(searchBar.value.trim()); [cite: 156]
+                    searchBar.value = ''; // Clear search bar on tab change
+                } else if (target === 'dashboard') {
+                    await loadProductsForDashboard(); // Load ALL products for dashboard [cite: 157]
+                }
+            });
+        });
+        // 2. "Start Selling Now" button on Sell tab
+        startSellingBtn.addEventListener('click', () => {
+            toggleProductForm(true); // Always allow opening the form now [cite: 158]
+        });
+        // 3. Product Upload Form Submission
+        productUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            disableSubmitButton(); [cite: 161]
+            submitProductBtn.textContent = 'Listing...'; [cite: 161]
+
+            // Validate fields before submission
+            enableSubmitButton(); // Re-run validation checks to update UI
+
+            if (submitProductBtn.disabled) { // If button is still disabled after validation, there are errors [cite: 160]
+                alert('Please fill out all required fields correctly before listing your product.'); [cite: 160]
+                submitProductBtn.textContent = 'List Product'; [cite: 160]
+                return;
+            }
+
+            // Explicit check for PayPal email validity for paid products
+            if (!paypalEmailContainer.classList.contains('hidden') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim())) {
+                alert('Please enter a valid PayPal email. Funds for paid products cannot be disbursed without a valid PayPal email.');
+                submitProductBtn.textContent = 'List Product';
+                enableSubmitButton(); // Re-enable button so user can correct
+                paypalEmailInput.classList.add('input-invalid');
+                paypalEmailValidationMsg.textContent = 'Please enter a valid PayPal email.';
+                return;
+            }
+
+            try {
+                // Convert Google Drive links if applicable
+                const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim()); [cite: 161]
+
+                const newProduct = {
+                    title: titleInput.value.trim(), [cite: 162]
+                    description: descriptionInput.value.trim(), [cite: 162]
+                    price: parseFloat(priceInput.value), [cite: 162]
+                    fileUrl: finalProductFileUrl, // Use converted URL [cite: 162]
+                    previewImageUrl: previewImageUrlInput.value, [cite: 162]
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(), [cite: 162]
+                    paypalEmail: paypalEmailInput.value.trim() [cite: 163]
+                };
+                await db.collection('products').add(newProduct); [cite: 164]
+
+                alert('Product listed successfully!'); [cite: 164]
+                toggleProductForm(false); // Hide form, show landing content [cite: 164]
+                await loadProducts(''); [cite: 165] // Reload products on home tab
+
+            } catch (error) {
+                console.error("Error adding document to Firestore:", error); [cite: 166]
+                alert('Failed to list product. Please check console for details. (Check Firestore rules!)'); [cite: 166]
+            } finally {
+                enableSubmitButton(); [cite: 167]
+                submitProductBtn.textContent = 'List Product'; [cite: 168]
+            }
+        });
+
+             <div>
+                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
 
                             <div>
                                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
