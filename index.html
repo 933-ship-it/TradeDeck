@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+in this code <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,6 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
   <style>
     body {
@@ -176,7 +175,7 @@
                 />
               </div>
               <div id="paypalEmailContainer" class="hidden">
-                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email (for receiving payouts)</label>
+                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
                 <input
                   type="email"
                   id="paypalEmail"
@@ -239,59 +238,21 @@
     const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 
     // --- Firebase Configuration ---
-    // IMPORTANT: __firebase_config and __initial_auth_token are provided by the Canvas environment.
-    // Do NOT hardcode these values.
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+      authDomain: "tradedeck-82bbb.firebaseapp.com",
+      projectId: "tradedeck-82bbb",
+      storageBucket: "tradedeck-82bbb.firebasestorage.app",
+      messagingSenderId: "755235931546",
+      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+      measurementId: "G-4RXR7V9NCW"
+    };
 
-    // Initialize Firebase App
-    const app = firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth(); // Initialize Firebase Auth
 
-    let currentUserId = null; // To store the authenticated user's ID
-    let isAuthReady = false; // Flag to indicate if auth state has been determined
-
-    // --- Firebase Authentication Setup ---
-    // Listen for authentication state changes
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        // User is signed in.
-        currentUserId = user.uid;
-        console.log("User signed in with UID:", currentUserId);
-      } else {
-        // User is signed out.
-        currentUserId = null;
-        console.log("No user signed in. Attempting anonymous sign-in...");
-        // Sign in anonymously if no user is signed in.
-        // The __initial_auth_token is provided by the Canvas environment for custom auth.
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          auth.signInWithCustomToken(__initial_auth_token)
-            .then(() => {
-              console.log("Signed in with custom token.");
-            })
-            .catch((error) => {
-              console.error("Error signing in with custom token:", error);
-            });
-        } else {
-          auth.signInAnonymously()
-            .then(() => {
-              console.log("Signed in anonymously.");
-            })
-            .catch((error) => {
-              console.error("Error signing in anonymously:", error);
-            });
-        }
-      }
-      isAuthReady = true; // Set auth ready flag
-      // After auth state is determined, load initial products and check button state
-      const initialTab = window.location.hash.substring(1) || 'home';
-      showTab(initialTab);
-      loadProducts();
-      enableSubmitButton(); // Re-check button state after auth is ready
-    });
-
-
-    // --- Global Variables (rest remain the same) ---
+    // --- Global Variables ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
     const sections = document.querySelectorAll('main section');
 
@@ -312,7 +273,7 @@
     // Preview Image Elements
     const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget'); // Changed from input
     const previewImageUrlInput = document.getElementById('previewImageUrl');
-    const previewImageStatus = document.getElementById('file-upload-status'); // Corrected ID
+    const previewImageStatus = document.getElementById('previewImageStatus');
     const previewImageContainer = document.getElementById('previewImageContainer');
     const currentPreviewImage = document.getElementById('currentPreviewImage');
 
@@ -422,13 +383,6 @@
       }
     }
 
-    /**
-     * Renders product cards into the specified container.
-     * @param {Array} productArray - The array of product objects to render.
-     * @param {HTMLElement} container - The DOM element where products will be rendered.
-     * @param {HTMLElement} noResultsMsgElement - The DOM element to display no results message.
-     * @param {string} filterQuery - Optional query string to filter products by title/description.
-     */
     function renderProducts(productArray, container, noResultsMsgElement, filterQuery = '') {
         container.innerHTML = '';
         noResultsMsgElement.classList.add('hidden');
@@ -450,19 +404,6 @@
             productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col product-card';
             const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
-            let actionButtonHtml = '';
-            // Only show delete button for products owned by the current user on the dashboard
-            // and ensure currentUserId is available
-            if (container.id === 'userProducts' && currentUserId && product.userId === currentUserId) {
-                actionButtonHtml = `<button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition delete-product-btn" data-product-id="${product.id}" aria-label="Delete ${product.title}">Delete</button>`;
-            } else if (container.id !== 'userProducts') { // For home tab
-                if (parseFloat(product.price) === 0) {
-                    actionButtonHtml = `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition" aria-label="Download ${product.title}">Free Download</a>`;
-                } else {
-                    actionButtonHtml = `<button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition buy-product-btn" data-product-id="${product.id}" aria-label="Buy ${product.title}">Buy Now</button>`;
-                }
-            }
-
             productCard.innerHTML = `
                 <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
                 <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
@@ -470,21 +411,18 @@
                 <div class="mt-auto flex justify-between items-center pt-2">
                     <span class="font-bold text-blue-600">${displayPrice}</span>
                     <div class="flex items-center space-x-2">
-                        ${actionButtonHtml}
+                        ${product.fileUrl ? `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>` : ''}
+                        ${container.id === 'userProducts' ? `<button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition delete-product-btn" data-product-id="${product.id}" aria-label="Delete ${product.title}">Delete</button>` : ''}
                     </div>
                 </div>
             `;
             container.appendChild(productCard);
         });
 
-        // Attach event listeners to buttons after they are rendered
+        // Attach event listeners to delete buttons after they are rendered
         if (container.id === 'userProducts') { // Only attach for dashboard products
             container.querySelectorAll('.delete-product-btn').forEach(button => {
                 button.addEventListener('click', handleDeleteProduct);
-            });
-        } else { // For home tab products, attach buy button listener
-            container.querySelectorAll('.buy-product-btn').forEach(button => {
-                button.addEventListener('click', handleBuyProduct);
             });
         }
     }
@@ -515,10 +453,12 @@
         const productId = event.target.dataset.productId;
         if (!productId) {
             console.error("Product ID not found for deletion.");
+            // Replace alert with a custom modal/message box in a real application
             const userConfirmed = await showCustomConfirm('Could not delete product: ID missing. Do you want to proceed?');
             if (!userConfirmed) return;
         }
 
+        // Replace confirm with a custom modal/message box
         const userConfirmed = await showCustomConfirm('Are you sure you want to delete this product? This action cannot be undone.');
         if (!userConfirmed) {
             return; // User cancelled
@@ -529,10 +469,10 @@
         event.target.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
-            // Firestore rule for delete should be:
-            // allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
             await db.collection('products').doc(productId).delete();
+            // Replace alert with a custom modal/message box
             showCustomAlert('Product deleted successfully!');
+            // Reload user products after successful deletion
             // Filter window.allProducts to remove the deleted product
             window.allProducts = window.allProducts.filter(product => product.id !== productId);
             renderProducts(window.allProducts, userProductsContainer, noUserProductsMessage);
@@ -540,6 +480,7 @@
             await loadProducts();
         } catch (error) {
             console.error("Error deleting product:", error);
+            // Replace alert with a custom modal/message box
             showCustomAlert('Failed to delete product. Please try again.');
         } finally {
             event.target.disabled = false;
@@ -548,78 +489,15 @@
         }
     }
 
-    /**
-     * Handles the "Buy Now" button click, initiating PayPal checkout.
-     * IMPORTANT: This is a client-side initiation. Actual payment confirmation,
-     * seller payouts, and digital product delivery require a backend server
-     * to handle PayPal IPN/Webhooks and the Payouts API.
-     * @param {Event} event - The click event.
-     */
-    async function handleBuyProduct(event) {
-        const productId = event.target.dataset.productId;
-        if (!productId) {
-            showCustomAlert('Error: Product ID not found for purchase.');
-            console.error("Product ID not found for purchase.");
-            return;
-        }
-
-        // Find the product details from the globally stored products
-        const product = window.allProducts.find(p => p.id === productId);
-
-        if (!product) {
-            showCustomAlert('Error: Product details not found.');
-            console.error("Product details not found for ID:", productId);
-            return;
-        }
-
-        // Disable the button to prevent multiple clicks
-        event.target.disabled = true;
-        event.target.textContent = 'Redirecting...';
-        event.target.classList.add('opacity-50', 'cursor-not-allowed');
-
-        try {
-            // --- IMPORTANT: Replace 'YOUR_TRADEDECK_PAYPAL_BUSINESS_EMAIL' with your actual PayPal business email ---
-            // This is the email where the buyer will send money for the product.
-            const YOUR_TRADEDECK_PAYPAL_BUSINESS_EMAIL = 'your_tradedeck_business_email@example.com'; // <<< REPLACE THIS!
-
-            // Construct the PayPal Standard Payments URL
-            // For a real application, you'd also want to pass custom data (e.g., product.id, seller.paypalEmail)
-            // through PayPal's `custom` field or similar, which your backend IPN listener would then parse.
-            const checkoutUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick` +
-                               `&business=${encodeURIComponent(YOUR_TRADEDECK_PAYPAL_BUSINESS_EMAIL)}` +
-                               `&item_name=${encodeURIComponent(product.title)}` +
-                               `&amount=${product.price.toFixed(2)}` +
-                               `&currency_code=USD` +
-                               `&no_shipping=1` + // Digital goods, no shipping needed
-                               `&return=${encodeURIComponent(window.location.origin + '/checkout-success.html')}` + // URL after successful payment (create this page)
-                               `&cancel_return=${encodeURIComponent(window.location.origin + '/checkout-cancel.html')}` + // URL if payment is cancelled (create this page)
-                               `&notify_url=${encodeURIComponent('YOUR_BACKEND_IPN_LISTENER_URL')}` + // <<< REPLACE THIS with your server's IPN listener URL
-                               `&custom=${encodeURIComponent(JSON.stringify({ productId: product.id, sellerEmail: product.paypalEmail }))}`; // Pass custom data for backend
-
-            showCustomAlert('Redirecting to PayPal for checkout...');
-            window.open(checkoutUrl, '_blank'); // Open PayPal in a new tab
-
-            // In a real scenario, the product download link would be sent via email
-            // from your backend *after* PayPal confirms the payment via IPN/Webhook.
-            // For this client-side demo, we'll just show a message.
-            showCustomAlert('Once payment is confirmed, the digital product link will be sent to your email.');
-
-        } catch (error) {
-            console.error("Error initiating PayPal checkout:", error);
-            showCustomAlert('Failed to initiate checkout. Please try again.');
-        } finally {
-            // Re-enable the button after a short delay or based on user action
-            setTimeout(() => {
-                event.target.disabled = false;
-                event.target.textContent = 'Buy Now';
-                event.target.classList.remove('opacity-50', 'cursor-not-allowed');
-            }, 2000); // Re-enable after 2 seconds
-        }
-    }
-
-
     // --- Custom Alert/Confirm Modals (replacing native alert/confirm) ---
+    // You would typically implement a more sophisticated modal UI here.
+    // For demonstration, we'll use simple prompt/confirm for now.
+    // In a real app, this would be a div overlay with buttons.
+
     function showCustomAlert(message) {
+        // This is a placeholder. In a real app, you'd show a styled modal.
+        // For now, we'll log to console and use a temporary DOM element.
+        console.log("ALERT:", message);
         const alertDiv = document.createElement('div');
         alertDiv.textContent = message;
         alertDiv.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
@@ -630,6 +508,8 @@
     }
 
     function showCustomConfirm(message) {
+        // This is a placeholder. In a real app, you'd show a styled modal with "Yes" and "No" buttons.
+        // For now, we'll use the native confirm, but you MUST replace this with a custom UI.
         return new Promise(resolve => {
             const modalOverlay = document.createElement('div');
             modalOverlay.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
@@ -717,7 +597,6 @@
         const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0;
         const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim());
         const previewImageUrlPresent = previewImageUrlInput.value !== '';
-        // PayPal email is only required if price > 0
         const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== '');
 
         // Add/remove error classes based on validity
@@ -736,16 +615,13 @@
         }
 
 
-        // All conditions must be met, including currentUserId and auth readiness
         if (!isPreviewImageUploading &&
             titleFilled &&
             descriptionFilled &&
             priceValid &&
             productFileUrlPresentAndValid &&
             previewImageUrlPresent &&
-            paypalEmailValid &&
-            currentUserId && // Ensure user is authenticated
-            isAuthReady) { // Ensure auth state has been determined
+            paypalEmailValid) {
             submitProductBtn.disabled = false;
             submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
@@ -768,18 +644,12 @@
         }
 
         if (target === 'home') {
-            // Products load automatically on auth state change or initial load
-            // await loadProducts(searchBar.value.trim()); // No need to call again here
+            await loadProducts(searchBar.value.trim());
             searchBar.value = '';
         } else if (target === 'dashboard') {
-            // Filter products for the current user's dashboard
-            if (currentUserId && isAuthReady) { // Ensure auth is ready before filtering
-                const userProducts = window.allProducts.filter(product => product.userId === currentUserId);
-                renderProducts(userProducts, userProductsContainer, noUserProductsMessage);
-            } else {
-                noUserProductsMessage.textContent = 'Please wait, authenticating...';
-                noUserProductsMessage.classList.remove('hidden');
-            }
+            // For now, it will show all products, but allow deletion
+            // In a real application, you would filter products by the logged-in user's ID
+            renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
         }
       });
     });
@@ -799,7 +669,7 @@
           paypalEmailContainer.classList.remove('hidden');
         } else {
           paypalEmailContainer.classList.add('hidden');
-          paypalEmailInput.value = ''; // Clear email if price is 0
+          paypalEmailInput.value = '';
           paypalEmailValidationMsg.textContent = '';
         }
         enableSubmitButton();
@@ -850,13 +720,6 @@
             return;
         }
 
-        // Ensure user is authenticated AND auth state has been determined before attempting to list product
-        if (!currentUserId || !isAuthReady) {
-            showCustomAlert('Please wait, authenticating user. Try again in a moment.');
-            console.error("Attempted to list product before user was authenticated or auth state was ready. currentUserId:", currentUserId, "isAuthReady:", isAuthReady);
-            return;
-        }
-
         submitProductBtn.disabled = true;
         submitProductBtn.textContent = 'Listing Product...';
         submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -868,31 +731,15 @@
                 price: parseFloat(priceInput.value),
                 fileUrl: productFileUrlInput.value,
                 previewImageUrl: previewImageUrlInput.value,
-                paypalEmail: parseFloat(priceInput.value) > 0 ? paypalEmailInput.value.trim() : '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                userId: currentUserId // *** ADDED: User ID to match Firestore rules ***
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
-            console.log("Attempting to add new product to Firestore:");
-            console.log("Product Data:", newProduct);
-            console.log("Current User ID:", currentUserId);
 
             await db.collection('products').add(newProduct);
 
             showCustomAlert('Product listed successfully!');
 
             toggleProductForm(false);
-            await loadProducts(''); // Reload home products
-            // Also refresh dashboard if it's visible or next time it's accessed
-            if (document.getElementById('dashboard').classList.contains('hidden')) {
-                // If dashboard is not active, just ensure data is ready for next time
-                // No explicit reload needed here for dashboard as it filters from window.allProducts
-            } else {
-                // If dashboard is active, re-render it
-                const userProducts = window.allProducts.filter(product => product.userId === currentUserId);
-                renderProducts(userProducts, userProductsContainer, noUserProductsMessage);
-            }
-
+            await loadProducts('');
 
         } catch (error) {
             console.error("Error adding document to Firestore:", error);
@@ -904,16 +751,17 @@
       });
     }
 
-    // 6. Initial load is now handled by onAuthStateChanged to ensure user ID is available
-    // const initialTab = window.location.hash.substring(1) || 'home';
-    // showTab(initialTab);
-    // loadProducts(); // This is now called inside onAuthStateChanged
+    // 6. Initial load when the page loads
+    const initialTab = window.location.hash.substring(1) || 'home';
+    showTab(initialTab);
+    loadProducts();
 
     // Initial check for button state if form is visible on page load (e.g., after refresh)
-    // This will be re-evaluated once auth state is ready by onAuthStateChanged
     if (productForm && !productForm.classList.contains('hidden')) {
-        // No direct call to enableSubmitButton here, as onAuthStateChanged will handle it
+        enableSubmitButton();
     }
   </script>
 </body>
 </html>
+              
+
