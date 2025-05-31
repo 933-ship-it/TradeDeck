@@ -175,6 +175,18 @@
                             </div>
                             <div id="paypalEmailContainer" class="hidden">
                                 <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
+                                <div>
+    <label for="myDropdown" class="block text-sm font-medium text-gray-700 mb-1">Select an Option</label>
+    <select
+        id="myDropdown"
+        name="myDropdown"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+    >
+        <option value="" disabled selected>Choose an option...</option> <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+        <option value="option3">Option 3</option>
+    </select>
+</div>
                                 <input
                                     type="email"
                                     id="paypalEmail"
@@ -182,6 +194,16 @@
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="e.g., yourname@example.com"
                                 />
+                                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
+<div>
+    <label for="anotherPlaceholder" class="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
+    <input
+        type="text"
+        id="anotherPlaceholder"
+        name="anotherPlaceholder"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Enter more details here..." />
+</div>
                                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
                             </div>
 
