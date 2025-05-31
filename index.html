@@ -11,6 +11,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
     <!-- PAYPAL SMART BUTTON SDK (replace with your real client-id) -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
@@ -68,6 +69,14 @@
     <div class="flex h-screen">
         <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
             <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
+            <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
+  <img id="userProfilePic" class="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 hidden" src="" alt="Profile" />
+  <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
+    <div class="px-4 py-2 text-gray-700 text-sm border-b border-gray-100" id="userEmail"></div>
+    <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">Delete Account</button>
+    <button id="signOutBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Sign Out</button>
+  </div>
+</div>
             <nav class="space-y-4 flex-grow">
                 <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">Home</a>
                 <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">Sell</a>
@@ -286,6 +295,61 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
+const profilePic = document.getElementById('userProfilePic');
+const dropdownMenu = document.getElementById('dropdownMenu');
+const userEmail = document.getElementById('userEmail');
+const authOverlay = document.getElementById('authOverlay');
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
+
+document.body.style.visibility = "hidden";
+let userGlobal = null;
+
+auth.onAuthStateChanged(user => {
+    if (!user) {
+        document.body.style.visibility = "";
+        authOverlay.style.display = "flex";
+    } else {
+        document.body.style.visibility = "";
+        authOverlay.style.display = "none";
+        userGlobal = user;
+        showProfileUI(user);
+    }
+});
+
+function showProfileUI(user) {
+    if (!user) return;
+    profilePic.src = user.photoURL || "";
+    profilePic.classList.remove("hidden");
+    userEmail.textContent = user.email || "";
+    profilePic.onclick = function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('hidden');
+    };
+    document.addEventListener('click', (e) => {
+        if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.add('hidden');
+        }
+    });
+    document.getElementById('deleteAccountBtn').onclick = async () => {
+        if (confirm("Delete your account? This cannot be undone.")) {
+            try {
+                await user.delete();
+                alert("Account deleted.");
+                window.location.href = LANDING_URL;
+            } catch (err) {
+                if (err.code === 'auth/requires-recent-login') {
+                    alert("Please sign out and sign in again, then try deleting your account.");
+                } else {
+                    alert("Failed to delete account: " + err.message);
+                }
+            }
+        }
+    };
+    document.getElementById('signOutBtn').onclick = () => {
+        auth.signOut();
+    };
+}
 
         // --- Global Variables ---
         const tabs = document.querySelectorAll('aside nav a[data-tab]');
@@ -743,5 +807,9 @@
             }
         });
     </script>
+    <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
+  <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
+  <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
+</div>
 </body>
 </html>
