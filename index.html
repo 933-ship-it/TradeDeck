@@ -792,18 +792,35 @@
     if (!document.getElementById('home').classList.contains('hidden')) {
         const query = searchBar.value.trim().toLowerCase();
         if (!window.allProducts) return;
-        // Split query into keywords
+
+        // If the search bar is empty, show all products
+        if (!query) {
+            renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
+            return;
+        }
+
+        // Split the search query into keywords for flexible matching
         const keywords = query.split(/\s+/).filter(Boolean);
+
+        // Filter products: match if any keyword is in title or description
         const filteredProducts = window.allProducts.filter(product => {
-            // Combine all searchable fields into one string
             const haystack = [
-                product.title,
-                product.description
+                product.title || '',
+                product.description || ''
             ].join(' ').toLowerCase();
-            // All keywords must be present somewhere in the haystack
-            return keywords.every(kw => haystack.includes(kw));
+            // Match if ANY keyword is found (like Google)
+            return keywords.some(kw => haystack.includes(kw));
         });
-        renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+
+        // Show products or a friendly message if none found
+        if (filteredProducts.length > 0) {
+            renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+            noProductsMessage.classList.add('hidden');
+        } else {
+            productListContainer.innerHTML = '';
+            noProductsMessage.textContent = "No products found for your search. Try different keywords!";
+            noProductsMessage.classList.remove('hidden');
+        }
     }
 });
 
