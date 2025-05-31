@@ -249,6 +249,7 @@
     const auth = firebase.auth(); // Initialize Firebase Auth
 
     let currentUserId = null; // To store the authenticated user's ID
+    let isAuthReady = false; // Flag to indicate if auth state has been determined
 
     // --- Firebase Authentication Setup ---
     // Listen for authentication state changes
@@ -256,14 +257,11 @@
       if (user) {
         // User is signed in.
         currentUserId = user.uid;
-        console.log("User signed in:", currentUserId);
-        // You can now safely perform Firestore operations that require authentication.
-        // For example, if you want to load user-specific dashboard data here:
-        // loadUserProducts(currentUserId);
+        console.log("User signed in with UID:", currentUserId);
       } else {
         // User is signed out.
         currentUserId = null;
-        console.log("No user signed in. Signing in anonymously...");
+        console.log("No user signed in. Attempting anonymous sign-in...");
         // Sign in anonymously if no user is signed in.
         // The __initial_auth_token is provided by the Canvas environment for custom auth.
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -284,10 +282,12 @@
             });
         }
       }
-      // After auth state is determined, load initial products
+      isAuthReady = true; // Set auth ready flag
+      // After auth state is determined, load initial products and check button state
       const initialTab = window.location.hash.substring(1) || 'home';
       showTab(initialTab);
       loadProducts();
+      enableSubmitButton(); // Re-check button state after auth is ready
     });
 
 
@@ -312,7 +312,7 @@
     // Preview Image Elements
     const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget'); // Changed from input
     const previewImageUrlInput = document.getElementById('previewImageUrl');
-    const previewImageStatus = document.getElementById('previewImageStatus');
+    const previewImageStatus = document.getElementById('file-upload-status'); // Corrected ID
     const previewImageContainer = document.getElementById('previewImageContainer');
     const currentPreviewImage = document.getElementById('currentPreviewImage');
 
@@ -452,7 +452,8 @@
 
             let actionButtonHtml = '';
             // Only show delete button for products owned by the current user on the dashboard
-            if (container.id === 'userProducts' && product.userId === currentUserId) {
+            // and ensure currentUserId is available
+            if (container.id === 'userProducts' && currentUserId && product.userId === currentUserId) {
                 actionButtonHtml = `<button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition delete-product-btn" data-product-id="${product.id}" aria-label="Delete ${product.title}">Delete</button>`;
             } else if (container.id !== 'userProducts') { // For home tab
                 if (parseFloat(product.price) === 0) {
@@ -528,6 +529,8 @@
         event.target.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
+            // Firestore rule for delete should be:
+            // allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
             await db.collection('products').doc(productId).delete();
             showCustomAlert('Product deleted successfully!');
             // Filter window.allProducts to remove the deleted product
@@ -733,6 +736,7 @@
         }
 
 
+        // All conditions must be met, including currentUserId and auth readiness
         if (!isPreviewImageUploading &&
             titleFilled &&
             descriptionFilled &&
@@ -740,7 +744,8 @@
             productFileUrlPresentAndValid &&
             previewImageUrlPresent &&
             paypalEmailValid &&
-            currentUserId) { // Ensure user is authenticated before enabling submit
+            currentUserId && // Ensure user is authenticated
+            isAuthReady) { // Ensure auth state has been determined
             submitProductBtn.disabled = false;
             submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
@@ -768,7 +773,7 @@
             searchBar.value = '';
         } else if (target === 'dashboard') {
             // Filter products for the current user's dashboard
-            if (currentUserId) {
+            if (currentUserId && isAuthReady) { // Ensure auth is ready before filtering
                 const userProducts = window.allProducts.filter(product => product.userId === currentUserId);
                 renderProducts(userProducts, userProductsContainer, noUserProductsMessage);
             } else {
@@ -845,10 +850,10 @@
             return;
         }
 
-        // Ensure user is authenticated before attempting to list product
-        if (!currentUserId) {
-            showCustomAlert('Please wait, authenticating user...');
-            console.error("Attempted to list product before user was authenticated.");
+        // Ensure user is authenticated AND auth state has been determined before attempting to list product
+        if (!currentUserId || !isAuthReady) {
+            showCustomAlert('Please wait, authenticating user. Try again in a moment.');
+            console.error("Attempted to list product before user was authenticated or auth state was ready. currentUserId:", currentUserId, "isAuthReady:", isAuthReady);
             return;
         }
 
@@ -867,6 +872,10 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 userId: currentUserId // *** ADDED: User ID to match Firestore rules ***
             };
+
+            console.log("Attempting to add new product to Firestore:");
+            console.log("Product Data:", newProduct);
+            console.log("Current User ID:", currentUserId);
 
             await db.collection('products').add(newProduct);
 
@@ -898,11 +907,12 @@
     // 6. Initial load is now handled by onAuthStateChanged to ensure user ID is available
     // const initialTab = window.location.hash.substring(1) || 'home';
     // showTab(initialTab);
-    // loadProducts();
+    // loadProducts(); // This is now called inside onAuthStateChanged
 
     // Initial check for button state if form is visible on page load (e.g., after refresh)
+    // This will be re-evaluated once auth state is ready by onAuthStateChanged
     if (productForm && !productForm.classList.contains('hidden')) {
-        enableSubmitButton();
+        // No direct call to enableSubmitButton here, as onAuthStateChanged will handle it
     }
   </script>
 </body>
