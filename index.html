@@ -11,7 +11,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script> <style>
+    <style>
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -68,13 +68,7 @@
                 <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">Sell</a>
                 <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">Dashboard</a>
             </nav>
-            <div class="mt-8 pt-4 border-t border-gray-200">
-                <button id="authButton" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                    Login
-                </button>
-                <p id="userStatus" class="text-sm text-gray-600 mt-2 text-center"></p>
-            </div>
-        </aside>
+            </aside>
 
         <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
 
@@ -228,9 +222,9 @@
 
             <section id="dashboard" class="hidden">
                 <div class="max-w-6xl mx-auto mt-16 px-4">
-                    <h2 class="text-4xl font-bold mb-8">Your Dashboard</h2>
+                    <h2 class="text-4xl font-bold mb-8">All Listed Products (Dashboard View)</h2>
                     <div id="userProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <p id="noUserProductsMessage" class="col-span-full text-center text-gray-500 hidden">You haven't listed any products yet.</p>
+                        <p id="noUserProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
                     </div>
                 </div>
             </section>
@@ -256,7 +250,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth(); // Initialize Auth service
+        // Removed Auth service: const auth = firebase.auth();
 
         // --- Global Variables ---
         const tabs = document.querySelectorAll('aside nav a[data-tab]');
@@ -291,12 +285,13 @@
         const userProductsContainer = document.getElementById('userProducts');
         const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
-        const authButton = document.getElementById('authButton');
-        const userStatus = document.getElementById('userStatus');
+        // Removed auth elements:
+        // const authButton = document.getElementById('authButton');
+        // const userStatus = document.getElementById('userStatus');
 
         // Track upload status
         let isPreviewImageUploading = false;
-        let currentUser = null; // To store the authenticated user object
+        // Removed currentUser variable: let currentUser = null;
 
         // --- Helper for setting file input status messages ---
         function setFileInputStatus(statusElement, message, type = 'default') {
@@ -337,28 +332,22 @@
 
         // --- Function to Delete Product ---
         async function deleteProduct(productId) {
-            if (!currentUser) {
-                alert('You must be logged in to delist a product.');
-                return;
-            }
-
+            // Removed currentUser check for deletion.
+            // WARNING: If your Firestore rules still require request.auth.uid, this will fail.
+            // You'll need to adjust your Firestore rules for testing this without auth.
             if (!confirm('Are you sure you want to permanently delist this product? This action cannot be undone.')) {
                 return; // User cancelled
             }
 
             try {
-                // The Firestore security rules will ensure only the owner can delete
                 await db.collection('products').doc(productId).delete();
                 alert('Product delisted successfully!');
-                // Reload products for the dashboard to reflect the change
-                await loadUserProducts(); // Load only user's products for dashboard
+                // Reload products on both home and dashboard tabs
+                await loadProducts(''); // Reload all products for the home tab
+                await loadProductsForDashboard(); // Reload for the dashboard tab
             } catch (error) {
                 console.error("Error removing document: ", error);
-                if (error.code === 'permission-denied') {
-                    alert('Permission denied. You can only delist your own products.');
-                } else {
-                    alert('Error delisting product. Please try again.');
-                }
+                alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
             }
         }
 
@@ -404,7 +393,6 @@
                 paypalEmailInput.classList.remove('input-invalid');
                 paypalEmailValidationMsg.textContent = '';
 
-
                 previewImageContainer.classList.add('hidden');
                 currentPreviewImage.src = '';
                 paypalEmailContainer.classList.add('hidden'); // Ensure PayPal email is hidden by default
@@ -423,11 +411,8 @@
 
             if (productArray.length === 0) {
                 noResultsMsgElement.classList.remove('hidden');
-                if (isDashboardView) {
-                    noResultsMsgElement.textContent = 'You haven\'t listed any products yet.';
-                } else {
-                    noResultsMsgElement.textContent = 'No products found matching your search.';
-                }
+                // Updated message for clarity
+                noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
                 return;
             }
 
@@ -436,7 +421,6 @@
                 productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col product-card';
                 const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
-                // Dynamically add download and delist buttons if in the dashboard
                 const buttonsHtml = `
                     <div class="mt-auto flex justify-between items-center pt-2">
                         <span class="font-bold text-blue-600">${displayPrice}</span>
@@ -453,7 +437,7 @@
                 `;
                 container.appendChild(productCard);
 
-                // Add event listener for the delist button if it exists
+                // Add event listener for the delist button if it exists and it's a dashboard view
                 if (isDashboardView) {
                     const delistButton = productCard.querySelector('.delist-product-btn');
                     if (delistButton) {
@@ -494,29 +478,20 @@
             }
         }
 
-        async function loadUserProducts() {
+        async function loadProductsForDashboard() {
             userProductsContainer.innerHTML = '';
-            noUserProductsMessage.textContent = 'Loading your products...';
+            noUserProductsMessage.textContent = 'Loading all products...';
             noUserProductsMessage.classList.remove('hidden');
 
-            if (!currentUser) {
-                userProductsContainer.innerHTML = '';
-                noUserProductsMessage.textContent = 'Please log in to view your listed products.';
-                noUserProductsMessage.classList.remove('hidden');
-                return;
-            }
-
             try {
-                const userProductsRef = db.collection('products')
-                                         .where('userId', '==', currentUser.uid) // Filter by current user's ID
-                                         .orderBy('createdAt', 'desc');
-                const snapshot = await userProductsRef.get();
-                const userSpecificProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const productsRef = db.collection('products').orderBy('createdAt', 'desc');
+                const snapshot = await productsRef.get();
+                const allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                renderProducts(userSpecificProducts, userProductsContainer, noUserProductsMessage, true); // This is dashboard view
+                renderProducts(allProducts, userProductsContainer, noUserProductsMessage, true); // This is dashboard view
             } catch (error) {
-                console.error("Error loading user products for dashboard:", error);
-                noUserProductsMessage.textContent = 'Error loading your products. Please try again.';
+                console.error("Error loading products for dashboard:", error);
+                noUserProductsMessage.textContent = 'Error loading products for dashboard. Please try again.';
                 noUserProductsMessage.classList.remove('hidden');
             }
         }
@@ -578,7 +553,6 @@
             const titleFilled = titleInput.value.trim() !== '';
             const descriptionFilled = descriptionInput.value.trim() !== '';
             const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0;
-            // Basic URL validation for product file
             const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim());
             const previewImageUrlPresent = previewImageUrlInput.value !== '';
             const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== '');
@@ -598,14 +572,14 @@
                 paypalEmailValidationMsg.textContent = '';
             }
 
+            // Removed currentUser check
             if (!isPreviewImageUploading &&
                 titleFilled &&
                 descriptionFilled &&
                 priceValid &&
                 productFileUrlPresentAndValid &&
                 previewImageUrlPresent &&
-                paypalEmailValid &&
-                currentUser) { // Ensure user is logged in
+                paypalEmailValid) {
                 submitProductBtn.disabled = false;
                 submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
@@ -631,20 +605,14 @@
                     await loadProducts(searchBar.value.trim());
                     searchBar.value = ''; // Clear search bar on tab change
                 } else if (target === 'dashboard') {
-                    await loadUserProducts(); // Load only user's products
+                    await loadProductsForDashboard(); // Load ALL products for dashboard
                 }
             });
         });
 
         // 2. "Start Selling Now" button on Sell tab
         startSellingBtn.addEventListener('click', () => {
-            if (currentUser) {
-                toggleProductForm(true);
-            } else {
-                alert('You must be logged in to start selling. Please click the "Login" button.');
-                // Optionally, automatically switch to login screen if you have one
-                // Or make the "Sell" tab itself prompt for login more clearly.
-            }
+            toggleProductForm(true); // Always allow opening the form now
         });
 
         // 3. Product Upload Form Submission
@@ -661,13 +629,6 @@
                 return;
             }
 
-            if (!currentUser) {
-                alert('You must be logged in to list a product.');
-                enableSubmitButton();
-                submitProductBtn.textContent = 'List Product';
-                return;
-            }
-
             try {
                 // Convert Google Drive links if applicable
                 const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
@@ -679,8 +640,8 @@
                     fileUrl: finalProductFileUrl, // Use converted URL
                     previewImageUrl: previewImageUrlInput.value,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    userId: currentUser.uid, // Add the user's ID
-                    paypalEmail: paypalEmailInput.value.trim() // Add PayPal email
+                    // Removed userId: currentUser.uid,
+                    paypalEmail: paypalEmailInput.value.trim()
                 };
 
                 await db.collection('products').add(newProduct);
@@ -691,7 +652,7 @@
 
             } catch (error) {
                 console.error("Error adding document to Firestore:", error);
-                alert('Failed to list product. Please check console for details.');
+                alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
             } finally {
                 enableSubmitButton();
                 submitProductBtn.textContent = 'List Product';
@@ -743,77 +704,7 @@
                 renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
             }
         });
-
-
-        // --- Firebase Authentication Logic ---
-
-        // Simple Google Sign-In (for demonstration)
-        authButton.addEventListener('click', async () => {
-            if (currentUser) {
-                // Log out
-                try {
-                    await auth.signOut();
-                    alert('Logged out successfully!');
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                    alert('Error signing out. Please try again.');
-                }
-            } else {
-                // Log in with Google
-                try {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    await auth.signInWithPopup(provider);
-                    alert('Logged in successfully!');
-                } catch (error) {
-                    console.error("Error signing in with Google:", error);
-                    alert('Error signing in. Please check console for details.');
-                }
-            }
-        });
-
-        // Listen for auth state changes
-        auth.onAuthStateChanged(async (user) => {
-            currentUser = user; // Update the global currentUser variable
-
-            if (user) {
-                userStatus.textContent = `Logged in as: ${user.email}`;
-                authButton.textContent = 'Logout';
-                // Enable sell functionality
-                startSellingBtn.disabled = false;
-                startSellingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                // If on dashboard, reload user products
-                if (!document.getElementById('dashboard').classList.contains('hidden')) {
-                    await loadUserProducts();
-                }
-                // Ensure sell tab content reacts to login state
-                if (!document.getElementById('sell').classList.contains('hidden') && productForm.classList.contains('hidden')) {
-                     // If on sell landing, make sure start selling is available
-                } else if (!document.getElementById('sell').classList.contains('hidden') && !productForm.classList.contains('hidden')) {
-                    // If on sell form, re-enable button
-                    enableSubmitButton();
-                }
-
-            } else {
-                userStatus.textContent = 'Not logged in.';
-                authButton.textContent = 'Login (Google)';
-                // Disable sell functionality
-                startSellingBtn.disabled = true;
-                startSellingBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                toggleProductForm(false); // Hide the sell form if not logged in
-                // If on dashboard, clear it and show message
-                if (!document.getElementById('dashboard').classList.contains('hidden')) {
-                    userProductsContainer.innerHTML = '';
-                    noUserProductsMessage.textContent = 'Please log in to view your listed products.';
-                    noUserProductsMessage.classList.remove('hidden');
-                }
-                // Ensure sell tab content reacts to logout state
-                if (!document.getElementById('sell').classList.contains('hidden')) {
-                    sellLandingContent.classList.remove('hidden'); // Show landing content
-                    productForm.classList.add('hidden'); // Hide form
-                }
-                disableSubmitButton(); // Disable submit button on logout
-            }
-        });
+        // Removed Firebase Authentication Logic
     </script>
 </body>
 </html>
