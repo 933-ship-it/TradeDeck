@@ -11,6 +11,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
   <style>
     body {
@@ -238,21 +239,59 @@
     const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 
     // --- Firebase Configuration ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-      authDomain: "tradedeck-82bbb.firebaseapp.com",
-      projectId: "tradedeck-82bbb",
-      storageBucket: "tradedeck-82bbb.firebasestorage.app",
-      messagingSenderId: "755235931546",
-      appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-      measurementId: "G-4RXR7V9NCW"
-    };
+    // IMPORTANT: __firebase_config and __initial_auth_token are provided by the Canvas environment.
+    // Do NOT hardcode these values.
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase App
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth(); // Initialize Firebase Auth
 
-    // --- Global Variables ---
+    let currentUserId = null; // To store the authenticated user's ID
+
+    // --- Firebase Authentication Setup ---
+    // Listen for authentication state changes
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        // User is signed in.
+        currentUserId = user.uid;
+        console.log("User signed in:", currentUserId);
+        // You can now safely perform Firestore operations that require authentication.
+        // For example, if you want to load user-specific dashboard data here:
+        // loadUserProducts(currentUserId);
+      } else {
+        // User is signed out.
+        currentUserId = null;
+        console.log("No user signed in. Signing in anonymously...");
+        // Sign in anonymously if no user is signed in.
+        // The __initial_auth_token is provided by the Canvas environment for custom auth.
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          auth.signInWithCustomToken(__initial_auth_token)
+            .then(() => {
+              console.log("Signed in with custom token.");
+            })
+            .catch((error) => {
+              console.error("Error signing in with custom token:", error);
+            });
+        } else {
+          auth.signInAnonymously()
+            .then(() => {
+              console.log("Signed in anonymously.");
+            })
+            .catch((error) => {
+              console.error("Error signing in anonymously:", error);
+            });
+        }
+      }
+      // After auth state is determined, load initial products
+      const initialTab = window.location.hash.substring(1) || 'home';
+      showTab(initialTab);
+      loadProducts();
+    });
+
+
+    // --- Global Variables (rest remain the same) ---
     const tabs = document.querySelectorAll('aside nav a[data-tab]');
     const sections = document.querySelectorAll('main section');
 
@@ -412,11 +451,10 @@
             const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
             let actionButtonHtml = '';
-            if (container.id === 'userProducts') {
-                // For dashboard, always show delete button
+            // Only show delete button for products owned by the current user on the dashboard
+            if (container.id === 'userProducts' && product.userId === currentUserId) {
                 actionButtonHtml = `<button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition delete-product-btn" data-product-id="${product.id}" aria-label="Delete ${product.title}">Delete</button>`;
-            } else {
-                // For home tab, show 'Free Download' or 'Buy Now'
+            } else if (container.id !== 'userProducts') { // For home tab
                 if (parseFloat(product.price) === 0) {
                     actionButtonHtml = `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition" aria-label="Download ${product.title}">Free Download</a>`;
                 } else {
@@ -701,7 +739,8 @@
             priceValid &&
             productFileUrlPresentAndValid &&
             previewImageUrlPresent &&
-            paypalEmailValid) {
+            paypalEmailValid &&
+            currentUserId) { // Ensure user is authenticated before enabling submit
             submitProductBtn.disabled = false;
             submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
@@ -724,12 +763,18 @@
         }
 
         if (target === 'home') {
-            await loadProducts(searchBar.value.trim());
+            // Products load automatically on auth state change or initial load
+            // await loadProducts(searchBar.value.trim()); // No need to call again here
             searchBar.value = '';
         } else if (target === 'dashboard') {
-            // For now, it will show all products, but allow deletion
-            // In a real application, you would filter products by the logged-in user's ID
-            renderProducts(window.allProducts || [], userProductsContainer, noUserProductsMessage);
+            // Filter products for the current user's dashboard
+            if (currentUserId) {
+                const userProducts = window.allProducts.filter(product => product.userId === currentUserId);
+                renderProducts(userProducts, userProductsContainer, noUserProductsMessage);
+            } else {
+                noUserProductsMessage.textContent = 'Please wait, authenticating...';
+                noUserProductsMessage.classList.remove('hidden');
+            }
         }
       });
     });
@@ -800,6 +845,13 @@
             return;
         }
 
+        // Ensure user is authenticated before attempting to list product
+        if (!currentUserId) {
+            showCustomAlert('Please wait, authenticating user...');
+            console.error("Attempted to list product before user was authenticated.");
+            return;
+        }
+
         submitProductBtn.disabled = true;
         submitProductBtn.textContent = 'Listing Product...';
         submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -811,9 +863,9 @@
                 price: parseFloat(priceInput.value),
                 fileUrl: productFileUrlInput.value,
                 previewImageUrl: previewImageUrlInput.value,
-                // Only store paypalEmail if price > 0
                 paypalEmail: parseFloat(priceInput.value) > 0 ? paypalEmailInput.value.trim() : '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUserId // *** ADDED: User ID to match Firestore rules ***
             };
 
             await db.collection('products').add(newProduct);
@@ -821,7 +873,17 @@
             showCustomAlert('Product listed successfully!');
 
             toggleProductForm(false);
-            await loadProducts('');
+            await loadProducts(''); // Reload home products
+            // Also refresh dashboard if it's visible or next time it's accessed
+            if (document.getElementById('dashboard').classList.contains('hidden')) {
+                // If dashboard is not active, just ensure data is ready for next time
+                // No explicit reload needed here for dashboard as it filters from window.allProducts
+            } else {
+                // If dashboard is active, re-render it
+                const userProducts = window.allProducts.filter(product => product.userId === currentUserId);
+                renderProducts(userProducts, userProductsContainer, noUserProductsMessage);
+            }
+
 
         } catch (error) {
             console.error("Error adding document to Firestore:", error);
@@ -833,10 +895,10 @@
       });
     }
 
-    // 6. Initial load when the page loads
-    const initialTab = window.location.hash.substring(1) || 'home';
-    showTab(initialTab);
-    loadProducts();
+    // 6. Initial load is now handled by onAuthStateChanged to ensure user ID is available
+    // const initialTab = window.location.hash.substring(1) || 'home';
+    // showTab(initialTab);
+    // loadProducts();
 
     // Initial check for button state if form is visible on page load (e.g., after refresh)
     if (productForm && !productForm.classList.contains('hidden')) {
