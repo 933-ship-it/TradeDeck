@@ -789,15 +789,23 @@
             });
 
             searchBar.addEventListener('input', () => {
-                if (!document.getElementById('home').classList.contains('hidden')) {
-                    const query = searchBar.value.trim();
-                    const filteredProducts = window.allProducts.filter(product =>
-                        product.title.toLowerCase().includes(query.toLowerCase()) ||
-                        product.description.toLowerCase().includes(query.toLowerCase())
-                    );
-                    renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
-                }
-            });
+    if (!document.getElementById('home').classList.contains('hidden')) {
+        const query = searchBar.value.trim().toLowerCase();
+        if (!window.allProducts) return;
+        // Split query into keywords
+        const keywords = query.split(/\s+/).filter(Boolean);
+        const filteredProducts = window.allProducts.filter(product => {
+            // Combine all searchable fields into one string
+            const haystack = [
+                product.title,
+                product.description
+            ].join(' ').toLowerCase();
+            // All keywords must be present somewhere in the haystack
+            return keywords.every(kw => haystack.includes(kw));
+        });
+        renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+    }
+});
 
             // Initial load
             loadProducts();
