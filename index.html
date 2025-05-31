@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TradeDeck - Sell</title>
+    <title>TradeDeck</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -11,6 +11,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.sandbox.paypal.com/sdk/js?client-id=YOUR_SANDBOX_PAYPAL_CLIENT_ID&currency=USD&components=buttons"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -57,6 +58,13 @@
             border-color: #ef4444; /* red-500 */
             box-shadow: 0 0 0 1px #ef4444;
         }
+        /* Style for interactive elements */
+        .interactive-card {
+            cursor: pointer;
+        }
+        .interactive-card:hover {
+            border-color: #60a5fa; /* blue-400 */
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -68,7 +76,7 @@
                 <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">Sell</a>
                 <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">Dashboard</a>
             </nav>
-            </aside>
+        </aside>
 
         <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
 
@@ -90,6 +98,31 @@
                 </div>
             </section>
 
+            <section id="productDetails" class="hidden">
+                <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                    <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400">
+                        &larr; Back to Home
+                    </button>
+                    <div id="productDetailsContent">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/2">
+                                <img id="detailProductImage" src="" alt="Product image" class="w-full h-auto rounded-lg shadow-md object-cover max-h-96" />
+                            </div>
+                            <div class="md:w-1/2 flex flex-col justify-between">
+                                <div>
+                                    <h2 id="detailProductTitle" class="text-3xl font-bold text-gray-900 mb-2"></h2>
+                                    <p id="detailProductDescription" class="text-gray-700 mb-4 text-justify"></p>
+                                    <p class="text-2xl font-extrabold text-blue-600 mb-6" id="detailProductPrice"></p>
+                                </div>
+                                <div class="mt-auto">
+                                    <div id="detailActionButtonContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="productDetailsError" class="text-red-500 text-center mt-4 hidden">Product details could not be loaded.</p>
+                </div>
+            </section>
             <section id="sell" class="hidden">
                 <div class="max-w-6xl mx-auto mt-16 px-4">
                     <div id="sellLandingContent">
@@ -173,25 +206,8 @@
                                     placeholder="e.g., 29.99 (enter 0 for free)"
                                 />
                             </div>
-                            <div id="paypalEmailContainer" class="hidden">
-                                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
-                                <input
-                                    type="email"
-                                    id="paypalEmail"
-                                    name="paypalEmail"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="e.g., yourname@example.com"
-                                />
-                                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
-                                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
-                                    <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
-                                    <details class="mt-2">
-                                        <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
-                                        <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, TradeDeck will unfortunately be unable to disburse your funds, and they will be forfeited. Double-check your PayPal account settings for the correct email.</p>
-                                    </details>
-                                </div>
-                            </div>
-                    
+                            <input type="hidden" id="sellerPaypalEmailForPayout" name="sellerPaypalEmailForPayout" value="seller@example.com">
+
 
                             <div>
                                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
@@ -254,11 +270,9 @@
             appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
             measurementId: "G-4RXR7V9NCW"
         };
-
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // Removed Auth service: const auth = firebase.auth();
 
         // --- Global Variables ---
         const tabs = document.querySelectorAll('aside nav a[data-tab]');
@@ -271,9 +285,13 @@
         const titleInput = document.getElementById('title');
         const descriptionInput = document.getElementById('description');
         const priceInput = document.getElementById('price');
-        const paypalEmailContainer = document.getElementById('paypalEmailContainer');
-        const paypalEmailInput = document.getElementById('paypalEmail');
-        const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+        // REMOVED: paypalEmailContainer, paypalEmailInput, paypalEmailValidationMsg
+        // Since price won't control visibility of seller's PayPal email for *payouts*,
+        // and it's not for direct payment, we remove the direct dependency.
+
+        // NEW: Hidden input for seller's PayPal email for payout (simulated for now)
+        const sellerPaypalEmailForPayoutInput = document.getElementById('sellerPaypalEmailForPayout');
+
 
         const productFileUrlInput = document.getElementById('productFileUrlInput');
 
@@ -293,13 +311,19 @@
         const userProductsContainer = document.getElementById('userProducts');
         const noUserProductsMessage = document.getElementById('noUserProductsMessage');
 
-        // Removed auth elements:
-        // const authButton = document.getElementById('authButton');
-        // const userStatus = document.getElementById('userStatus');
+        // NEW: Product Details Page elements
+        const productDetailsSection = document.getElementById('productDetails');
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
+        const detailProductImage = document.getElementById('detailProductImage');
+        const detailProductTitle = document.getElementById('detailProductTitle');
+        const detailProductDescription = document.getElementById('detailProductDescription');
+        const detailProductPrice = document.getElementById('detailProductPrice');
+        // MODIFIED: detailActionButton is now a container for PayPal Smart Button
+        const detailActionButtonContainer = document.getElementById('detailActionButtonContainer');
+        const productDetailsError = document.getElementById('productDetailsError');
 
         // Track upload status
         let isPreviewImageUploading = false;
-        // Removed currentUser variable: let currentUser = null;
 
         // --- Helper for setting file input status messages ---
         function setFileInputStatus(statusElement, message, type = 'default') {
@@ -340,9 +364,6 @@
 
         // --- Function to Delete Product ---
         async function deleteProduct(productId) {
-            // Removed currentUser check for deletion.
-            // WARNING: If your Firestore rules still require request.auth.uid, this will fail.
-            // You'll need to adjust your Firestore rules for testing this without auth.
             if (!confirm('Are you sure you want to permanently delist this product? This action cannot be undone.')) {
                 return; // User cancelled
             }
@@ -350,7 +371,6 @@
             try {
                 await db.collection('products').doc(productId).delete();
                 alert('Product delisted successfully!');
-                // Reload products on both home and dashboard tabs
                 await loadProducts(''); // Reload all products for the home tab
                 await loadProductsForDashboard(); // Reload for the dashboard tab
             } catch (error) {
@@ -358,6 +378,7 @@
                 alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
             }
         }
+
 
         // --- Functions ---
 
@@ -398,12 +419,12 @@
                 priceInput.classList.remove('input-invalid');
                 openPreviewImageWidgetBtn.classList.remove('input-invalid');
                 productFileUrlInput.classList.remove('input-invalid');
-                paypalEmailInput.classList.remove('input-invalid');
-                paypalEmailValidationMsg.textContent = '';
+                // REMOVED: paypalEmailInput.classList.remove('input-invalid');
+                // REMOVED: paypalEmailValidationMsg.textContent = '';
 
                 previewImageContainer.classList.add('hidden');
                 currentPreviewImage.src = '';
-                paypalEmailContainer.classList.add('hidden'); // Ensure PayPal email is hidden by default
+                // REMOVED: paypalEmailContainer.classList.add('hidden'); // Ensure PayPal email is hidden by default
 
                 // Immediately check button state after clearing
                 enableSubmitButton();
@@ -419,43 +440,57 @@
 
             if (productArray.length === 0) {
                 noResultsMsgElement.classList.remove('hidden');
-                // Updated message for clarity
-                noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
+                noResultsMsgElement.textContent = isDashboardView ?
+                    'No products listed on the dashboard.' : 'No products found matching your search.';
                 return;
             }
 
             productArray.forEach(product => {
                 const productCard = document.createElement('div');
-                productCard.className = 'bg-white rounded-lg shadow p-4 flex flex-col product-card';
+                productCard.className = `bg-white rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent'}`;
+                productCard.setAttribute('data-product-id', product.id);
+
                 const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
 
-                const buttonsHtml = `
-                    <div class="mt-auto flex justify-between items-center pt-2">
-                        <span class="font-bold text-blue-600">${displayPrice}</span>
-                        ${product.fileUrl ? `<a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" aria-label="Download ${product.title}">Download</a>` : ''}
-                        ${isDashboardView ? `<button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>` : ''}
-                    </div>
-                `;
+                let cardButtonsHtml = '';
+                if (isDashboardView) {
+                    cardButtonsHtml = `
+                        <div class="mt-auto flex justify-end items-center pt-2">
+                            <a href="${product.fileUrl}" target="_blank" download="${product.title.replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition" aria-label="Download ${product.title}">Download File</a>
+                            <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
+                        </div>
+                    `;
+                }
 
                 productCard.innerHTML = `
                     <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full" />
                     <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
                     <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
-                    ${buttonsHtml}
+                    <div class="mt-auto flex justify-between items-center pt-2">
+                        <span class="font-bold text-blue-600">${displayPrice}</span>
+                        ${cardButtonsHtml}
+                    </div>
                 `;
                 container.appendChild(productCard);
 
-                // Add event listener for the delist button if it exists and it's a dashboard view
                 if (isDashboardView) {
                     const delistButton = productCard.querySelector('.delist-product-btn');
                     if (delistButton) {
-                        delistButton.addEventListener('click', () => {
+                        delistButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
                             const productId = delistButton.getAttribute('data-product-id');
                             if (productId) {
                                 deleteProduct(productId);
                             }
                         });
                     }
+                } else {
+                    productCard.addEventListener('click', () => {
+                        const productId = productCard.getAttribute('data-product-id');
+                        if (productId) {
+                            showProductDetails(productId);
+                        }
+                    });
                 }
             });
         }
@@ -470,7 +505,7 @@
                 const snapshot = await productsRef.get();
                 const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                window.allProducts = fetchedProducts; // Store all products globally
+                window.allProducts = fetchedProducts;
 
                 const lowerCaseQuery = filterQuery.toLowerCase();
                 const filteredProducts = fetchedProducts.filter(product =>
@@ -478,7 +513,7 @@
                     product.description.toLowerCase().includes(lowerCaseQuery)
                 );
 
-                renderProducts(filteredProducts, productListContainer, noProductsMessage, false); // Not dashboard view
+                renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
             } catch (error) {
                 console.error("Error loading products:", error);
                 noProductsMessage.textContent = 'Error loading products. Please try again.';
@@ -496,13 +531,128 @@
                 const snapshot = await productsRef.get();
                 const allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                renderProducts(allProducts, userProductsContainer, noUserProductsMessage, true); // This is dashboard view
+                renderProducts(allProducts, userProductsContainer, noUserProductsMessage, true);
             } catch (error) {
                 console.error("Error loading products for dashboard:", error);
                 noUserProductsMessage.textContent = 'Error loading products for dashboard. Please try again.';
                 noUserProductsMessage.classList.remove('hidden');
             }
         }
+
+        // NEW: Function to show product details page (MODIFIED FOR PAYPAL SMART BUTTONS)
+        async function showProductDetails(productId) {
+            showTab('productDetails');
+            productDetailsError.classList.add('hidden');
+
+            try {
+                const productDoc = await db.collection('products').doc(productId).get();
+                if (!productDoc.exists) {
+                    productDetailsError.textContent = 'Product not found.';
+                    productDetailsError.classList.remove('hidden');
+                    return;
+                }
+
+                const product = { id: productDoc.id, ...productDoc.data() };
+
+                // Populate the details page
+                detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
+                detailProductTitle.textContent = product.title;
+                detailProductDescription.textContent = product.description;
+                const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+                detailProductPrice.textContent = displayPrice;
+
+                // Clear previous content of the button container
+                detailActionButtonContainer.innerHTML = '';
+
+                if (parseFloat(product.price) > 0) {
+                    // Render PayPal Smart Button for priced products
+                    paypal.Buttons({
+                        createOrder: async function(data, actions) {
+                            try {
+                                // This call will now ensure funds go to YOUR_SANDBOX_PAYPAL_CLIENT_ID (your business account)
+                                const response = await fetch('/api/create-paypal-order-data', { // Call backend to create PayPal order
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        productId: product.id,
+                                        quantity: 1 // Assuming single quantity per purchase
+                                    }),
+                                });
+
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    throw new Error(`Failed to create PayPal order data on backend: ${errorData.error || response.statusText}`);
+                                }
+                                const orderData = await response.json();
+                                return orderData.id; // Return the PayPal Order ID to the SDK
+                            } catch (error) {
+                                console.error('Error in PayPal createOrder:', error);
+                                alert('Error preparing payment. Please try again.');
+                                // Re-render the button or show error message if necessary
+                            }
+                        },
+                        onApprove: async function(data, actions) {
+                            try {
+                                // This call will capture funds into YOUR_SANDBOX_PAYPAL_CLIENT_ID (your business account)
+                                // The internalOrderId (product.id) is crucial for your backend to identify the seller for payout.
+                                const response = await fetch('/api/capture-paypal-order', { // Call backend to capture PayPal order
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        orderId: data.orderID, // PayPal's order ID
+                                        internalOrderId: product.id // Your internal product ID (for database update and seller identification)
+                                    }),
+                                });
+
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    throw new Error(`Failed to capture PayPal order: ${errorData.error || response.statusText}`);
+                                }
+                                const captureData = await response.json();
+                                console.log('Payment captured successfully:', captureData);
+                                alert('Payment successful! Your order has been placed.');
+                                // Redirect to a success page or show content
+                                window.location.href = `/paypal/success?order_id=${product.id}&paypal_order_id=${data.orderID}`;
+                            } catch (error) {
+                                console.error('Error in PayPal onApprove (capture):', error);
+                                alert('Error completing payment. Please contact support.');
+                                window.location.href = `/paypal/cancel?order_id=${product.id}`;
+                            }
+                        },
+                        onCancel: function(data) {
+                            console.log('Payment cancelled by buyer:', data);
+                            alert('Payment cancelled.');
+                            window.location.href = `/paypal/cancel?order_id=${product.id}`;
+                        },
+                        onError: function(err) {
+                            console.error('PayPal button error:', err);
+                            alert('An error occurred with PayPal payment. Please try again.');
+                            window.location.href = `/paypal/cancel?order_id=${product.id}`;
+                        }
+                    }).render('#detailActionButtonContainer'); // Render the button into our div
+                } else {
+                    // For free products, keep the direct download button
+                    const downloadButton = document.createElement('a');
+                    downloadButton.href = product.fileUrl;
+                    downloadButton.target = '_blank';
+                    downloadButton.download = product.title.replace(/\s/g, '-');
+                    downloadButton.className = 'w-full py-3 rounded-xl font-semibold transition bg-green-600 hover:bg-green-700 text-white text-center';
+                    downloadButton.textContent = 'Download';
+                    downloadButton.setAttribute('aria-label', `Download ${product.title}`);
+                    detailActionButtonContainer.appendChild(downloadButton);
+                }
+
+            } catch (error) {
+                console.error("Error loading product details:", error);
+                productDetailsError.textContent = 'Error loading product details. Please try again.';
+                productDetailsError.classList.remove('hidden');
+            }
+        }
+
 
         // --- Cloudinary Widget Setup for Preview Image ---
         const previewImageWidget = cloudinary.createUploadWidget(
@@ -563,7 +713,7 @@
             const priceValid = !isNaN(parseFloat(priceInput.value)) && parseFloat(priceInput.value) >= 0;
             const productFileUrlPresentAndValid = productFileUrlInput.value.trim() !== '' && /^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim());
             const previewImageUrlPresent = previewImageUrlInput.value !== '';
-            const paypalEmailValid = paypalEmailContainer.classList.contains('hidden') || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmailInput.value.trim()) && paypalEmailInput.value.trim() !== '');
+            // REMOVED: paypalEmailValid check as the input is removed
 
             // Add/remove error classes based on validity
             titleInput.classList.toggle('input-invalid', !titleFilled);
@@ -571,23 +721,14 @@
             priceInput.classList.toggle('input-invalid', !priceValid);
             productFileUrlInput.classList.toggle('input-invalid', !productFileUrlPresentAndValid);
             openPreviewImageWidgetBtn.classList.toggle('input-invalid', !previewImageUrlPresent);
+            // REMOVED: paypalEmailInput.classList.toggle for input-invalid and validation message
 
-            if (!paypalEmailContainer.classList.contains('hidden')) {
-                paypalEmailInput.classList.toggle('input-invalid', !paypalEmailValid);
-                paypalEmailValidationMsg.textContent = !paypalEmailValid && paypalEmailInput.value.trim() !== '' ? 'Please enter a valid PayPal email.' : '';
-            } else {
-                paypalEmailInput.classList.remove('input-invalid');
-                paypalEmailValidationMsg.textContent = '';
-            }
-
-            // Removed currentUser check
             if (!isPreviewImageUploading &&
                 titleFilled &&
                 descriptionFilled &&
                 priceValid &&
                 productFileUrlPresentAndValid &&
-                previewImageUrlPresent &&
-                paypalEmailValid) {
+                previewImageUrlPresent) { // Removed paypalEmailValid from condition
                 submitProductBtn.disabled = false;
                 submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
@@ -608,19 +749,29 @@
                 if (target !== 'sell' && !productForm.classList.contains('hidden')) {
                     toggleProductForm(false);
                 }
+                // Ensure product details page is hidden when navigating to other main tabs
+                productDetailsSection.classList.add('hidden');
+
 
                 if (target === 'home') {
                     await loadProducts(searchBar.value.trim());
-                    searchBar.value = ''; // Clear search bar on tab change
+                    searchBar.value = '';
                 } else if (target === 'dashboard') {
-                    await loadProductsForDashboard(); // Load ALL products for dashboard
+                    await loadProductsForDashboard();
                 }
             });
         });
 
+        // NEW: Back to Home button on product details page
+        backToHomeBtn.addEventListener('click', () => {
+            showTab('home');
+            loadProducts(searchBar.value.trim());
+        });
+
+
         // 2. "Start Selling Now" button on Sell tab
         startSellingBtn.addEventListener('click', () => {
-            toggleProductForm(true); // Always allow opening the form now
+            toggleProductForm(true);
         });
 
         // 3. Product Upload Form Submission
@@ -630,8 +781,8 @@
             submitProductBtn.textContent = 'Listing...';
 
             // Validate fields before submission
-            enableSubmitButton(); // Re-run validation checks to update UI
-            if (submitProductBtn.disabled) { // If button is still disabled after validation, there are errors
+            enableSubmitButton(); // Re-checks validity and applies input-invalid classes
+            if (submitProductBtn.disabled) {
                 alert('Please fill out all required fields correctly before listing your product.');
                 submitProductBtn.textContent = 'List Product';
                 return;
@@ -645,18 +796,21 @@
                     title: titleInput.value.trim(),
                     description: descriptionInput.value.trim(),
                     price: parseFloat(priceInput.value),
-                    fileUrl: finalProductFileUrl, // Use converted URL
+                    fileUrl: finalProductFileUrl,
                     previewImageUrl: previewImageUrlInput.value,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    // Removed userId: currentUser.uid,
-                    paypalEmail: paypalEmailInput.value.trim()
+                    // IMPORTANT: The sellerId and paypalEmail for payout would typically come from
+                    // a user authentication system or a profile setting.
+                    // For this example, we'll use a placeholder seller ID and the fixed email from the hidden input.
+                    sellerId: 'logged_in_user_id_123', // Replace with actual logged-in user ID
+                    paypalEmail: sellerPaypalEmailForPayoutInput.value // This is the seller's email for YOUR payouts
                 };
 
                 await db.collection('products').add(newProduct);
 
                 alert('Product listed successfully!');
-                toggleProductForm(false); // Hide form, show landing content
-                await loadProducts(''); // Reload products on home tab
+                toggleProductForm(false);
+                await loadProducts('');
 
             } catch (error) {
                 console.error("Error adding document to Firestore:", error);
@@ -672,37 +826,41 @@
         descriptionInput.addEventListener('input', enableSubmitButton);
         priceInput.addEventListener('input', enableSubmitButton);
         productFileUrlInput.addEventListener('input', enableSubmitButton);
-        previewImageUrlInput.addEventListener('input', enableSubmitButton); // Hidden input for Cloudinary URL
-        paypalEmailInput.addEventListener('input', enableSubmitButton); // For PayPal email validation
+        previewImageUrlInput.addEventListener('input', enableSubmitButton);
+        // REMOVED: paypalEmailInput.addEventListener for validation
 
         // 5. Open Cloudinary Preview Image Widget
         openPreviewImageWidgetBtn.addEventListener('click', () => {
             previewImageWidget.open();
         });
 
-        // 6. Handle price input to show/hide PayPal email
+        // 6. Handle price input to show/hide PayPal email (REMOVED)
+        // Since PayPal email is no longer tied to price for immediate collection,
+        // this event listener is removed. The seller's payout email is
+        // assumed to be collected elsewhere (e.g., user profile) or is static for this demo.
+        /*
         priceInput.addEventListener('input', () => {
             const price = parseFloat(priceInput.value);
             if (isNaN(price) || price === 0) {
                 paypalEmailContainer.classList.add('hidden');
                 paypalEmailInput.removeAttribute('required');
-                paypalEmailInput.value = ''; // Clear email if free
+                paypalEmailInput.value = '';
             } else {
                 paypalEmailContainer.classList.remove('hidden');
                 paypalEmailInput.setAttribute('required', 'required');
             }
-            enableSubmitButton(); // Re-check button state after price change
+            enableSubmitButton();
         });
+        */
 
         // 7. Initial load of products on home tab
         document.addEventListener('DOMContentLoaded', async () => {
             await loadProducts();
-            showTab('home'); // Ensure home tab is shown by default
+            showTab('home');
         });
 
         // 8. Search bar functionality
         searchBar.addEventListener('input', () => {
-            // Only perform search if on the home tab
             if (!document.getElementById('home').classList.contains('hidden')) {
                 const query = searchBar.value.trim();
                 const filteredProducts = window.allProducts.filter(product =>
@@ -712,7 +870,6 @@
                 renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
             }
         });
-        // Removed Firebase Authentication Logic
     </script>
 </body>
-</html>     
+</html>
