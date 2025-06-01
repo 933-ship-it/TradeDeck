@@ -1,8 +1,8 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TradeDeck</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -18,16 +18,14 @@
         main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
         .product-card { transition: all 0.2s ease-in-out; }
-        .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
+        .input-invalid { border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444; }
         .interactive-card { cursor: pointer; }
         .interactive-card:hover { border-color: #60a5fa; }
         .success { color: #16a34a; }
         .error { color: #dc2626; }
         .loading { color: #fbbf24; }
+        /* Modal styles */
         #editProductModal { z-index: 1000; }
-        .focus\:ring-blue-600:focus { box-shadow: 0 0 0 2px #2563eb; outline: none; }
-        /* Accessibility: hide visually but keep for screen readers */
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
     </style>
 </head>
 <body class="bg-gray-100">
@@ -56,7 +54,7 @@
             <!-- Home Section -->
             <section id="home" aria-label="Home Products">
                 <div class="max-w-5xl mx-auto">
-                    <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600" autocomplete="off" />
+                    <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400" />
                     <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">Loading products...</p>
                     </div>
@@ -65,7 +63,7 @@
             <!-- Product Details Section -->
             <section id="productDetails" class="hidden">
                 <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-                    <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to Home">&larr; Back</button>
+                    <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400">&larr; Back to Home</button>
                     <div id="productDetailsContent">
                         <div class="flex flex-col md:flex-row gap-8">
                             <div class="md:w-1/2">
@@ -124,31 +122,31 @@
                         <form id="productUploadForm" class="space-y-6" autocomplete="off">
                             <div>
                                 <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
-                                <input type="text" id="title" name="title" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. UI Kit, eBook, Template" maxlength="80" aria-required="true" />
+                                <input type="text" id="title" name="title" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Ultimate eBook Template Pack" />
                             </div>
                             <div>
                                 <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
-                                <textarea id="description" name="description" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product in detail" maxlength="1000" aria-required="true"></textarea>
+                                <textarea id="description" name="description" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product in detail..."></textarea>
                             </div>
                             <div>
                                 <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="0.00" aria-required="true" />
+                                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 29.99 (enter 0 for free)" />
                             </div>
                             <div id="paypalEmailContainer" class="hidden">
                                 <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
-                                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="your@email.com" />
+                                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., yourname@example.com" />
                                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
                                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
                                     <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
                                     <details class="mt-2">
                                         <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
-                                        <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with your PayPal, you will not receive payments.</p>
+                                        <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, payments may fail.</p>
                                     </details>
                                 </div>
                             </div>
                             <div>
                                 <label for="previewImageInput" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
-                                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100">Upload Image</button>
+                                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">Upload Image</button>
                                 <input type="hidden" id="previewImageUrl" name="previewImageUrl">
                                 <p id="previewImageStatus" class="file-upload-status text-sm mt-1"></p>
                                 <div id="previewImageContainer" class="mt-2 hidden">
@@ -157,7 +155,7 @@
                             </div>
                             <div>
                                 <label for="productFileUrlInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
-                                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://your-link.com/your-product.zip" aria-required="true" />
+                                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Paste your direct download link here (e.g., from Google Drive, Dropbox)" />
                                 <p class="text-sm text-gray-500 mt-1">Make sure this link is publicly accessible for download.</p>
                             </div>
                             <button type="submit" id="submitProductBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">List Product</button>
@@ -181,25 +179,25 @@
                     </div>
                 </div>
                 <!-- Edit Product Modal -->
-                <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="editProductModalTitle">
+                <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
                     <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-                        <h4 id="editProductModalTitle" class="text-xl font-bold mb-4">Edit Product</h4>
-                        <form id="editProductForm" class="space-y-4" autocomplete="off">
+                        <h4 class="text-xl font-bold mb-4">Edit Product</h4>
+                        <form id="editProductForm" class="space-y-4">
                             <input type="hidden" id="editProductId" />
                             <div>
-                                <label for="editTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" maxlength="80" />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
                             </div>
                             <div>
-                                <label for="editDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                <textarea id="editDescription" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" maxlength="1000"></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="editDescription" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500"></textarea>
                             </div>
                             <div>
-                                <label for="editPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                                 <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
                             </div>
                             <div>
-                                <label for="editFileUrl" class="block text-sm font-medium text-gray-700 mb-1">Product File Link</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product File Link</label>
                                 <input type="url" id="editFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
                             </div>
                             <div class="flex justify-end gap-2">
@@ -229,10 +227,7 @@
         measurementId: "G-4RXR7V9NCW"
     };
 
-    // Initialize Firebase safely
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
@@ -277,7 +272,6 @@
             document.body.style.visibility = "";
             if (!user) {
                 authOverlay.style.display = "flex";
-                userGlobal = null;
             } else {
                 authOverlay.style.display = "none";
                 userGlobal = user;
@@ -287,10 +281,9 @@
 
         function showProfileUI(user) {
             if (!user) return;
-            profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
+            profilePic.src = user.photoURL || "";
             profilePic.classList.remove("hidden");
-            userEmail.textContent = user.email || "(no email)";
-            // Toggle dropdown logic
+            userEmail.textContent = user.email || "";
             profilePic.onclick = function(e) {
                 e.stopPropagation();
                 dropdownMenu.classList.toggle('hidden');
@@ -342,9 +335,8 @@
         const searchBar = document.getElementById('searchBar');
         const productListContainer = document.getElementById('productList');
         const noProductsMessage = document.getElementById('noProductsMessage');
-        // Dashboard Elements
-        const myProductsContainer = document.getElementById('myProducts');
-        const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+        const userProductsContainer = document.getElementById('userProducts');
+        const noUserProductsMessage = document.getElementById('noUserProductsMessage');
         const productDetailsSection = document.getElementById('productDetails');
         const backToHomeBtn = document.getElementById('backToHomeBtn');
         const detailProductImage = document.getElementById('detailProductImage');
@@ -355,7 +347,10 @@
         const productDetailsError = document.getElementById('productDetailsError');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
         // Dashboard Elements
+        const balanceCard = document.getElementById('balanceCard');
         const sellerBalance = document.getElementById('sellerBalance');
+        const myProductsContainer = document.getElementById('myProducts');
+        const noMyProductsMessage = document.getElementById('noMyProductsMessage');
         const editProductModal = document.getElementById('editProductModal');
         const editProductForm = document.getElementById('editProductForm');
         const editProductIdInput = document.getElementById('editProductId');
@@ -413,7 +408,7 @@
         function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
             container.innerHTML = '';
             noResultsMsgElement.classList.add('hidden');
-            if (!Array.isArray(productArray) || productArray.length === 0) {
+            if (productArray.length === 0) {
                 noResultsMsgElement.classList.remove('hidden');
                 noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
                 return;
@@ -466,7 +461,8 @@
                 await db.collection('products').doc(productId).delete();
                 alert('Product delisted successfully!');
                 await loadProducts('');
-                await showDashboard();
+                await loadProductsForDashboard();
+                if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
             } catch (error) {
                 console.error("Error removing document: ", error);
                 alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
@@ -495,7 +491,23 @@
             }
         }
 
-        // --- Product Details & PayPal Integration ---
+        async function loadProductsForDashboard() {
+            userProductsContainer.innerHTML = '';
+            noUserProductsMessage.textContent = 'Loading all products...';
+            noUserProductsMessage.classList.remove('hidden');
+            try {
+                const productsRef = db.collection('products').orderBy('createdAt', 'desc');
+                const snapshot = await productsRef.get();
+                const allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderProducts(allProducts, userProductsContainer, noUserProductsMessage, true);
+            } catch (error) {
+                console.error("Error loading products for dashboard:", error);
+                noUserProductsMessage.textContent = 'Error loading products for dashboard. Please try again.';
+                noUserProductsMessage.classList.remove('hidden');
+            }
+        }
+
+        // --- Product Details & PayPal Integration (Fixed Syntax) ---
         async function showProductDetails(productId) {
             showTab('productDetails');
             productDetailsError.classList.add('hidden');
@@ -531,7 +543,7 @@
                             onApprove: async function(data, actions) {
                                 return actions.order.capture().then(async function(details) {
                                     alert('Payment completed by ' + details.payer.name.given_name + '!');
-                                    paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-2">Download Now</a>`;
+                                    paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-4">Download Product</a>`;
                                     await handleProductPurchase(product);
                                 });
                             },
@@ -669,14 +681,17 @@
         });
 
         productUploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            disableSubmitButton();
-            submitProductBtn.textContent = 'Listing...';
-            if (submitProductBtn.disabled) {
-                alert('Please fill out all required fields correctly before listing your product.');
-                submitProductBtn.textContent = 'List Product';
-                return;
-            }
+    e.preventDefault();
+    enableSubmitButton();
+    if (submitProductBtn.disabled) {
+        alert('Please fill out all required fields correctly before listing your product.');
+        submitProductBtn.textContent = 'List Product';
+        return;
+    }
+    disableSubmitButton();
+    submitProductBtn.textContent = 'Listing...';
+    // ... rest of your code ...
+});
             try {
                 const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
                 const newProduct = {
