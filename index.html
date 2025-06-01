@@ -594,20 +594,36 @@
                                     });
                                 },
                                 onApprove: function(data, actions) {
-                                    return actions.order.capture().then(function(details) {
-                                        alert('Payment completed by ' + details.payer.name.given_name + '!');
-                                        // Inside onApprove after successful payment
-                                        db.collection('sales').add({
-                                        productId: product.id,
-                                        productTitle: product.title,
-                                        sellerPaypalEmail: product.paypalEmail,
-                                        price: product.price,
-                                        buyer: details.payer.email_address || '',
-                                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                                        });
-                                        paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-6">Download Product</a>`;
-                                    });
-                                },
+  return actions.order.capture().then(function(details) {
+    alert('Payment completed by ' + details.payer.name.given_name + '!');
+
+    // Save sale to Firestore
+    db.collection('sales').add({
+      productId: product.id,
+      productTitle: product.title,
+      sellerPaypalEmail: product.paypalEmail,
+      price: product.price,
+      buyer: details.payer.email_address || '',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Send EmailJS notification
+    emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+      product_title: product.title,
+      product_price: product.price,
+      buyer_email: details.payer.email_address || "Unknown",
+      seller_email: product.paypalEmail || "Unknown"
+    })
+    .then(function(response) {
+      console.log('EmailJS notification sent!', response.status, response.text);
+    }, function(error) {
+      console.error('EmailJS notification failed:', error);
+    });
+
+    // Show download link
+    paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-6">Download Product</a>`;
+  });
+}
                                 onError: function(err) {
                                     alert('Payment could not be completed. Please try again.');
                                     console.error(err);
@@ -848,5 +864,11 @@
             showTab('home');
         });
     </script>
+    <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init('fmwYD8DAojsvufds2'); // Replace with your actual EmailJS User ID
+  })();
+</script>
 </body>
 </html>
