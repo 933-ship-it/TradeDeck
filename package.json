@@ -1,0 +1,8 @@
+{
+  "name": "tradedeck",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@sendgrid/mail": "^8.0.0"
+  }
+}
