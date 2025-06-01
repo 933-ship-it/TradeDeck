@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -679,7 +680,7 @@
             toggleProductForm(true);
         });
 
-       productUploadForm.addEventListener('submit', async (e) => {
+        productUploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     enableSubmitButton();
     if (submitProductBtn.disabled) {
@@ -689,30 +690,7 @@
     }
     disableSubmitButton();
     submitProductBtn.textContent = 'Listing...';
-    try {
-        const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
-        const newProduct = {
-            title: titleInput.value.trim(),
-            description: descriptionInput.value.trim(),
-            price: parseFloat(priceInput.value),
-            fileUrl: finalProductFileUrl,
-            previewImageUrl: previewImageUrlInput.value,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            sellerId: userGlobal ? userGlobal.uid : 'placeholder_seller_id',
-            paypalEmail: paypalEmailInput.value.trim()
-        };
-        await db.collection('products').add(newProduct);
-        alert('Product listed successfully!');
-        toggleProductForm(false);
-        await loadProducts('');
-        if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
-    } catch (error) {
-        console.error("Error adding document to Firestore:", error);
-        alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
-    } finally {
-        enableSubmitButton();
-        submitProductBtn.textContent = 'List Product';
-    }
+    // ... rest of your code ...
 });
             try {
                 const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
