@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <!-- PAYPAL SMART BUTTON SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -24,6 +23,8 @@
         .success { color: #16a34a; }
         .error { color: #dc2626; }
         .loading { color: #fbbf24; }
+        /* Modal styles */
+        #editProductModal { z-index: 1000; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -161,232 +162,52 @@
                     </div>
                 </div>
             </section>
-            <!-- ... (rest of your HTML remains unchanged above this section) ... -->
-
-<!-- DASHBOARD SECTION (REPLACE THIS SECTION) -->
-<section id="dashboard" class="hidden">
-    <div class="max-w-6xl mx-auto mt-16 px-4">
-        <h2 class="text-4xl font-bold mb-8">DASHBOARD</h2>
-        <div id="balanceCard" class="bg-white rounded-xl shadow p-6 mb-10 flex flex-col items-start">
-            <div class="text-lg mb-2 font-semibold text-gray-700">Your current balance:</div>
-            <div id="sellerBalance" class="text-3xl font-extrabold text-green-600 mb-1">$0.00</div>
-            <div class="text-sm text-gray-400">Balance is updated after each sale.</div>
-        </div>
-        <div class="mb-8">
-            <h3 class="text-2xl font-semibold mb-4">My Products</h3>
-            <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
-        </div>
-    </div>
-    <!-- Edit Product Modal -->
-    <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-            <h4 class="text-xl font-bold mb-4">Edit Product</h4>
-            <form id="editProductForm" class="space-y-4">
-                <input type="hidden" id="editProductId" />
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+            <!-- ================== Dashboard Section START ================== -->
+            <section id="dashboard" class="hidden">
+                <div class="max-w-6xl mx-auto mt-16 px-4">
+                    <h2 class="text-4xl font-bold mb-8">DASHBOARD</h2>
+                    <div id="balanceCard" class="bg-white rounded-xl shadow p-6 mb-10 flex flex-col items-start">
+                        <div class="text-lg mb-2 font-semibold text-gray-700">Your current balance:</div>
+                        <div id="sellerBalance" class="text-3xl font-extrabold text-green-600 mb-1">$0.00</div>
+                        <div class="text-sm text-gray-400">Balance is updated after each sale.</div>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">My Products</h3>
+                        <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                        <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="editDescription" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500"></textarea>
+                <!-- Edit Product Modal -->
+                <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+                        <h4 class="text-xl font-bold mb-4">Edit Product</h4>
+                        <form id="editProductForm" class="space-y-4">
+                            <input type="hidden" id="editProductId" />
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="editDescription" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                                <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product File Link</label>
+                                <input type="url" id="editFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" id="cancelEditBtn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Save</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                    <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product File Link</label>
-                    <input type="url" id="editFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="cancelEditBtn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</section>
-
-<!-- ... (rest of your HTML remains unchanged below this section) ... -->
-
-<script>
-// ... (rest of your JS remains unchanged above this section) ...
-
-// --- DASHBOARD LOGIC ---
-// Elements
-const balanceCard = document.getElementById('balanceCard');
-const sellerBalance = document.getElementById('sellerBalance');
-const myProductsContainer = document.getElementById('myProducts');
-const noMyProductsMessage = document.getElementById('noMyProductsMessage');
-const editProductModal = document.getElementById('editProductModal');
-const editProductForm = document.getElementById('editProductForm');
-const editProductIdInput = document.getElementById('editProductId');
-const editTitleInput = document.getElementById('editTitle');
-const editDescriptionInput = document.getElementById('editDescription');
-const editPriceInput = document.getElementById('editPrice');
-const editFileUrlInput = document.getElementById('editFileUrl');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-
-// Fetch and display seller's current balance
-async function updateSellerBalance(userId) {
-    try {
-        const balDoc = await db.collection('balances').doc(userId).get();
-        let value = 0;
-        if (balDoc.exists && typeof balDoc.data().balance === 'number') {
-            value = balDoc.data().balance;
-        }
-        sellerBalance.textContent = `$${value.toFixed(2)}`;
-    } catch (e) {
-        sellerBalance.textContent = "$0.00";
-    }
-}
-
-// Listen to changes in seller's balance in real-time
-let balanceUnsub = null;
-function watchSellerBalance(userId) {
-    if (balanceUnsub) balanceUnsub();
-    balanceUnsub = db.collection('balances').doc(userId)
-        .onSnapshot(doc => {
-            let value = 0;
-            if (doc.exists && typeof doc.data().balance === 'number') value = doc.data().balance;
-            sellerBalance.textContent = `$${value.toFixed(2)}`;
-        });
-}
-
-// Render only the current user's products
-async function loadMyProducts(userId) {
-    myProductsContainer.innerHTML = '';
-    noMyProductsMessage.classList.add('hidden');
-    try {
-        const productsRef = db.collection('products').where('sellerId', '==', userId).orderBy('createdAt', 'desc');
-        const snapshot = await productsRef.get();
-        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (products.length === 0) {
-            noMyProductsMessage.classList.remove('hidden');
-            return;
-        }
-        products.forEach(product => {
-            const card = document.createElement('div');
-            card.className = "bg-white rounded-lg shadow p-4 flex flex-col product-card";
-            card.innerHTML = `
-                <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-                <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-                <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
-                <div class="font-bold text-blue-600 mb-2">${parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`}</div>
-                <div class="mt-auto flex gap-2">
-                    <button class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Edit</button>
-                    <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Delete</button>
-                </div>
-            `;
-            myProductsContainer.appendChild(card);
-
-            // Attach event listeners
-            card.querySelector('.edit-btn').onclick = () => openEditProductModal(product);
-            card.querySelector('.delete-btn').onclick = () => deleteProduct(product.id, userId);
-        });
-    } catch (e) {
-        myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.</p>';
-    }
-}
-
-// Delete product (and update dashboard after)
-async function deleteProduct(productId, userId) {
-    if (!confirm('Are you sure you want to permanently delete this product?')) return;
-    try {
-        await db.collection('products').doc(productId).delete();
-        await loadMyProducts(userId);
-    } catch (e) {
-        alert("Failed to delete product.");
-    }
-}
-
-// Edit Modal Logic
-function openEditProductModal(product) {
-    editProductIdInput.value = product.id;
-    editTitleInput.value = product.title;
-    editDescriptionInput.value = product.description;
-    editPriceInput.value = product.price;
-    editFileUrlInput.value = product.fileUrl;
-    editProductModal.classList.remove('hidden');
-}
-function closeEditProductModal() {
-    editProductModal.classList.add('hidden');
-}
-
-// Save Edit
-editProductForm.onsubmit = async function (e) {
-    e.preventDefault();
-    const id = editProductIdInput.value;
-    const updated = {
-        title: editTitleInput.value.trim(),
-        description: editDescriptionInput.value.trim(),
-        price: parseFloat(editPriceInput.value),
-        fileUrl: editFileUrlInput.value.trim()
-    };
-    try {
-        await db.collection('products').doc(id).update(updated);
-        closeEditProductModal();
-        if (auth.currentUser) {
-            await loadMyProducts(auth.currentUser.uid);
-        }
-    } catch (err) {
-        alert("Failed to update product.");
-    }
-};
-cancelEditBtn.onclick = closeEditProductModal;
-
-// Show dashboard (with balance and products)
-async function showDashboard() {
-    if (!auth.currentUser) return;
-    showTab('dashboard');
-    await updateSellerBalance(auth.currentUser.uid);
-    watchSellerBalance(auth.currentUser.uid);
-    await loadMyProducts(auth.currentUser.uid);
-}
-
-// Update balance after successful sale (call this after PayPal onApprove in your code)
-async function incrementSellerBalance(sellerId, amount) {
-    const balRef = db.collection('balances').doc(sellerId);
-    await db.runTransaction(async (tx) => {
-        const doc = await tx.get(balRef);
-        let newBalance = amount;
-        if (doc.exists && typeof doc.data().balance === 'number') {
-            newBalance += doc.data().balance;
-        }
-        tx.set(balRef, { balance: newBalance }, { merge: true });
-    });
-}
-
-// --- Integrate with PayPal payment onApprove in your product details logic ---
-// (Replace your onApprove in the PayPal Buttons config with this logic)
-async function handleProductPurchase(product) {
-    if (!product || !product.sellerId || !product.price) return;
-    await incrementSellerBalance(product.sellerId, parseFloat(product.price));
-}
-
-// Example integration inside your PayPal.Buttons onApprove handler:
-/*
-paypal.Buttons({
-    createOrder: ...,
-    onApprove: function(data, actions) {
-        return actions.order.capture().then(async function(details) {
-            alert('Payment completed by ' + details.payer.name.given_name + '!');
-            // Call this:
-            await handleProductPurchase(product);
-            // then show download button, etc
-        });
-    },
-    ...
-});
-*/
-
-// --- Show dashboard when user clicks dashboard tab ---
-document.querySelector('a[data-tab="dashboard"]').addEventListener('click', showDashboard);
-
-// ... (rest of your JS remains unchanged below this section) ...
-</script>
+            </section>
+            <!-- ================== Dashboard Section END ================== -->
         </main>
     </div>
     <script>
@@ -405,12 +226,10 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
         measurementId: "G-4RXR7V9NCW"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Utilities
     function setFileInputStatus(statusElement, message, type = 'default') {
         statusElement.textContent = message;
         statusElement.classList.remove('success', 'error', 'loading');
@@ -437,7 +256,6 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
         return convertedUrl;
     }
 
-    // DOMContentLoaded Main Handler
     document.addEventListener("DOMContentLoaded", function() {
         // Profile Dropdown Logic
         const profilePic = document.getElementById('userProfilePic');
@@ -494,7 +312,6 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
             };
         }
 
-        // --- ELEMENT REFERENCES ---
         const tabs = document.querySelectorAll('aside nav a[data-tab]');
         const sections = document.querySelectorAll('main section');
         const startSellingBtn = document.getElementById('startSellingBtn');
@@ -528,9 +345,22 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
         const detailActionButton = document.getElementById('detailActionButton');
         const productDetailsError = document.getElementById('productDetailsError');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
+        // Dashboard Elements
+        const balanceCard = document.getElementById('balanceCard');
+        const sellerBalance = document.getElementById('sellerBalance');
+        const myProductsContainer = document.getElementById('myProducts');
+        const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+        const editProductModal = document.getElementById('editProductModal');
+        const editProductForm = document.getElementById('editProductForm');
+        const editProductIdInput = document.getElementById('editProductId');
+        const editTitleInput = document.getElementById('editTitle');
+        const editDescriptionInput = document.getElementById('editDescription');
+        const editPriceInput = document.getElementById('editPrice');
+        const editFileUrlInput = document.getElementById('editFileUrl');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
         let isPreviewImageUploading = false;
 
-        // --- TAB LOGIC ---
         function showTab(targetTabId) {
             tabs.forEach(t => {
                 t.classList.remove('bg-blue-100');
@@ -547,7 +377,6 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
             });
         }
 
-        // --- PRODUCT LOGIC ---
         function toggleProductForm(showForm) {
             if (showForm) {
                 sellLandingContent.classList.add('hidden');
@@ -574,6 +403,7 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
             }
         }
 
+        // --- Home Product Render ---
         function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
             container.innerHTML = '';
             noResultsMsgElement.classList.add('hidden');
@@ -631,6 +461,7 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                 alert('Product delisted successfully!');
                 await loadProducts('');
                 await loadProductsForDashboard();
+                if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
             } catch (error) {
                 console.error("Error removing document: ", error);
                 alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
@@ -698,7 +529,6 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                 if (parseFloat(product.price) > 0) {
                     detailActionButton.style.display = 'none';
                     paypalButtonContainer.innerHTML = '';
-                    // FIX: Make sure commas are not missing in button config
                     if (typeof paypal !== "undefined" && paypal.Buttons) {
                         paypal.Buttons({
                             createOrder: function(data, actions) {
@@ -709,10 +539,11 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                                     }]
                                 });
                             },
-                            onApprove: function(data, actions) {
-                                return actions.order.capture().then(function(details) {
+                            onApprove: async function(data, actions) {
+                                return actions.order.capture().then(async function(details) {
                                     alert('Payment completed by ' + details.payer.name.given_name + '!');
                                     paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-4">Download Product</a>`;
+                                    await handleProductPurchase(product);
                                 });
                             },
                             onError: function(err) {
@@ -821,7 +652,6 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
             }
         }
 
-        // --- Event Listeners ---
         tabs.forEach(tab => {
             tab.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -835,7 +665,7 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                     await loadProducts(searchBar.value.trim());
                     searchBar.value = '';
                 } else if (target === 'dashboard') {
-                    await loadProductsForDashboard();
+                    await showDashboard();
                 }
             });
         });
@@ -874,6 +704,7 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                 alert('Product listed successfully!');
                 toggleProductForm(false);
                 await loadProducts('');
+                if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
             } catch (error) {
                 console.error("Error adding document to Firestore:", error);
                 alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
@@ -912,26 +743,20 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                 const query = searchBar.value.trim().toLowerCase();
                 if (!window.allProducts) return;
 
-                // If the search bar is empty, show all products
                 if (!query) {
                     renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
                     return;
                 }
 
-                // Split the search query into keywords for flexible matching
                 const keywords = query.split(/\s+/).filter(Boolean);
-
-                // Filter products: match if any keyword is in title or description
                 const filteredProducts = window.allProducts.filter(product => {
                     const haystack = [
                         product.title || '',
                         product.description || ''
                     ].join(' ').toLowerCase();
-                    // Match if ANY keyword is found (like Google)
                     return keywords.some(kw => haystack.includes(kw));
                 });
 
-                // Show products or a friendly message if none found
                 if (filteredProducts.length > 0) {
                     renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
                     noProductsMessage.classList.add('hidden');
@@ -942,6 +767,117 @@ document.querySelector('a[data-tab="dashboard"]').addEventListener('click', show
                 }
             }
         });
+
+        // ---- DASHBOARD LOGIC ----
+        async function updateSellerBalance(userId) {
+            try {
+                const balDoc = await db.collection('balances').doc(userId).get();
+                let value = 0;
+                if (balDoc.exists && typeof balDoc.data().balance === 'number') {
+                    value = balDoc.data().balance;
+                }
+                sellerBalance.textContent = `$${value.toFixed(2)}`;
+            } catch (e) {
+                sellerBalance.textContent = "$0.00";
+            }
+        }
+        let balanceUnsub = null;
+        function watchSellerBalance(userId) {
+            if (balanceUnsub) balanceUnsub();
+            balanceUnsub = db.collection('balances').doc(userId)
+                .onSnapshot(doc => {
+                    let value = 0;
+                    if (doc.exists && typeof doc.data().balance === 'number') value = doc.data().balance;
+                    sellerBalance.textContent = `$${value.toFixed(2)}`;
+                });
+        }
+        async function loadMyProducts(userId) {
+            myProductsContainer.innerHTML = '';
+            noMyProductsMessage.classList.add('hidden');
+            try {
+                const productsRef = db.collection('products').where('sellerId', '==', userId).orderBy('createdAt', 'desc');
+                const snapshot = await productsRef.get();
+                const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (products.length === 0) {
+                    noMyProductsMessage.classList.remove('hidden');
+                    return;
+                }
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-lg shadow p-4 flex flex-col product-card";
+                    card.innerHTML = `
+                        <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
+                        <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
+                        <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
+                        <div class="font-bold text-blue-600 mb-2">${parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`}</div>
+                        <div class="mt-auto flex gap-2">
+                            <button class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Edit</button>
+                            <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Delete</button>
+                        </div>
+                    `;
+                    myProductsContainer.appendChild(card);
+
+                    card.querySelector('.edit-btn').onclick = () => openEditProductModal(product);
+                    card.querySelector('.delete-btn').onclick = () => deleteProduct(product.id);
+                });
+            } catch (e) {
+                myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.</p>';
+            }
+        }
+        function openEditProductModal(product) {
+            editProductIdInput.value = product.id;
+            editTitleInput.value = product.title;
+            editDescriptionInput.value = product.description;
+            editPriceInput.value = product.price;
+            editFileUrlInput.value = product.fileUrl;
+            editProductModal.classList.remove('hidden');
+        }
+        function closeEditProductModal() {
+            editProductModal.classList.add('hidden');
+        }
+        editProductForm.onsubmit = async function (e) {
+            e.preventDefault();
+            const id = editProductIdInput.value;
+            const updated = {
+                title: editTitleInput.value.trim(),
+                description: editDescriptionInput.value.trim(),
+                price: parseFloat(editPriceInput.value),
+                fileUrl: editFileUrlInput.value.trim()
+            };
+            try {
+                await db.collection('products').doc(id).update(updated);
+                closeEditProductModal();
+                if (auth.currentUser) {
+                    await loadMyProducts(auth.currentUser.uid);
+                }
+            } catch (err) {
+                alert("Failed to update product.");
+            }
+        };
+        cancelEditBtn.onclick = closeEditProductModal;
+
+        async function showDashboard() {
+            if (!auth.currentUser) return;
+            showTab('dashboard');
+            await updateSellerBalance(auth.currentUser.uid);
+            watchSellerBalance(auth.currentUser.uid);
+            await loadMyProducts(auth.currentUser.uid);
+        }
+        async function incrementSellerBalance(sellerId, amount) {
+            const balRef = db.collection('balances').doc(sellerId);
+            await db.runTransaction(async (tx) => {
+                const doc = await tx.get(balRef);
+                let newBalance = amount;
+                if (doc.exists && typeof doc.data().balance === 'number') {
+                    newBalance += doc.data().balance;
+                }
+                tx.set(balRef, { balance: newBalance }, { merge: true });
+            });
+        }
+        async function handleProductPurchase(product) {
+            if (!product || !product.sellerId || !product.price) return;
+            await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+        }
 
         // Initial load
         loadProducts();
