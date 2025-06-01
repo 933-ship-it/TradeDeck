@@ -596,6 +596,15 @@
                                 onApprove: function(data, actions) {
                                     return actions.order.capture().then(function(details) {
                                         alert('Payment completed by ' + details.payer.name.given_name + '!');
+                                        // Inside onApprove after successful payment
+                                        db.collection('sales').add({
+                                        productId: product.id,
+                                        productTitle: product.title,
+                                        sellerPaypalEmail: product.paypalEmail,
+                                        price: product.price,
+                                        buyer: details.payer.email_address || '',
+                                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
                                         paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl font-semibold mt-6">Download Product</a>`;
                                     });
                                 },
