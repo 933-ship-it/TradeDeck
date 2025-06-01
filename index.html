@@ -680,17 +680,14 @@
         });
 
         productUploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    enableSubmitButton();
-    if (submitProductBtn.disabled) {
-        alert('Please fill out all required fields correctly before listing your product.');
-        submitProductBtn.textContent = 'List Product';
-        return;
-    }
-    disableSubmitButton();
-    submitProductBtn.textContent = 'Listing...';
-    // ... rest of your code ...
-});
+            e.preventDefault();
+            disableSubmitButton();
+            submitProductBtn.textContent = 'Listing...';
+            if (submitProductBtn.disabled) {
+                alert('Please fill out all required fields correctly before listing your product.');
+                submitProductBtn.textContent = 'List Product';
+                return;
+            }
             try {
                 const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
                 const newProduct = {
