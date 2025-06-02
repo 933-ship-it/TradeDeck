@@ -1,74 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: 
-      https://cdn.tailwindcss.com 
-      https://cdn.jsdelivr.net 
-      https://www.paypal.com 
-      https://www.paypalobjects.com 
-      https://apis.google.com 
-      https://widget.cloudinary.com 
-      https://upload-widget.cloudinary.com
-      https://cdn.jsdelivr.net/npm/@emailjs/browser@4 
-      https://www.gstatic.com
-      https://933-ship-it.github.io;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: 
-      https://933-ship-it.github.io 
-      https://res.cloudinary.com 
-      https://lh3.googleusercontent.com 
-      https://www.google.com;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' 
-      https://*.paypal.com 
-      https://*.cloudinary.com 
-      https://api.emailjs.com 
-      https://933-ship-it.github.io 
-      https://www.googleapis.com 
-      https://identitytoolkit.googleapis.com 
-      https://firestore.googleapis.com;
-    frame-src 'self' 
-      https://www.paypal.com 
-      https://widget.cloudinary.com 
-      https://upload-widget.cloudinary.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-  "/>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TradeDeck</title>
-  <!-- Favicon/logo for browser tab -->
-  <link rel="icon" type="image/png" href="assets/logo.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-  <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    main section { transition: opacity 0.3s; }
-    main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
-    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-    .product-card { transition: all 0.2s; }
-    .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
-    .error-summary { background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-    .interactive-card { cursor: pointer; }
-    .interactive-card:hover { border-color: #60a5fa; }
-    .success { color: #16a34a; }
-    .error { color: #dc2626; }
-    .loading { color: #fbbf24; }
-    #editProductModal { z-index: 1000; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
-</head>
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: 
+    https://cdn.tailwindcss.com 
+    https://cdn.jsdelivr.net 
+    https://www.paypal.com 
+    https://www.paypalobjects.com 
+    https://apis.google.com 
+    https://widget.cloudinary.com 
+    https://upload-widget.cloudinary.com
+    https://cdn.jsdelivr.net/npm/@emailjs/browser@4 
+    https://www.gstatic.com
+    https://933-ship-it.github.io;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  img-src 'self' data: blob: 
+    https://933-ship-it.github.io 
+    https://res.cloudinary.com 
+    https://lh3.googleusercontent.com 
+    https://www.google.com
+    https://www.paypalobjects.com;
+  font-src 'self' https://fonts.gstatic.com;
+  connect-src 'self' 
+    https://*.paypal.com 
+    https://*.paypalobjects.com
+    https://*.cloudinary.com 
+    https://api.emailjs.com 
+    https://933-ship-it.github.io 
+    https://www.googleapis.com 
+    https://identitytoolkit.googleapis.com 
+    https://firestore.googleapis.com;
+  frame-src 'self' 
+    https://www.paypal.com 
+    https://widget.cloudinary.com 
+    https://upload-widget.cloudinary.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+"/>
 <body class="bg-gray-100">
   <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
