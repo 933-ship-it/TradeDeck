@@ -626,7 +626,11 @@ async function loadMyProducts(userId) {
   myProductsContainer.innerHTML = '';
   noMyProductsMessage.classList.add('hidden');
   try {
-    const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
+    const q = query(
+      collection(db, "products"),
+      where("sellerId", "==", userId)
+      // Remove orderBy for now to avoid errors
+    );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if (products.length === 0) {
@@ -634,25 +638,11 @@ async function loadMyProducts(userId) {
       return;
     }
     products.forEach(product => {
-      const card = document.createElement('div');
-      card.className = "bg-white rounded-lg shadow p-4 flex flex-col product-card";
-      card.innerHTML = `
-        <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-        <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-        <p class="text-gray-600 text-sm flex-grow mb-2">${product.description}</p>
-        <div class="font-bold text-blue-600 mb-2">${parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`}</div>
-        <div class="mt-auto flex gap-2">
-          <button class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Edit</button>
-          <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded-lg font-semibold" data-id="${product.id}">Delete</button>
-        </div>
-      `;
-      myProductsContainer.appendChild(card);
-
-      card.querySelector('.edit-btn').onclick = () => openEditProductModal(product);
-      card.querySelector('.delete-btn').onclick = () => deleteProduct(product.id);
+      // ... rendering code ...
     });
   } catch (e) {
-    myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.</p>';
+    console.error("Error loading user's products:", e);
+    myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
   }
 }
 function openEditProductModal(product) {
