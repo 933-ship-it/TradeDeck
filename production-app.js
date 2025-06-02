@@ -106,6 +106,21 @@ onAuthStateChanged(auth, user => {
   }
 });
 
+// --- EmailJS sale notification ---
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
+}
+
 function showProfileUI(user) {
   if (!user) return;
   profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
@@ -573,6 +588,14 @@ async function showProductDetails(productId) {
               alert('Payment completed by ' + details.payer.name.given_name + '!');
               paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
               await handleProductPurchase(product);
+              // --- Send EmailJS sale notification ---
+              sendSaleEmail({
+                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
+                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
+                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
+                productTitle: product.title || 'Unknown',
+                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
+              });
             });
           },
           onError: function(err) {
