@@ -107,13 +107,19 @@ onAuthStateChanged(auth, user => {
 });
 
 // --- EmailJS sale notification ---
-function sendSaleEmail({
-  buyerName: details.payer.name.given_name || 'Unknown',
-  buyerEmail: details.payer.email_address || 'Unknown',
-  sellerPaypalEmail: product.paypalEmail || 'Not Provided',
-  productTitle: product.title,
-  amount: product.price
-});
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
+}
 
 function showProfileUI(user) {
   if (!user) return;
