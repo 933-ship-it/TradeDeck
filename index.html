@@ -4,21 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
-
   <!-- Favicon/logo for browser tab -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
-
-  <!-- Fonts and Tailwind CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Cloudinary & PayPal SDK -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
-
-  <!-- ✅ Content Security Policy to allow PayPal, blobs, and emailjs -->
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com https://apis.google.com https://cdn.tailwindcss.com https://widget.cloudinary.com https://cdn.jsdelivr.net https://smtpjs.com;">
-
   <style>
     body { font-family: 'Inter', sans-serif; }
     main section { transition: opacity 0.3s; }
@@ -35,14 +26,12 @@
     #editProductModal { z-index: 1000; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
-
-  <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
+<script>
+  (function(){
+    emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+  })();
+</script>
 </head>
 <body class="bg-gray-100">
   <!-- Authentication Overlay -->
