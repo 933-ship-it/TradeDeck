@@ -629,7 +629,8 @@ async function loadMyProducts(userId) {
     const q = query(
       collection(db, "products"),
       where("sellerId", "==", userId)
-      // Remove orderBy for now to avoid errors
+      // Add back orderBy if data/index is ready:
+      // , orderBy("createdAt", "desc")
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -637,9 +638,8 @@ async function loadMyProducts(userId) {
       noMyProductsMessage.classList.remove('hidden');
       return;
     }
-    products.forEach(product => {
-      // ... rendering code ...
-    });
+    // Use your existing rendering function for consistency:
+    renderProducts(products, myProductsContainer, noMyProductsMessage, true);
   } catch (e) {
     console.error("Error loading user's products:", e);
     myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
