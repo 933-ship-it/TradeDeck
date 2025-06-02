@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' blob: https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com https://apis.google.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com;
-  font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com;
-">
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'blob:' https://*.paypal.com:* https://*.paypalobjects.com https://*.braintreegateway.com 'unsafe-inline' https://apis.google.com">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
   <!-- Favicon/logo for browser tab -->
