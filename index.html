@@ -5,13 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="output.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
   <style>
-    /* ...your styles... */
+    body { font-family: 'Inter', sans-serif; }
+    main section { transition: opacity 0.3s; }
+    main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+    .product-card { transition: all 0.2s; }
+    .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
+    .error-summary { background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+    .interactive-card { cursor: pointer; }
+    .interactive-card:hover { border-color: #60a5fa; }
+    .success { color: #16a34a; }
+    .error { color: #dc2626; }
+    .loading { color: #fbbf24; }
+    #editProductModal { z-index: 1000; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
-</head><body class="bg-gray-100">
+</head>
+<body class="bg-gray-100">
   <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
     <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
