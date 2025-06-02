@@ -2,15 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!--
-    CSP meta tag updated:
-    - Added 'unsafe-eval' for libraries like Tailwind CDN (which uses eval in some builds)
-    - Added 'blob:' (no quotes, just blob:) for correct CSP syntax
-    - Added https: for general compatibility with other third-party scripts
-    - Kept PayPal, Braintree, Google APIs domains
-  -->
-  <meta http-equiv="Content-Security-Policy"
-        content="script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com https://*.braintreegateway.com https://apis.google.com https://cdn.tailwindcss.com https://widget.cloudinary.com https://cdn.jsdelivr.net;">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
   <!-- Favicon/logo for browser tab -->
@@ -36,11 +27,11 @@
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
+<script>
+  (function(){
+    emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+  })();
+</script>
 </head>
 <body class="bg-gray-100">
   <!-- Authentication Overlay -->
