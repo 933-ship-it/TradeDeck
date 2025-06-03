@@ -9,8 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-  <!-- PayPal CSP Injector -->
-  <script src="paypal-csp-injector.js"></script>
   <!-- PayPal SDK (use your client ID as needed) -->
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
   <style>
@@ -30,11 +28,11 @@
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  (function(){
-    emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-  })();
-</script>
+  <script>
+    (function(){
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
+  </script>
 </head>
 <body class="bg-gray-100">
   <!-- Authentication Overlay -->
@@ -225,5 +223,96 @@
   </div>
   <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
   <script type="module" src="https://933-ship-it.github.io/TradeDeck.com/production-app.js"></script>
+
+  <!-- PAYPAL BUTTON FIX: This script must be loaded AFTER PayPal SDK and your main app -->
+  <script>
+    // Renders the PayPal Smart Buttons only when product details are shown and with correct price.
+    function renderPaypalButtons({ price, productId = 'Product', onApprove, onError, onCancel }) {
+      const container = document.getElementById('paypal-button-container');
+      if (!container) return;
+      // Remove previous button
+      container.innerHTML = '';
+      // Hide if price is not valid
+      if (!price || isNaN(price) || Number(price) <= 0) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = '';
+      // Wait for PayPal SDK
+      if (typeof paypal === 'undefined') {
+        container.innerHTML = '<div class="text-red-600">PayPal not loaded.</div>';
+        return;
+      }
+      paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal'
+        },
+        createOrder: function (data, actions) {
+          return actions.order.create({
+            purchase_units: [{
+              description: 'Purchase for: ' + productId,
+              amount: { value: Number(price).toFixed(2) }
+            }]
+          });
+        },
+        onApprove: function (data, actions) {
+          return actions.order.capture().then(function (details) {
+            if (typeof onApprove === 'function') {
+              onApprove(details, data);
+            } else {
+              alert('Payment successful! Transaction ID: ' + details.id);
+            }
+          });
+        },
+        onCancel: function (data) {
+          if (typeof onCancel === 'function') onCancel(data);
+        },
+        onError: function (err) {
+          if (typeof onError === 'function') onError(err);
+          else alert('PayPal error: ' + err);
+        }
+      }).render('#paypal-button-container');
+    }
+
+    // Patch your product details show code here
+    // EXAMPLE: (Assumes you show product details via a function called showProductDetails)
+    // Replace your existing PayPal render/init code with this logic:
+
+    // This demo listens for a custom event `show-product-details`
+    // and expects {product} in event.detail
+    document.addEventListener('show-product-details', function(e) {
+      const product = e.detail && e.detail.product;
+      if (!product) return;
+      // Fill in product details UI
+      document.getElementById('detailProductTitle').textContent = product.title;
+      document.getElementById('detailProductDescription').textContent = product.description;
+      document.getElementById('detailProductPrice').textContent = "$" + Number(product.price).toFixed(2);
+      document.getElementById('detailProductImage').src = product.image || '';
+      // Show Smart Buttons only for paid products
+      renderPaypalButtons({
+        price: parseFloat(product.price),
+        productId: product.id || product.title,
+        onApprove: function(details, data) {
+          alert('Thank you for your purchase! Transaction ID: ' + details.id);
+          // TODO: Grant access or delivery here
+        },
+        onError: function(err) {
+          alert('PayPal error: ' + err);
+        },
+        onCancel: function(data) {
+          alert('Payment cancelled.');
+        }
+      });
+    });
+
+    // You must dispatch the above event whenever a user clicks a product.
+    // Example:
+    // document.dispatchEvent(new CustomEvent('show-product-details', { detail: { product: { title, description, price, image, id } } }));
+
+    // Or, if you use your own function, just call renderPaypalButtons(...) directly after rendering the product info and before showing the section.
+  </script>
 </body>
 </html>
