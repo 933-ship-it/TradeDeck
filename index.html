@@ -100,7 +100,7 @@
       <section id="home" aria-label="Home Products">
         <div class="max-w-5xl mx-auto">
           <label for="searchBar" class="sr-only">Search products</label>
-          <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-blue-500" />
+          <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600" />
           <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">Loading products...</p>
           </div>
@@ -109,7 +109,7 @@
       <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-          <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to home">&larr; Back</button>
+          <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to Home">← Back</button>
           <div id="productDetailsContent">
             <div class="flex flex-col md:flex-row gap-8">
               <div class="md:w-1/2">
@@ -170,31 +170,31 @@
             <form id="productUploadForm" class="space-y-6" autocomplete="off">
               <div>
                 <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
-                <input type="text" id="title" name="title" required maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Ultimate eBook Template Pack" />
+                <input type="text" id="title" name="title" required maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Ultimate Guide to Freelance" />
               </div>
               <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
-                <textarea id="description" name="description" rows="4" required maxlength="1000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product in detail..."></textarea>
+                <textarea id="description" name="description" rows="4" required maxlength="1000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product..."></textarea>
               </div>
               <div>
                 <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 29.99 or 0 for free" />
+                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="10.00" />
               </div>
               <div id="paypalEmailContainer" class="hidden">
                 <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
-                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="yourname@example.com" />
+                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="yourname@email.com" />
                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
                   <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
                   <details class="mt-2">
                     <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
-                    <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, you won't get paid.</p>
+                    <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, payments may fail.</p>
                   </details>
                 </div>
               </div>
               <div>
                 <label for="openPreviewImageWidget" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
-                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100">Upload Image</button>
+                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100">Upload Preview Image</button>
                 <input type="hidden" id="previewImageUrl" name="previewImageUrl">
                 <p id="previewImageStatus" class="file-upload-status text-sm mt-1"></p>
                 <div id="previewImageContainer" class="mt-2 hidden">
@@ -203,7 +203,7 @@
               </div>
               <div>
                 <label for="productFileUrlInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
-                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Direct download link (Google Drive, Dropbox, etc.)" />
+                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="https://drive.google.com/file/..." />
                 <p class="text-sm text-gray-500 mt-1">Make sure this link is publicly accessible for download.</p>
               </div>
               <button type="submit" id="submitProductBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">List Product</button>
