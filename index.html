@@ -2,9 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!--
+    CSP FIX: The below CSP is the most permissive you can use to FORCE PayPal Smart Buttons and all your current vendors to work without CSP errors.
+    - All PayPal, Braintree, Cloudinary, EmailJS, Tailwind, Google Analytics, Tag Manager, and Firebase domains included.
+    - 'unsafe-inline' and 'unsafe-eval' are present as needed for PayPal and 3rd-party scripts (not recommended for high-security prod, but required for PayPal).
+    - Remove 'blob:' from script-src (it is not needed for any of your scripts).
+    - All domains are space-separated, not indented (browsers ignore whitespace, but this is more readable).
+    - Adjust further only if you add new 3rd-party scripts or find more CSP errors from new sources.
+  -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
+    script-src 'self' 'unsafe-inline' 'unsafe-eval'
       https://cdn.tailwindcss.com
       https://cdn.jsdelivr.net
       https://www.paypal.com
