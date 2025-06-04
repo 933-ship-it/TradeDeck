@@ -3,53 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
-    https://cdn.tailwindcss.com
-    https://cdn.jsdelivr.net
-    https://www.paypal.com
-    https://www.paypalobjects.com
-    https://apis.google.com
-    https://widget.cloudinary.com
-    https://upload-widget.cloudinary.com
-    https://cdn.jsdelivr.net/npm/@emailjs/browser@4
-    https://www.gstatic.com
-    https://933-ship-it.github.io
-    https://infird.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' data: blob:
-    https://933-ship-it.github.io
-    https://res.cloudinary.com
-    https://lh3.googleusercontent.com
-    https://www.google.com
-    https://www.paypalobjects.com;
-  font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self'
-    https://*.paypal.com
-    https://*.paypalobjects.com
-    https://*.cloudinary.com
-    https://api.emailjs.com
-    https://933-ship-it.github.io
-    https://www.googleapis.com
-    https://identitytoolkit.googleapis.com
-    https://firestore.googleapis.com
-    https://securetoken.googleapis.com;
-  frame-src 'self'
-    https://www.paypal.com
-    https://widget.cloudinary.com
-    https://upload-widget.cloudinary.com;
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self';
-"/>
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
+      https://cdn.tailwindcss.com
+      https://cdn.jsdelivr.net
+      https://www.paypal.com
+      https://www.paypalobjects.com
+      https://apis.google.com
+      https://widget.cloudinary.com
+      https://upload-widget.cloudinary.com
+      https://cdn.jsdelivr.net/npm/@emailjs/browser@4
+      https://www.gstatic.com
+      https://933-ship-it.github.io
+      https://infird.com
+      https://*.paypal.com
+      https://*.paypalobjects.com
+      https://*.braintreegateway.com
+      https://www.googletagmanager.com
+      https://www.google-analytics.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: blob:
+      https://933-ship-it.github.io
+      https://res.cloudinary.com
+      https://lh3.googleusercontent.com
+      https://www.google.com
+      https://www.paypalobjects.com
+      https://www.google-analytics.com;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self'
+      https://*.paypal.com
+      https://*.paypalobjects.com
+      https://*.braintree-api.com
+      https://*.braintreegateway.com
+      https://api.emailjs.com
+      https://933-ship-it.github.io
+      https://www.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://firestore.googleapis.com
+      https://securetoken.googleapis.com
+      https://www.googletagmanager.com
+      https://www.google-analytics.com;
+    frame-src 'self'
+      https://www.paypal.com
+      https://*.paypal.com
+      https://widget.cloudinary.com
+      https://upload-widget.cloudinary.com
+      https://*.paypalobjects.com
+      https://*.braintreegateway.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  "/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
-  <!-- Favicon/logo for browser tab -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     main section { transition: opacity 0.3s; }
