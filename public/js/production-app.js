@@ -94,16 +94,19 @@ const cancelEditBtn = document.getElementById('cancelEditBtn');
 
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
-onAuthStateChanged(auth, user => {
-  document.body.style.visibility = "";
-  if (!user) {
-    authOverlay.style.display = "flex";
-    userGlobal = null;
-  } else {
-    authOverlay.style.display = "none";
-    userGlobal = user;
-    showProfileUI(user);
-  }
+
+window.addEventListener('load', () => {
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      userGlobal = user;
+      authOverlay.style.display = "none";
+      showProfileUI(user);
+    } else {
+      authOverlay.style.display = "flex";
+      userGlobal = null;
+    }
+    document.body.style.visibility = ""; // Reveal UI only after auth is known
+  });
 });
 
 // --- EmailJS sale notification ---
