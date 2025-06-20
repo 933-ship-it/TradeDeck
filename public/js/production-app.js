@@ -12,7 +12,7 @@ import {
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
-const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
+const LANDING_URL = "https://trade-deck-smoky.vercel.app/";
 
 // --- Firebase Config ---
 const firebaseConfig = {
