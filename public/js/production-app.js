@@ -95,19 +95,30 @@ const cancelEditBtn = document.getElementById('cancelEditBtn');
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
 
-window.addEventListener('load', () => {
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      userGlobal = user;
-      authOverlay.style.display = "none";
-      showProfileUI(user);
-    } else {
-      authOverlay.style.display = "flex";
-      userGlobal = null;
-    }
-    document.body.style.visibility = ""; // Reveal UI only after auth is known
+import { setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+document.body.style.visibility = "hidden";
+
+// Set persistence and then listen for auth state changes
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        authOverlay.style.display = "none";
+        showProfileUI(user);
+      } else {
+        authOverlay.style.display = "flex";
+      }
+      document.body.style.visibility = "";
+    });
+  })
+  .catch((error) => {
+    console.error("Auth persistence setup failed:", error);
+    // Still show UI even if persistence failed
+    document.body.style.visibility = "";
+    authOverlay.style.display = "flex";
   });
-});
+
 
 // --- EmailJS sale notification ---
 function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
