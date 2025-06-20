@@ -261,6 +261,15 @@
     </main>
   </div>
   <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
-  <script type="module" src="/api/serve-app.js"></script>
+  <script type="module">
+  fetch('/api/serve-app')
+    .then(res => res.text())
+    .then(js => {
+      const blob = new Blob([js], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      import(url);
+    })
+    .catch(err => console.error('Failed to load production app:', err));
+</script>
 </body>
 </html>
