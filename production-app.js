@@ -89,59 +89,51 @@ function showProductDetails(id, data) {
 // --- Render PayPal Button ---
 function renderPayPalButton(product) {
   paypal.Buttons({
-    createOrder: function () {
-      return fetch("https://api-m.paypal.com/v2/checkout/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer FAKE` // This is just a placeholder; client cannot create PayPal orders securely
-        },
-        body: JSON.stringify({
-          intent: "CAPTURE",
-          purchase_units: [{
-            amount: {
-              value: product.price.toFixed(2)
-            }
-          }]
-        })
+    createOrder: function (data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: product.price.toFixed(2)
+          }
+        }]
       });
     },
 
-    onApprove: function (data, actions) {
-      return fetch("/api/verify-payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ orderID: data.orderID })
-      })
-        .then(res => res.json())
-        .then(async result => {
-          if (result.success && result.order.status === "COMPLETED") {
-            detailActionButton.textContent = "Download Now";
-            detailActionButton.disabled = false;
-            detailActionButton.onclick = () => {
-              window.open(product.productFileUrl, "_blank");
-            };
-
-            // Optional: Update seller balance here
-            const sellerQuery = query(collection(db, "users"), where("paypalEmail", "==", product.paypalEmail));
-            const sellerSnap = await getDocs(sellerQuery);
-            if (!sellerSnap.empty) {
-              const sellerDoc = sellerSnap.docs[0];
-              const prevBalance = sellerDoc.data().balance || 0;
-              const newBalance = parseFloat(prevBalance) + parseFloat(product.price * 0.7);
-              await updateDoc(sellerDoc.ref, { balance: newBalance });
-            }
-          } else {
-            productDetailsError.textContent = "Payment not verified. Please try again.";
-            productDetailsError.classList.remove("hidden");
-          }
-        })
-        .catch(() => {
-          productDetailsError.textContent = "Payment verification failed. Please contact support.";
-          productDetailsError.classList.remove("hidden");
+    onApprove: async function (data, actions) {
+      const orderID = data.orderID;
+      try {
+        const verifyRes = await fetch("https://verify-payment-js.vercel.app/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderID })
         });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success && verifyData.order.status === "COMPLETED") {
+          detailActionButton.textContent = "Download Now";
+          detailActionButton.disabled = false;
+          detailActionButton.onclick = () => {
+            window.open(product.productFileUrl, "_blank");
+          };
+
+          const sellerQuery = query(collection(db, "users"), where("paypalEmail", "==", product.paypalEmail));
+          const sellerSnap = await getDocs(sellerQuery);
+          if (!sellerSnap.empty) {
+            const sellerDoc = sellerSnap.docs[0];
+            const prevBalance = sellerDoc.data().balance || 0;
+            const newBalance = parseFloat(prevBalance) + parseFloat(product.price * 0.7);
+            await updateDoc(sellerDoc.ref, { balance: newBalance });
+          }
+        } else {
+          productDetailsError.textContent = "Payment not verified. Please try again.";
+          productDetailsError.classList.remove("hidden");
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        productDetailsError.textContent = "Payment verification failed. Please contact support.";
+        productDetailsError.classList.remove("hidden");
+      }
     },
 
     onError: function (err) {
@@ -149,7 +141,6 @@ function renderPayPalButton(product) {
       productDetailsError.textContent = "An error occurred during payment.";
       productDetailsError.classList.remove("hidden");
     }
-
   }).render("#paypal-button-container");
 }
 
