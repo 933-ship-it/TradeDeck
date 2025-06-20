@@ -1,17 +1,16 @@
-// api/serve-app.js
-import { readFileSync } from 'fs';
-import { join } from 'path';
+// File: api/serve-app.js
 
-export default function handler(req, res) {
-  const scriptPath = join(process.cwd(), 'private', 'production-app.js');
+export default async function handler(req, res) {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+
+  const filePath = path.join(process.cwd(), 'private', 'production-app.js');
 
   try {
-    const script = readFileSync(scriptPath, 'utf-8');
-
+    const fileContents = await fs.readFile(filePath, 'utf8');
     res.setHeader('Content-Type', 'application/javascript');
-    res.setHeader('Cache-Control', 'no-store');
-    res.send(script);
-  } catch (err) {
-    res.status(500).send('Error loading script');
+    res.status(200).send(fileContents);
+  } catch (error) {
+    res.status(500).send('// Error loading script');
   }
 }
