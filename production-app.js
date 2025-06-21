@@ -53,7 +53,7 @@ if (!sellerBalanceElm) console.warn("⚠️ Missing DOM element: #sellerBalance"
 
 if (!paypalContainer || !overlay || !actionBtn || !sellerBalanceElm) {
   console.error("❌ One or more critical DOM elements are missing.");
-  return;
+  throw new Error("Critical DOM elements missing. Cannot continue.");
 }
 
 // --- Balance Logic ---
