@@ -97,3 +97,13 @@ export {
   query, where, orderBy, serverTimestamp,
   onAuthStateChanged, signOut, deleteUser
 };
+// --- UI Helper: showToast ---
+export function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `fixed bottom-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-white font-semibold 
+    ${type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-yellow-500' : 'bg-green-600'}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
