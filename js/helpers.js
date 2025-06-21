@@ -1,5 +1,3 @@
-// helpers.js
-
 // --- Firebase Modular SDK ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
@@ -9,12 +7,6 @@ import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc,
   updateDoc, deleteDoc, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-// --- EmailJS SDK (Global in index.html) ---
-/*
-  emailjs is globally loaded via <script src="...email.min.js"> in your HTML,
-  so do NOT try to import it. It’s already available as a global.
-*/
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -37,6 +29,22 @@ export function formatPrice(price) {
   return `$${Number(price).toFixed(2)}`;
 }
 
+// --- Toast Notification ---
+export function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.className = `fixed bottom-6 right-6 px-4 py-2 rounded-lg text-white font-semibold z-50 transition-opacity duration-300 ${
+    type === 'success' ? 'bg-green-600' :
+    type === 'error' ? 'bg-red-600' :
+    'bg-gray-800'
+  }`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // --- EmailJS Notification ---
 export async function sendEmailNotification({ product_title, price, buyer_email, seller_email }) {
   try {
@@ -54,11 +62,11 @@ export async function sendEmailNotification({ product_title, price, buyer_email,
   }
 }
 
-// --- Optional: Cloudinary Widget ---
+// --- Cloudinary Upload Widget ---
 export function openCloudinaryWidget(callback) {
   cloudinary.openUploadWidget({
-    cloudName: 'demo', // 🔁 Replace with your Cloudinary cloud name
-    uploadPreset: 'tradedeck_preset', // 🔁 Replace with your upload preset
+    cloudName: 'demo', // Replace with your real cloud name
+    uploadPreset: 'tradedeck_preset', // Replace with your real preset
     sources: ['local', 'url', 'camera'],
     multiple: false,
     cropping: false,
@@ -90,20 +98,10 @@ export function openCloudinaryWidget(callback) {
   });
 }
 
-// --- Firebase SDK Exports (Optional use) ---
+// --- Firebase SDK Exports ---
 export {
   auth, db,
   collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp,
   onAuthStateChanged, signOut, deleteUser
 };
-// --- UI Helper: showToast ---
-export function showToast(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `fixed bottom-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-white font-semibold 
-    ${type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-yellow-500' : 'bg-green-600'}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
