@@ -1,188 +1,137 @@
-// js/production-app.js
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut,
-  deleteUser,
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-  getDoc,
-  addDoc,
-  updateDoc,
-  doc,
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-import {
-  sendEmailNotification,
-  showToast
-} from "./helpers.js";
+import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { sendEmailNotification } from "./helpers.js"; // if using separate helper
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB4WYZojOArqdAceRQZD6a6re7MP0Ikl0c",
-  authDomain: "fluxr-913c8.firebaseapp.com",
-  projectId: "fluxr-913c8",
-  storageBucket: "fluxr-913c8.appspot.com",
-  messagingSenderId: "779319537916",
-  appId: "1:779319537916:web:5afa18aade22959ca3a779"
+  // your Firebase config here
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Elements
-const userPic = document.getElementById("userProfilePic");
-const userEmailEl = document.getElementById("userEmail");
-const productListEl = document.getElementById("productList");
-const balanceEl = document.getElementById("sellerBalance");
-const homeSection = document.getElementById("home");
-const pdSection = document.getElementById("productDetails");
-const backBtn = document.getElementById("backToHomeBtn");
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ DOM ready");
 
-// Auth state handling
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    document.getElementById("authOverlay").style.display = "flex";
+  const signOutBtn      = document.getElementById("signOutBtn");
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+  const userProfilePic  = document.getElementById("userProfilePic");
+  const dropdownMenu    = document.getElementById("dropdownMenu");
+  const userEmailEl     = document.getElementById("userEmail");
+  const authOverlay     = document.getElementById("authOverlay");
+  const tabs            = document.querySelectorAll("aside nav a[data-tab]");
+  const sections        = document.querySelectorAll("main section");
+  const backToHomeBtn   = document.getElementById("backToHomeBtn");
+
+  // Dashboard & product-detail buttons
+  const sellerBalanceEl        = document.getElementById("sellerBalance");
+  const paypalBtnContainer     = document.getElementById("paypal-button-container");
+  const detailProductImage     = document.getElementById("detailProductImage");
+  const detailProductTitle     = document.getElementById("detailProductTitle");
+  const detailProductDesc      = document.getElementById("detailProductDescription");
+  const detailProductPrice     = document.getElementById("detailProductPrice");
+  const detailActionBtn        = document.getElementById("detailActionButton");
+  const productDetailsSection  = document.getElementById("productDetails");
+
+  // Validate critical elements:
+  if (!authOverlay || !tabs.length || !sections.length || !sellerBalanceEl || !paypalBtnContainer) {
+    console.error("❌ One or more critical DOM elements are missing");
     return;
   }
-  userPic.src = user.photoURL || "";
-  userPic.classList.remove("hidden");
-  userEmailEl.textContent = user.email;
-  await loadProducts();
-  await loadMyProducts();
-  await updateBalance(user.uid);
-});
 
-// Navigation: clicking sidebar links
-document.querySelectorAll("aside nav a").forEach((link) => {
-  link.addEventListener("click", (e) => {
-    e.preventDefault();
-    const target = link.getAttribute("href").slice(1);
-    document.querySelectorAll("main section").forEach((s) => s.classList.add("hidden"));
-    document.getElementById(target).classList.remove("hidden");
-    document.querySelectorAll("aside nav a").forEach((l) => l.classList.remove("bg-blue-100"));
-    link.classList.add("bg-blue-100");
-  });
-});
-
-backBtn.addEventListener("click", () => {
-  pdSection.classList.add("hidden");
-  homeSection.classList.remove("hidden");
-});
-
-document.getElementById("signOutBtn").onclick = () => signOut(auth);
-document.getElementById("deleteAccountBtn").onclick = async () => {
-  if (confirm("Really delete account?")) {
-    await deleteUser(auth.currentUser);
-    window.location.reload();
-  }
-};
-
-// Load products in home view
-async function loadProducts() {
-  productListEl.innerHTML = "";
-  const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(q);
-  snap.forEach((d) => {
-    const data = d.data();
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-xl shadow cursor-pointer p-4";
-    card.innerHTML = `
-      <img src="${data.previewImage}" class="rounded-md mb-4 w-full h-40 object-cover"/>
-      <h3 class="font-semibold text-gray-800">${data.title}</h3>
-      <p class="text-blue-600 font-bold">$${data.price}</p>
-    `;
-    card.onclick = () => showProductDetail(d.id, data);
-    productListEl.appendChild(card);
-  });
-}
-
-// Detailed product view and PayPal logic
-function showProductDetail(id, data) {
-  homeSection.classList.add("hidden");
-  pdSection.classList.remove("hidden");
-  document.getElementById("detailProductImage").src = data.previewImage;
-  document.getElementById("detailProductTitle").textContent = data.title;
-  document.getElementById("detailProductDescription").textContent = data.description;
-  document.getElementById("detailProductPrice").textContent = `$${data.price}`;
-  const btn = document.getElementById("detailActionButton");
-  btn.textContent = data.price > 0 ? "Buy Now" : "Download Free";
-
-  btn.onclick = async () => {
-    if (data.price > 0) {
-      loadPayPal(data, id);
+  // --- Auth State Handling ---
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      authOverlay.style.display = "none";
+      userProfilePic.style.visibility = "";
+      userProfilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || "")}`;
+      userEmailEl.textContent = user.email;
     } else {
-      window.open(data.fileUrl, "_blank");
+      authOverlay.style.display = "flex";
+    }
+  });
+
+  if (signOutBtn) {
+    signOutBtn.addEventListener("click", () => signOut(auth));
+  }
+  if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener("click", async () => {
+      try {
+        await deleteUser(auth.currentUser);
+        alert("Account deleted.");
+      } catch (e) {
+        alert("Delete failed.");
+        console.error(e);
+      }
+    });
+  }
+
+  // --- Tab Navigation Handler ---
+  tabs.forEach(tab => {
+    tab.addEventListener("click", async e => {
+      e.preventDefault();
+      const target = tab.getAttribute("data-tab");
+      sections.forEach(s => s.id === target ? s.classList.remove("hidden") : s.classList.add("hidden"));
+      if (target === "dashboard") {
+        // load dashboard-related logic here...
+      }
+      if (target === "home") {
+        // load home page...
+      }
+    });
+  });
+
+  if (backToHomeBtn) {
+    backToHomeBtn.addEventListener("click", () => {
+      sections.forEach(s => s.id === "home" ? s.classList.remove("hidden") : s.classList.add("hidden"));
+    });
+  }
+
+  // --- Product Details View ---
+  window.showProductDetails = async productId => {
+    if (!productId) return;
+    productDetailsSection.classList.remove("hidden");
+    const snap = await getDoc(doc(db, "products", productId));
+    if (!snap.exists()) return alert("Product not found.");
+    const prod = { id: snap.id, ...snap.data() };
+    detailProductImage.src = prod.previewImageUrl;
+    detailProductTitle.textContent = prod.title;
+    detailProductDesc.textContent = prod.description;
+    detailProductPrice.textContent = `$${prod.price?.toFixed(2)}`;
+
+    if (prod.price > 0) {
+      detailActionBtn.style.display = "none";
+      paypalBtnContainer.innerHTML = "";
+      window.paypal.Buttons({
+        createOrder: (data, actions) =>
+          actions.order.create({
+            purchase_units: [{ amount: { value: prod.price.toFixed(2) }, description: prod.title }]
+          }),
+        onApprove: async (data, actions) => {
+          const res = await actions.order.capture();
+          paypalBtnContainer.innerHTML = `<a href="${prod.fileUrl}" target="_blank" class="w-full bg-green-500 text-white py-3 rounded-xl flex justify-center">Download</a>`;
+          await incrementSellerBalance(prod.sellerId, parseFloat(prod.price));
+          sendEmailNotification(prod, res);
+        },
+        onError: err => console.error(err)
+      }).render("#paypal-button-container");
+    } else {
+      detailActionBtn.style.display = "";
+      detailActionBtn.textContent = "Download";
+      detailActionBtn.onclick = () => window.open(prod.fileUrl, "_blank");
     }
   };
-}
 
-function loadPayPal(data, id) {
-  document.getElementById("paypal-button-container").innerHTML = "";
-  paypal.Buttons({
-    createOrder: () =>
-      fetch("https://verify-payment-js.vercel.app/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ price: data.price }),
-      })
-        .then((res) => res.json())
-        .then((r) => r.orderID),
-    onApprove: (payData) =>
-      fetch("https://verify-payment-js.vercel.app/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderID: payData.orderID }),
-      })
-        .then((res) => res.json())
-        .then(async (rr) => {
-          if (rr.verified) {
-            await updateDoc(doc(db, "balances", data.sellerId), {
-              balance: rr.newBalance,
-            });
-            await sendEmailNotification(data.sellerEmail, data.title, data.price);
-            showToast("Payment success!", "success");
-            window.open(data.fileUrl, "_blank");
-          } else {
-            showToast("Payment verification failed", "error");
-          }
-        }),
-  }).render("#paypal-button-container");
-}
-
-async function loadMyProducts() {
-  const uid = auth.currentUser.uid;
-  const q = query(collection(db, "products"), where("sellerId", "==", uid));
-  const snap = await getDocs(q);
-  const myList = document.getElementById("myProducts");
-  myList.innerHTML = "";
-  snap.forEach((d) => {
-    const data = d.data();
-    if (!data) return;
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-xl shadow p-4";
-    card.innerHTML = `
-      <h4 class="font-semibold">${data.title}</h4>
-      <p class="text-blue-600">$${data.price}</p>
-      <a href="${data.fileUrl}" class="text-sm text-blue-500 underline">Download</a>
-    `;
-    myList.appendChild(card);
-  });
-}
-
-async function updateBalance(uid) {
-  const snap = await getDoc(doc(db, "balances", uid));
-  let balance = 0;
-  if (snap.exists()) {
-    const data = snap.data();
-    balance = typeof data.balance === "number" ? data.balance : 0;
+  // --- Increment Balance Logic ---
+  async function incrementSellerBalance(uid, delta) {
+    const ref = doc(db, "balances", uid);
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      const curr = (snap.data()?.balance || 0);
+      tx.set(ref, { balance: curr + delta }, { merge: true });
+    });
   }
-  balanceEl.textContent = `$${balance.toFixed(2)}`;
-}
+
+  console.log("✅ production-app.js loaded");
+});
