@@ -1,21 +1,30 @@
+// helpers.js
+
 // --- Firebase Modular SDK ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc,
+  updateDoc, deleteDoc, query, where, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+// --- EmailJS SDK (Global in index.html) ---
+/*
+  emailjs is globally loaded via <script src="...email.min.js"> in your HTML,
+  so do NOT try to import it. It’s already available as a global.
+*/
 
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyB4WYZojOArqdAceRQZD6a6re7MP0Ikl0c",
-  authDomain: "fluxr-913c8.firebaseapp.com",
-  projectId: "fluxr-913c8",
-  storageBucket: "fluxr-913c8.appspot.com",
-  messagingSenderId: "779319537916",
-  appId: "1:779319537916:web:5afa18aade22959ca3a779",
-  measurementId: "G-QX76Q1Z1QB"
+  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+  authDomain: "tradedeck-82bbb.firebaseapp.com",
+  projectId: "tradedeck-82bbb",
+  storageBucket: "tradedeck-82bbb.firebasestorage.app",
+  messagingSenderId: "755235931546",
+  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+  measurementId: "G-4RXR7V9NCW"
 };
 
 // --- Initialize Firebase ---
@@ -23,11 +32,33 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- Cloudinary Upload Widget ---
+// --- Utility: Format Price ---
+export function formatPrice(price) {
+  return `$${Number(price).toFixed(2)}`;
+}
+
+// --- EmailJS Notification ---
+export async function sendEmailNotification({ product_title, price, buyer_email, seller_email }) {
+  try {
+    const templateParams = {
+      product_title,
+      product_price: formatPrice(price),
+      buyer_email,
+      seller_email
+    };
+
+    const response = await emailjs.send("service_myo2nbi", "template_xz1f9rb", templateParams, "fmwYD8DAojsvufds2");
+    console.log("✅ Email sent:", response.status);
+  } catch (err) {
+    console.error("❌ Failed to send email:", err);
+  }
+}
+
+// --- Optional: Cloudinary Widget ---
 export function openCloudinaryWidget(callback) {
   cloudinary.openUploadWidget({
-    cloudName: 'demo', // replace with your Cloudinary cloud name
-    uploadPreset: 'preset', // replace with your upload preset
+    cloudName: 'demo', // 🔁 Replace with your Cloudinary cloud name
+    uploadPreset: 'tradedeck_preset', // 🔁 Replace with your upload preset
     sources: ['local', 'url', 'camera'],
     multiple: false,
     cropping: false,
@@ -52,41 +83,14 @@ export function openCloudinaryWidget(callback) {
         textLight: "#ffffff"
       }
     }
-  },
-  (err, result) => {
+  }, (err, result) => {
     if (!err && result && result.event === "success") {
       callback(result.info.secure_url);
     }
   });
 }
 
-// --- EmailJS Notification ---
-export async function sendEmailNotification(productData) {
-  try {
-    const emailParams = {
-      to_name: productData.sellerName || "Seller",
-      message: `Your product "${productData.title}" was purchased for $${productData.price}`,
-      product_title: productData.title,
-      product_price: productData.price,
-      reply_to: "noreply@tradedeck.com"
-    };
-
-    const response = await emailjs.send("service_myo2nbi", "template_xz1f9rb", emailParams, {
-      publicKey: "fmwYD8DAojsvufds2"
-    });
-
-    console.log("✅ Email sent", response.status);
-  } catch (err) {
-    console.error("❌ Email failed", err);
-  }
-}
-
-// --- Utility: Format Price ---
-export function formatPrice(price) {
-  return `$${Number(price).toFixed(2)}`;
-}
-
-// --- Firebase Exports ---
+// --- Firebase SDK Exports (Optional use) ---
 export {
   auth, db,
   collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
