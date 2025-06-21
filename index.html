@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: 
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
       https://cdn.tailwindcss.com
       https://cdn.jsdelivr.net
       https://www.paypal.com
@@ -18,7 +18,7 @@
       https://www.gstatic.com
       https://933-ship-it.github.io;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: 
+    img-src 'self' data: blob:
       https://933-ship-it.github.io
       https://res.cloudinary.com
       https://lh3.googleusercontent.com
@@ -45,16 +45,25 @@
   "/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
+
   <!-- Favicon/logo for browser tab -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- UI Frameworks and SDKs -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
-  <!-- ✅ Added verify-functions.js -->
-  <script type="module" src="https://933-ship-it.github.io/TradeDeck.com/verify-functions.js"></script>
+  <!-- EmailJS Init -->
+  <script>
+    (function() {
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
+  </script>
 
+  <!-- Styles -->
   <style>
     body { font-family: 'Inter', sans-serif; }
     main section { transition: opacity 0.3s; }
@@ -71,19 +80,15 @@
     #editProductModal { z-index: 1000; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
 </head>
-<body class="bg-gray-100">
-  <!-- Everything else remains unchanged below... -->
 
-  <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
-  <script type="module" src="https://933-ship-it.github.io/TradeDeck.com/production-app.js"></script>
+<body class="bg-gray-100">
+  <!-- ✅ Your full HTML content goes here (sidebar, main, modals, etc.) -->
+
+  <!-- ✅ Firebase App Logic (executed only after full DOM is ready) -->
+  <script type="module">
+    import "https://933-ship-it.github.io/TradeDeck.com/verify-functions.js";
+    import "https://933-ship-it.github.io/TradeDeck.com/production-app.js";
+  </script>
 </body>
 </html>
-
