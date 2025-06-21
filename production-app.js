@@ -47,6 +47,10 @@ async function loadProducts() {
 
   try {
     const querySnapshot = await getDocs(q);
+    if (!productsContainer) {
+      console.error("productsContainer element not found.");
+      return;
+    }
     productsContainer.innerHTML = "";
 
     querySnapshot.forEach((docSnap) => {
@@ -69,7 +73,35 @@ async function loadProducts() {
   }
 }
 
-// --- PRODUCT DETAILS & PURCHASE ---
+// --- Show Tab ---
+function showTab(tabId) {
+  const sections = document.querySelectorAll('main > section');
+  sections.forEach(section => section.classList.add('hidden'));
+  const target = document.getElementById(tabId);
+  if (target) {
+    target.classList.remove('hidden');
+    target.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    console.warn(`Tab with id "${tabId}" not found.`);
+  }
+}
+
+// --- Enable Submit Button Placeholder ---
+function enableSubmitButton() {
+  const form = document.getElementById('productUploadForm');
+  const button = document.getElementById('submitProductBtn');
+  if (form && button) {
+    button.disabled = false;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      alert("Product submission logic not yet implemented.");
+    });
+  } else {
+    console.warn("Submit button or form not found.");
+  }
+}
+
+// --- Product Details & Purchase ---
 async function showProductDetails(productId) {
   showTab('productDetails');
   productDetailsError.classList.add('hidden');
@@ -103,7 +135,6 @@ async function showProductDetails(productId) {
           onApprove: async function(data, actions) {
             try {
               const orderID = data.orderID;
-
               const res = await fetch('https://paypal-verification-api.vercel.app/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
