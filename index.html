@@ -47,7 +47,7 @@
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-  " />
+  "/>
 
   <!-- Fonts & Libraries -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -57,10 +57,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
 
+  <!-- EmailJS Init -->
   <script>
-    emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    (function () {
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
   </script>
 
+  <!-- Global Styles -->
   <style>
     body { font-family: 'Inter', sans-serif; }
     .hidden { display: none !important; }
