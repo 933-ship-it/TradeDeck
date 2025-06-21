@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
 
-  <!-- CSP -->
+  <!-- Content Security Policy -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
@@ -38,6 +38,7 @@
       https://www.googleapis.com
       https://identitytoolkit.googleapis.com
       https://firestore.googleapis.com
+      https://securetoken.googleapis.com
       https://verify-payment-js.vercel.app;
     frame-src 'self'
       https://www.paypal.com
@@ -46,7 +47,7 @@
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-  "/>
+  " />
 
   <!-- Fonts & Libraries -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -57,16 +58,14 @@
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
 
   <script>
-    (function () {
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
+    emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
   </script>
 
   <style>
     body { font-family: 'Inter', sans-serif; }
     .hidden { display: none !important; }
     #editProductModal { z-index: 1000; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
     .product-card { transition: all 0.2s; }
     .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
@@ -100,7 +99,7 @@
 
     <!-- Main -->
     <main class="flex-1 overflow-y-auto p-10">
-      <!-- Home Section -->
+      <!-- Home -->
       <section id="home">
         <input id="searchBar" class="w-full mb-6 px-5 py-3 border border-gray-300 rounded-xl" placeholder="Search products..." />
         <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -108,13 +107,13 @@
         </div>
       </section>
 
-      <!-- Product Details Section -->
+      <!-- Product Details -->
       <section id="productDetails" class="hidden">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
           <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">&larr; Back</button>
           <div class="flex flex-col md:flex-row gap-8">
             <div class="md:w-1/2">
-              <img id="detailProductImage" src="" class="w-full h-auto rounded-lg shadow-md object-cover max-h-96" />
+              <img id="detailProductImage" class="w-full h-auto rounded-lg shadow-md object-cover max-h-96" />
             </div>
             <div class="md:w-1/2 flex flex-col justify-between">
               <div>
@@ -131,7 +130,7 @@
         </div>
       </section>
 
-      <!-- Dashboard Section -->
+      <!-- Dashboard -->
       <section id="dashboard" class="hidden">
         <div class="max-w-6xl mx-auto mt-10">
           <div class="bg-white rounded-xl shadow p-6 mb-10">
@@ -159,4 +158,3 @@
   <script type="module" src="https://933-ship-it.github.io/TradeDeck.com/js/production-app.js"></script>
 </body>
 </html>
-
