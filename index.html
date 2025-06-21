@@ -46,46 +46,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
 
-  <!-- Favicon/logo for browser tab -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
-  <!-- UI Frameworks and SDKs -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <!-- EmailJS Init -->
   <script>
     (function() {
       emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
     })();
   </script>
 
-  <!-- Styles -->
   <style>
     body { font-family: 'Inter', sans-serif; }
-    main section { transition: opacity 0.3s; }
-    main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
-    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-    .product-card { transition: all 0.2s; }
-    .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
-    .error-summary { background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
-    .interactive-card { cursor: pointer; }
-    .interactive-card:hover { border-color: #60a5fa; }
-    .success { color: #16a34a; }
-    .error { color: #dc2626; }
-    .loading { color: #fbbf24; }
-    #editProductModal { z-index: 1000; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
+    .hidden { display: none; }
   </style>
 </head>
 
-<body class="bg-gray-100">
-  <!-- ✅ Your full HTML content goes here (sidebar, main, modals, etc.) -->
+<body class="bg-gray-100 text-gray-800">
+  <!-- 🧾 Balance display -->
+  <header class="p-4 bg-white shadow">
+    <h1 class="text-xl font-semibold">TradeDeck Dashboard</h1>
+    <div class="mt-2">Your Balance: <span id="sellerBalance" class="font-bold text-green-600">$0.00</span></div>
+  </header>
 
-  <!-- ✅ Firebase App Logic (executed only after full DOM is ready) -->
+  <!-- 🛍️ Product Detail Overlay -->
+  <section id="productDetails" class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center hidden z-50">
+    <div class="bg-white rounded-lg w-full max-w-lg p-6 space-y-4 shadow-xl">
+      <img id="detailProductImage" src="" alt="Preview" class="w-full h-64 object-cover rounded" />
+      <h2 id="detailProductTitle" class="text-xl font-bold"></h2>
+      <p id="detailProductDescription" class="text-gray-700"></p>
+      <p id="detailProductPrice" class="text-lg font-semibold"></p>
+      <div id="paypal-button-container" class="mt-4"></div>
+      <button id="detailActionButton" class="w-full mt-2 py-2 rounded bg-blue-500 text-white hidden"></button>
+    </div>
+  </section>
+
+  <!-- Firebase logic (must be last to ensure DOM is loaded) -->
   <script type="module">
     import "https://933-ship-it.github.io/TradeDeck.com/verify-functions.js";
     import "https://933-ship-it.github.io/TradeDeck.com/production-app.js";
