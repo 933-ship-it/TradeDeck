@@ -31,19 +31,13 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // --- DOM Elements ---
-// [All your DOM queries remain unchanged]
-
-// --- Auth and Profile ---
- // [All unchanged auth logic]
-
-// --- EmailJS sale notification ---
- // [Unchanged]
-
-// --- Tab Navigation ---
- // [Unchanged]
-
-// --- Sell Form Autosave/Restore, Cloudinary widget, utilities, form validation, listing logic, etc. ---
- // [Everything unchanged up to showProductDetails]
+const detailActionButton = document.getElementById('detailActionButton');
+const paypalButtonContainer = document.getElementById('paypal-button-container');
+const productDetailsError = document.getElementById('productDetailsError');
+const detailProductImage = document.getElementById('detailProductImage');
+const detailProductTitle = document.getElementById('detailProductTitle');
+const detailProductDescription = document.getElementById('detailProductDescription');
+const detailProductPrice = document.getElementById('detailProductPrice');
 
 // --- PRODUCT DETAILS & PURCHASE ---
 async function showProductDetails(productId) {
@@ -122,7 +116,7 @@ async function showProductDetails(productId) {
         paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
       }
     } else {
-      // Free product flow unchanged
+      // Free product flow
       detailActionButton.style.display = '';
       paypalButtonContainer.innerHTML = '';
       detailActionButton.textContent = 'Download';
@@ -136,9 +130,6 @@ async function showProductDetails(productId) {
     productDetailsError.classList.remove('hidden');
   }
 }
-
-// --- DASHBOARD, balance, other functions (unchanged) ---
- // [All remaining functions unchanged]
 
 // --- Initial Load ---
 loadProducts();
