@@ -50,20 +50,30 @@ const tabContents = document.querySelectorAll(".tab-content");
 
 // --- Auth State Listener ---
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "https://trade-deck-landing-page.vercel.app/";
-    return;
-  }
+  if (user) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        console.error("User data not found");
+        return;
+      }
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (!userDoc.exists()) {
-    console.error("User data not found");
-    return;
-  }
+      const userData = userDoc.data();
+      userNameEl.textContent = userData.name || user.email;
+      userBalanceEl.textContent = `${userData.balance || 0} USD`;
 
-  const userData = userDoc.data();
-  userNameEl.textContent = userData.name || user.email;
-  userBalanceEl.textContent = `${userData.balance || 0} USD`;
+    } catch (err) {
+      console.error("Failed to load user data:", err);
+    }
+  } else {
+    // Delay redirect to avoid false positive during auth hydration
+    setTimeout(() => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        window.location.href = "https://trade-deck-landing-page.vercel.app/";
+      }
+    }, 1500); // wait 1.5s before checking again
+  }
 });
 
 // --- Tabs ---
