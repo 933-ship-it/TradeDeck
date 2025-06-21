@@ -4,7 +4,13 @@ import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, dele
 import { sendEmailNotification } from "./helpers.js"; // if using separate helper
 
 const firebaseConfig = {
-  // your Firebase config here
+  apiKey: "AIzaSyDxxxxx",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456",
+  measurementId: "G-XXXXXX"
 };
 
 const app = initializeApp(firebaseConfig);
