@@ -1,18 +1,14 @@
-// --- Firebase Modular SDK Imports ---
+// production-app.js
+
 import {
   auth, db,
   onAuthStateChanged, signOut, deleteUser,
   collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp,
-  formatPrice, sendEmailNotification, openCloudinaryWidget
+  formatPrice, showToast, sendEmailNotification, openCloudinaryWidget
 } from './helpers.js';
 
-// --- Toast (local helper) ---
-function showToast(message, type = 'success') {
-  alert(`[${type.toUpperCase()}] ${message}`); // Replace this with a proper toast system if needed
-}
-
-// --- DOM Elements ---
+// DOM elements
 const profilePic = document.getElementById('userProfilePic');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const userEmailDisplay = document.getElementById('userEmail');
@@ -57,9 +53,13 @@ const productFileUrlInput = document.getElementById('productFileUrlInput');
 const formErrorSummary = document.getElementById('formErrorSummary');
 const submitProductBtn = document.getElementById('submitProductBtn');
 
+const editProductModal = document.getElementById('editProductModal');
+const editProductForm = document.getElementById('editProductForm');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+
 let userGlobal = null;
 
-// --- Authentication Handler ---
+// --- Auth & Profile UI ---
 onAuthStateChanged(auth, user => {
   if (!user) {
     authOverlay.classList.remove('hidden');
@@ -73,13 +73,13 @@ onAuthStateChanged(auth, user => {
   profilePic.classList.remove('hidden');
   userEmailDisplay.textContent = user.email;
 
+  showTab('home');
   loadProducts();
-  showDashboard();
 });
 
 profilePic?.addEventListener('click', () => dropdownMenu.classList.toggle('hidden'));
 document.addEventListener('click', e => {
-  if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target))
+  if (!profilePic?.contains(e.target) && !dropdownMenu?.contains(e.target))
     dropdownMenu.classList.add('hidden');
 });
 
@@ -95,7 +95,7 @@ document.getElementById('deleteAccountBtn')?.addEventListener('click', async () 
   }
 });
 
-// --- Tabs Navigation ---
+// --- Navigation Tabs ---
 function showTab(tabId) {
   tabs.forEach(t => t.classList.toggle('bg-blue-100', t.dataset.tab === tabId));
   sections.forEach(sec => sec.id === tabId ? sec.classList.remove('hidden') : sec.classList.add('hidden'));
@@ -104,10 +104,12 @@ tabs.forEach(tab => tab.addEventListener('click', e => {
   e.preventDefault();
   showTab(tab.dataset.tab);
   if (tab.dataset.tab === 'home') loadProducts(searchBar.value.trim());
+  if (tab.dataset.tab === 'dashboard') showDashboard();
 }));
+
 backToHomeBtn?.addEventListener('click', () => showTab('home'));
 
-// --- Load Products ---
+// --- Product Listing & Search ---
 async function loadProducts(filter = '') {
   productListContainer.innerHTML = '';
   noProductsMessage.classList.remove('hidden');
@@ -115,6 +117,7 @@ async function loadProducts(filter = '') {
   try {
     const snap = await getDocs(query(collection(db, 'products'), orderBy('createdAt', 'desc')));
     const products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
     const filtered = filter
       ? products.filter(p => p.title.toLowerCase().includes(filter.toLowerCase()))
       : products;
@@ -125,6 +128,7 @@ async function loadProducts(filter = '') {
     }
 
     noProductsMessage.classList.add('hidden');
+
     filtered.forEach(p => {
       const card = document.createElement('div');
       card.className = 'bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer product-card';
@@ -136,13 +140,13 @@ async function loadProducts(filter = '') {
       card.onclick = () => showProductDetails(p.id);
       productListContainer.appendChild(card);
     });
-  } catch (err) {
+  } catch {
     noProductsMessage.textContent = 'Error loading products';
   }
 }
 searchBar?.addEventListener('input', () => loadProducts(searchBar.value.trim()));
 
-// --- Show Product Details ---
+// --- Product Details ---
 async function showProductDetails(productId) {
   showTab('productDetails');
   try {
@@ -165,9 +169,9 @@ async function showProductDetails(productId) {
         }),
         onApprove: async (data, actions) => {
           const order = await actions.order.capture();
+
           const res = await fetch('https://verify-payment-js.vercel.app/api/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderID: data.orderID })
           });
           const { verified } = await res.json();
@@ -180,6 +184,9 @@ async function showProductDetails(productId) {
             price: p.price,
             time: serverTimestamp()
           });
+
+          const sellerRef = doc(db, 'balances', p.sellerId);
+          await setDoc(sellerRef, { balance: serverTimestamp() }, { merge: true });
 
           await sendEmailNotification({
             product_title: p.title,
@@ -207,20 +214,22 @@ async function showProductDetails(productId) {
   }
 }
 
-// --- Sell Product Workflow ---
-startSellingBtn?.addEventListener('click', () => {
-  showTab('sell');
-  sellLandingContent?.classList.add('hidden');
-  productForm?.classList.remove('hidden');
-});
+// --- Sell Tab ---
+if (startSellingBtn) {
+  startSellingBtn.onclick = () => {
+    showTab('sell');
+    sellLandingContent?.classList.add('hidden');
+    productForm?.classList.remove('hidden');
+  };
+}
 
-openPreviewImageWidgetBtn?.addEventListener('click', () => {
+openPreviewImageWidgetBtn?.addEventListener('click', () =>
   openCloudinaryWidget(url => {
     previewImageUrlInput.value = url;
     currentPreviewImage.src = url;
     previewImageContainer.classList.remove('hidden');
-  });
-});
+  })
+);
 
 productUploadForm?.addEventListener('submit', async e => {
   e.preventDefault();
@@ -270,9 +279,12 @@ async function loadMyProducts() {
       where('sellerId', '==', userGlobal.uid),
       orderBy('createdAt', 'desc')
     ));
+
     if (snap.empty) {
-      return noMyProductsMessage.classList.remove('hidden');
+      noMyProductsMessage.classList.remove('hidden');
+      return;
     }
+
     snap.forEach(d => {
       const p = d.data();
       const card = document.createElement('div');
@@ -283,7 +295,8 @@ async function loadMyProducts() {
       `;
       myProductsContainer.appendChild(card);
     });
-  } catch {
+  } catch (err) {
+    console.warn("Failed to load dashboard:", err.message);
     showToast('Failed to load dashboard', 'error');
   }
 }
@@ -298,5 +311,5 @@ async function updateSellerBalance() {
   }
 }
 
-// --- Init ---
+// Init to home tab
 showTab('home');
