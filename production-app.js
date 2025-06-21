@@ -1,730 +1,751 @@
-
-// --- Firebase Modular SDK Imports ---
+// --- Imports ---
+// Firebase SDK imports (version 9.22.2)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
-  getAuth, onAuthStateChanged, signOut, deleteUser
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
+    getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+    query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+// Local module import for secure PayPal flow (assumes this file exists)
+import { handlePayPalApproval } from './verify-functions.js';
 
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
 const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
+const VERIFY_URL = 'https://verify-payment-js.vercel.app/api/secure-gateway'; // PayPal verification endpoint
 
-// --- Firebase Config ---
+// --- Firebase Initialization ---
+// IMPORTANT: Replace placeholder values with your actual Firebase project configuration.
 const firebaseConfig = {
   apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
   authDomain: "tradedeck-82bbb.firebaseapp.com",
   projectId: "tradedeck-82bbb",
-  storageBucket: "tradedeck-82bbb.appspot.com",
+  storageBucket: "tradedeck-82bbb.firebasestorage.app",
   messagingSenderId: "755235931546",
   appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
   measurementId: "G-4RXR7V9NCW"
 };
 
-// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// --- DOM Elements ---
-const profilePic = document.getElementById('userProfilePic');
-const dropdownMenu = document.getElementById('dropdownMenu');
-const userEmail = document.getElementById('userEmail');
+// --- DOM References ---
+// General UI elements
 const authOverlay = document.getElementById('authOverlay');
-let userGlobal = null;
+const userProfilePic = document.getElementById('userProfilePic');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+const profileDropdown = document.getElementById('profileDropdown');
+const signOutButton = document.getElementById('signOutButton');
+const deleteAccountButton = document.getElementById('deleteAccountButton');
 
-// Navigation
-const tabs = document.querySelectorAll('aside nav a[data-tab]');
-const sections = document.querySelectorAll('main section');
-const startSellingBtn = document.getElementById('startSellingBtn');
-const sellLandingContent = document.getElementById('sellLandingContent');
-const productForm = document.getElementById('productForm');
-const formErrorSummary = document.getElementById('formErrorSummary');
-
-// Sell form fields
-const titleInput = document.getElementById('title');
-const descriptionInput = document.getElementById('description');
-const priceInput = document.getElementById('price');
-const paypalEmailContainer = document.getElementById('paypalEmailContainer');
-const paypalEmailInput = document.getElementById('paypalEmail');
-const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
-const productFileUrlInput = document.getElementById('productFileUrlInput');
-const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget');
-const previewImageUrlInput = document.getElementById('previewImageUrl');
-const previewImageStatus = document.getElementById('previewImageStatus');
-const previewImageContainer = document.getElementById('previewImageContainer');
-const currentPreviewImage = document.getElementById('currentPreviewImage');
+// Sell form elements
 const productUploadForm = document.getElementById('productUploadForm');
-const submitProductBtn = document.getElementById('submitProductBtn');
+const openPreviewImageWidgetButton = document.getElementById('openPreviewImageWidget');
+const productPreviewImage = document.getElementById('productPreviewImage');
+const productNameInput = document.getElementById('productName');
+const productDescriptionTextarea = document.getElementById('productDescription');
+const productPriceInput = document.getElementById('productPrice');
+const productFileUrlInput = document.getElementById('productFileUrl');
+const sellFormSubmitButton = document.getElementById('sellFormSubmit');
 
-// Home/Product listing
-const searchBar = document.getElementById('searchBar');
-const productListContainer = document.getElementById('productList');
-const noProductsMessage = document.getElementById('noProductsMessage');
-
-// Dashboard
-const myProductsContainer = document.getElementById('myProducts');
-const noMyProductsMessage = document.getElementById('noMyProductsMessage');
-const sellerBalance = document.getElementById('sellerBalance');
-
-// Product details
-const productDetailsSection = document.getElementById('productDetails');
-const backToHomeBtn = document.getElementById('backToHomeBtn');
-const detailProductImage = document.getElementById('detailProductImage');
-const detailProductTitle = document.getElementById('detailProductTitle');
-const detailProductDescription = document.getElementById('detailProductDescription');
-const detailProductPrice = document.getElementById('detailProductPrice');
-const detailActionButton = document.getElementById('detailActionButton');
-const productDetailsError = document.getElementById('productDetailsError');
+// Product listing and details elements
+const productsGrid = document.getElementById('productsGrid'); // Element where product cards are rendered
+const productDetailsOverlay = document.getElementById('productDetailsOverlay');
+const productDetailImage = document.getElementById('productDetailImage');
+const productDetailName = document.getElementById('productDetailName');
+const productDetailDescription = document.getElementById('productDetailDescription');
+const productDetailPrice = document.getElementById('productDetailPrice');
+const productDetailSeller = document.getElementById('productDetailSeller');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
+const closeProductDetailsButton = document.getElementById('closeProductDetails');
 
-// Edit modal
-const editProductModal = document.getElementById('editProductModal');
-const editProductForm = document.getElementById('editProductForm');
-const editProductIdInput = document.getElementById('editProductId');
-const editTitleInput = document.getElementById('editTitle');
-const editDescriptionInput = document.getElementById('editDescription');
-const editPriceInput = document.getElementById('editPrice');
-const editFileUrlInput = document.getElementById('editFileUrl');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
+// Dashboard elements
+const myProductsList = document.getElementById('myProductsList');
+const sellerBalanceDisplay = document.getElementById('sellerBalance');
 
-// --- Auth and Profile ---
+// Sidebar / Tabs
+const tabs = document.querySelectorAll('aside nav a[data-tab]');
+const tabContents = document.querySelectorAll('.tab-content'); // Assuming you have elements with this class
+
+// --- Global Variables (for Cloudinary widget and preview state) ---
+let isPreviewUploading = false; // Flag to indicate if a preview image is currently uploading
+let currentProductFileUrl = ''; // Stores the URL of the product file after upload
+
+// --- Authentication Flow ---
+// Initially hide the body to prevent flickering until auth state is known
 document.body.style.visibility = "hidden";
+
+/**
+ * Listens for Firebase authentication state changes.
+ * Shows/hides the auth overlay based on user login status.
+ * Populates profile UI if user is logged in.
+ */
 onAuthStateChanged(auth, user => {
-  document.body.style.visibility = "";
-  if (!user) {
-    authOverlay.style.display = "flex";
-    userGlobal = null;
-  } else {
-    authOverlay.style.display = "none";
-    userGlobal = user;
-    showProfileUI(user);
-  }
+    document.body.style.visibility = ""; // Show body once auth state is determined
+    if (!user) {
+        // User is signed out, show authentication overlay
+        authOverlay.style.display = "flex";
+        // Clear profile UI elements if user logs out
+        userProfilePic.src = 'https://placehold.co/40x40/cccccc/000000?text=User';
+        userEmailDisplay.textContent = 'Guest';
+        profileDropdown.style.display = 'none'; // Hide dropdown for guests
+    } else {
+        // User is signed in, hide authentication overlay and show profile UI
+        authOverlay.style.display = "none";
+        showProfileUI(user);
+        // Start watching seller balance and load user products for logged-in user
+        watchSellerBalance(user.uid);
+        loadMyProducts(user.uid);
+    }
 });
 
-// --- EmailJS sale notification ---
-function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
-  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
-    buyer_name: buyerName,
-    buyer_email: buyerEmail,
-    seller_paypal_email: sellerPaypalEmail,
-    product_title: productTitle,
-    amount: amount
-  }).then(function(response) {
-    console.log('Sale email sent!', response.status, response.text);
-  }, function(error) {
-    console.error('FAILED to send sale email.', error);
-  });
-}
-
+/**
+ * Updates the user interface with profile information (avatar, email).
+ * Sets up event listeners for sign-out and account deletion.
+ * @param {object} user - The Firebase User object.
+ */
 function showProfileUI(user) {
-  if (!user) return;
-  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
-  profilePic.classList.remove("hidden");
-  userEmail.textContent = user.email || "(no email)";
-  profilePic.onclick = function(e) {
-    e.stopPropagation();
-    dropdownMenu.classList.toggle('hidden');
-  };
-  document.addEventListener('click', (e) => {
-    if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
-      dropdownMenu.classList.add('hidden');
-    }
-  });
-  document.getElementById('deleteAccountBtn').onclick = async () => {
-    if (confirm("Delete your account? This cannot be undone.")) {
-      try {
-        await deleteUser(user);
-        alert("Account deleted.");
-        window.location.href = LANDING_URL;
-      } catch (err) {
-        if (err.code === 'auth/requires-recent-login') {
-          alert("Please sign out and sign in again, then try deleting your account.");
-        } else {
-          alert("Failed to delete account: " + err.message);
+    userProfilePic.src = user.photoURL || 'https://placehold.co/40x40/cccccc/000000?text=User'; // Use photoURL or a placeholder
+    userProfilePic.style.display = 'block';
+    userEmailDisplay.textContent = user.email || 'No Email';
+    profileDropdown.style.display = 'block'; // Show dropdown for logged-in users
+
+    // Toggle profile dropdown visibility
+    userProfilePic.onclick = () => {
+        profileDropdown.classList.toggle('hidden');
+    };
+
+    // Sign out button click handler
+    signOutButton.onclick = async () => {
+        try {
+            await signOut(auth);
+            console.log("User signed out successfully.");
+            profileDropdown.classList.add('hidden'); // Hide dropdown after sign out
+            // The onAuthStateChanged listener will handle redirecting to auth overlay
+        } catch (error) {
+            console.error("Error signing out:", error);
+            alert("Failed to sign out. Please try again.");
         }
-      }
-    }
-  };
-  document.getElementById('signOutBtn').onclick = () => {
-    signOut(auth);
-  };
+    };
+
+    // Delete account button click handler
+    deleteAccountButton.onclick = async () => {
+        if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+            try {
+                await deleteUser(user);
+                console.log("User account deleted successfully.");
+                profileDropdown.classList.add('hidden'); // Hide dropdown after deletion
+                // The onAuthStateChanged listener will handle redirecting to auth overlay
+            } catch (error) {
+                console.error("Error deleting account:", error);
+                alert("Failed to delete account. Please re-authenticate and try again.");
+            }
+        }
+    };
 }
 
-// --- Tab Navigation ---
-function showTab(targetTabId) {
-  tabs.forEach(t => {
-    t.classList.remove('bg-blue-100');
-    t.removeAttribute('aria-current');
-  });
-  const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
-  if (currentTab) {
-    currentTab.classList.add('bg-blue-100');
-    currentTab.setAttribute('aria-current', 'page');
-  }
-  sections.forEach(sec => {
-    if (sec.id === targetTabId) sec.classList.remove('hidden');
-    else sec.classList.add('hidden');
-  });
+// --- Sidebar / Tabs Navigation ---
+/**
+ * Handles tab switching, showing the selected tab content and hiding others.
+ * @param {string} tabId - The ID of the tab to show.
+ */
+function showTab(tabId) {
+    // Remove 'active' class from all tabs and hide all content
+    tabs.forEach(tab => tab.classList.remove('active'));
+    tabContents.forEach(content => content.classList.add('hidden'));
+
+    // Add 'active' class to the clicked tab and show its content
+    const selectedTab = document.querySelector(`aside nav a[data-tab="${tabId}"]`);
+    const selectedContent = document.getElementById(tabId);
+
+    if (selectedTab) selectedTab.classList.add('active');
+    if (selectedContent) selectedContent.classList.remove('hidden');
+
+    // Special case for 'sell' tab to ensure form state is restored
+    if (tabId === 'sell') {
+        restoreSellForm();
+    }
 }
+
+// Add click listeners to all tab buttons
 tabs.forEach(tab => {
-  tab.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const target = tab.getAttribute('data-tab');
-    showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
-      await loadProducts(searchBar.value.trim());
-      searchBar.value = '';
-    } else if (target === 'dashboard') {
-      await showDashboard();
-    }
-  });
-});
-backToHomeBtn.addEventListener('click', () => {
-  showTab('home');
-  loadProducts(searchBar.value.trim());
-});
-startSellingBtn.addEventListener('click', () => {
-  toggleProductForm(true);
+    tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabId = e.currentTarget.dataset.tab;
+        showTab(tabId);
+    });
 });
 
-function toggleProductForm(showForm) {
-  if (showForm) {
-    sellLandingContent.classList.add('hidden');
-    productForm.classList.remove('hidden');
-    showTab('sell');
-    productUploadForm.reset();
-    restoreSellForm();
-    enableSubmitButton();
-  } else {
-    sellLandingContent.classList.remove('hidden');
-    productForm.classList.add('hidden');
-  }
-}
 
-// --- SELL FORM AUTOSAVE/RESTORE ---
+// --- Sell Form Logic ---
+
+/**
+ * Saves the current state of the sell form to localStorage.
+ * This includes product name, description, price, preview image URL, and file URL.
+ */
 function saveSellForm() {
-  const state = {
-    title: titleInput.value,
-    description: descriptionInput.value,
-    price: priceInput.value,
-    paypalEmail: paypalEmailInput.value,
-    previewImageUrl: previewImageUrlInput.value,
-    productFileUrl: productFileUrlInput.value
-  };
-  localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
+    const formState = {
+        name: productNameInput.value,
+        description: productDescriptionTextarea.value,
+        price: productPriceInput.value,
+        previewImage: productPreviewImage.src.includes('placehold.co') ? '' : productPreviewImage.src, // Only save if not placeholder
+        fileUrl: productFileUrlInput.value
+    };
+    localStorage.setItem(SELL_FORM_KEY, JSON.stringify(formState));
 }
-function restoreSellForm() {
-  const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
-  titleInput.value = state.title || "";
-  descriptionInput.value = state.description || "";
-  priceInput.value = state.price || "";
-  paypalEmailInput.value = state.paypalEmail || "";
-  previewImageUrlInput.value = state.previewImageUrl || "";
-  productFileUrlInput.value = state.productFileUrl || "";
-  if (state.previewImageUrl) {
-    currentPreviewImage.src = state.previewImageUrl;
-    previewImageContainer.classList.remove('hidden');
-  } else {
-    previewImageContainer.classList.add('hidden');
-    currentPreviewImage.src = "";
-  }
-  // Show/hide PayPal field based on price
-  const priceVal = parseFloat(state.price);
-  if (!isNaN(priceVal) && priceVal > 0) {
-    paypalEmailContainer.classList.remove('hidden');
-    paypalEmailInput.setAttribute('required', 'required');
-  } else {
-    paypalEmailContainer.classList.add('hidden');
-    paypalEmailInput.removeAttribute('required');
-  }
-}
-[
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
-  previewImageUrlInput, productFileUrlInput
-].forEach(input => {
-  input.addEventListener('input', saveSellForm);
-});
-document.addEventListener("DOMContentLoaded", restoreSellForm);
 
-// --- Cloudinary Widget ---
-let isPreviewImageUploading = false;
-const previewImageWidget = window.cloudinary.createUploadWidget(
-  {
+/**
+ * Restores the sell form state from localStorage on page load.
+ * Populates form fields and the preview image if data exists.
+ */
+function restoreSellForm() {
+    const savedState = localStorage.getItem(SELL_FORM_KEY);
+    if (savedState) {
+        const formState = JSON.parse(savedState);
+        productNameInput.value = formState.name || '';
+        productDescriptionTextarea.value = formState.description || '';
+        productPriceInput.value = formState.price || '';
+        productFileUrlInput.value = formState.fileUrl || '';
+
+        if (formState.previewImage) {
+            productPreviewImage.src = formState.previewImage;
+            productPreviewImage.classList.remove('hidden');
+        } else {
+            productPreviewImage.src = 'https://placehold.co/150x150/e0e0e0/000000?text=No+Image'; // Placeholder
+            productPreviewImage.classList.add('hidden');
+        }
+        currentProductFileUrl = formState.fileUrl || ''; // Restore file URL
+    }
+}
+
+// Attach autosave to form input changes (e.g., on keyup, change events)
+productUploadForm.addEventListener('input', saveSellForm);
+
+// --- Cloudinary File Upload Widget ---
+// IMPORTANT: window.cloudinary must be loaded via a script tag in your HTML for this to work.
+// Example: <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+const widget = window.cloudinary.createUploadWidget({
     cloudName: CLOUDINARY_CLOUD_NAME,
     uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-    sources: ['local'],
-    resourceType: 'image',
-    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
-    maxFileSize: 10 * 1024 * 1024,
-    multiple: false,
-    folder: 'tradedeck_product_previews',
-  },
-  (error, result) => {
+    folder: 'TradeDeck_Product_Images', // Optional: specify a folder in Cloudinary
+    sources: ['local', 'url', 'camera'], // Allow various upload sources
+    cropping: true, // Enable image cropping
+    multiple: false, // Allow only one image upload at a time for product preview
+    resourceType: 'image' // Ensure it's treated as an image
+}, (error, result) => {
     if (!error && result && result.event === "success") {
-      previewImageUrlInput.value = result.info.secure_url;
-      setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-      openPreviewImageWidgetBtn.classList.remove('input-invalid');
-      currentPreviewImage.src = result.info.secure_url;
-      previewImageContainer.classList.remove('hidden');
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-      saveSellForm();
+        console.log('Done uploading image!', result.info);
+        // Update the preview image with the Cloudinary URL
+        productPreviewImage.src = result.info.secure_url;
+        productPreviewImage.classList.remove('hidden'); // Show the image
+        isPreviewUploading = false;
+        saveSellForm(); // Save form state after successful upload
+    } else if (result && result.event === "upload-added") {
+        isPreviewUploading = true;
+        // Optionally show a loading indicator
     } else if (error) {
-      setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
-      previewImageUrlInput.value = '';
-      openPreviewImageWidgetBtn.classList.add('input-invalid');
-      previewImageContainer.classList.add('hidden');
-      currentPreviewImage.src = '';
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-    } else if (result && (result.event === "close" || result.event === "abort")) {
-      if (previewImageUrlInput.value === '') {
-        setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
-        openPreviewImageWidgetBtn.classList.add('input-invalid');
-      }
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-    } else if (result && result.event === "asset_selected") {
-      setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
-      isPreviewImageUploading = true;
-      disableSubmitButton();
+        console.error("Cloudinary upload error:", error);
+        alert("Image upload failed. Please try again.");
+        isPreviewUploading = false;
     }
-  }
-);
-openPreviewImageWidgetBtn.addEventListener('click', () => {
-  previewImageWidget.open();
 });
 
-// --- UTILITIES ---
-function setFileInputStatus(statusElement, message, type = 'default') {
-  statusElement.textContent = message;
-  statusElement.classList.remove('success', 'error', 'loading');
-  if (type === 'success') statusElement.classList.add('success');
-  else if (type === 'error') statusElement.classList.add('error');
-  else if (type === 'loading') statusElement.classList.add('loading');
-}
-function convertToGoogleDriveDirectDownload(url) {
-  if (!url) return url;
-  let convertedUrl = url;
-  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
-  const match = url.match(driveViewPattern);
-  if (match && match[1]) {
-    const fileId = match[1];
-    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-  } else if (url.includes('drive.google.com/open?id=')) {
-    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (idMatch && idMatch[1]) {
-      const fileId = idMatch[1];
-      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    }
-  }
-  return convertedUrl;
-}
-
-// --- SELL FORM VALIDATION ---
-function validateSellForm() {
-  let errors = [];
-  if (!titleInput.value.trim()) errors.push("Product title is required.");
-  if (!descriptionInput.value.trim()) errors.push("Product description is required.");
-  if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
-  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
-  if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
-  if (!paypalEmailContainer.classList.contains('hidden')) {
-    const v = paypalEmailInput.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
-  }
-  if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
-  return errors;
-}
-
-function showFormErrors(errors) {
-  if (!errors.length) {
-    formErrorSummary.classList.add('hidden');
-    formErrorSummary.innerHTML = "";
-    return;
-  }
-  formErrorSummary.classList.remove('hidden');
-  formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
-}
-
-function enableSubmitButton() {
-  const errors = validateSellForm();
-  showFormErrors(errors);
-  if (errors.length) {
-    submitProductBtn.disabled = true;
-    submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
-  } else {
-    submitProductBtn.disabled = false;
-    submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-  }
-}
-function disableSubmitButton() {
-  submitProductBtn.disabled = true;
-  submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
-}
-[
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
-  previewImageUrlInput, productFileUrlInput
-].forEach(input => {
-  input.addEventListener('input', enableSubmitButton);
-});
-priceInput.addEventListener('input', () => {
-  const price = parseFloat(priceInput.value);
-  if (isNaN(price) || price === 0) {
-    paypalEmailContainer.classList.add('hidden');
-    paypalEmailInput.removeAttribute('required');
-    paypalEmailInput.value = '';
-  } else {
-    paypalEmailContainer.classList.remove('hidden');
-    paypalEmailInput.setAttribute('required', 'required');
-  }
-  enableSubmitButton();
-  saveSellForm();
-});
-
-// --- SELL FORM SUBMIT ---
-productUploadForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  disableSubmitButton();
-  submitProductBtn.textContent = 'Listing...';
-  const errors = validateSellForm();
-  showFormErrors(errors);
-  if (errors.length) {
-    submitProductBtn.textContent = 'List Product';
-    enableSubmitButton();
-    return;
-  }
-  try {
-    if (!auth.currentUser) {
-      alert("You must be signed in to list a product.");
-      window.location.reload();
-      return;
-    }
-    const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
-    const newProduct = {
-      title: titleInput.value.trim(),
-      description: descriptionInput.value.trim(),
-      price: parseFloat(priceInput.value),
-      fileUrl: finalProductFileUrl,
-      previewImageUrl: previewImageUrlInput.value,
-      createdAt: serverTimestamp(),
-      sellerId: auth.currentUser.uid,
-      paypalEmail: paypalEmailInput.value.trim(),
-    };
-    await addDoc(collection(db, "products"), newProduct);
-    alert('Product listed successfully!');
-    localStorage.removeItem(SELL_FORM_KEY);
-    toggleProductForm(false);
-    await loadProducts('');
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
-  } catch (error) {
-    showFormErrors(["Failed to list product. Please try again."]);
-    console.error("Error adding document to Firestore:", error);
-    alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
-  } finally {
-    enableSubmitButton();
-    submitProductBtn.textContent = 'List Product';
-  }
-});
-
-// --- PRODUCT LISTING & SEARCH ---
-async function loadProducts(filterQuery = '') {
-  productListContainer.innerHTML = '';
-  noProductsMessage.textContent = 'Loading products...';
-  noProductsMessage.classList.remove('hidden');
-  try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
-    const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    window.allProducts = fetchedProducts;
-    const lowerCaseQuery = filterQuery.toLowerCase();
-    const filteredProducts = fetchedProducts.filter(product =>
-      (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
-      (product.description || '').toLowerCase().includes(lowerCaseQuery)
-    );
-    renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
-  } catch (error) {
-    console.error("Error loading products:", error);
-    noProductsMessage.textContent = 'Error loading products. Please try again.';
-    noProductsMessage.classList.remove('hidden');
-  }
-}
-searchBar.addEventListener('input', () => {
-  if (!document.getElementById('home').classList.contains('hidden')) {
-    const query = searchBar.value.trim().toLowerCase();
-    if (!window.allProducts) return;
-    if (!query) {
-      renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
-      return;
-    }
-    const keywords = query.split(/\s+/).filter(Boolean);
-    const filteredProducts = window.allProducts.filter(product => {
-      const haystack = [
-        product.title || '',
-        product.description || ''
-      ].join(' ').toLowerCase();
-      return keywords.some(kw => haystack.includes(kw));
-    });
-    if (filteredProducts.length > 0) {
-      renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
-      noProductsMessage.classList.add('hidden');
-    } else {
-      productListContainer.innerHTML = '';
-      noProductsMessage.textContent = "No products found for your search. Try different keywords!";
-      noProductsMessage.classList.remove('hidden');
-    }
-  }
-});
-
-// --- PRODUCT CARD RENDERING ---
-function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
-  container.innerHTML = '';
-  noResultsMsgElement.classList.add('hidden');
-  if (!Array.isArray(productArray) || productArray.length === 0) {
-    noResultsMsgElement.classList.remove('hidden');
-    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
-    return;
-  }
-  productArray.forEach(product => {
-    const productCard = document.createElement('div');
-    productCard.className = `bg-white rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent'}`;
-    productCard.setAttribute('data-product-id', product.id);
-    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
-    let cardButtonsHtml = '';
-    if (isDashboardView) {
-      cardButtonsHtml = `
-        <div class="mt-auto flex justify-end items-center pt-2">
-          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Download</a>
-          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
-        </div>
-      `;
-    }
-    productCard.innerHTML = `
-      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-      <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-      <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
-      <div class="mt-auto flex justify-between items-center pt-2">
-        <span class="font-bold text-blue-600">${displayPrice}</span>
-        ${cardButtonsHtml}
-      </div>
-    `;
-    container.appendChild(productCard);
-    if (isDashboardView) {
-      const delistButton = productCard.querySelector('.delist-product-btn');
-      if (delistButton) {
-        delistButton.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const productId = delistButton.getAttribute('data-product-id');
-          if (productId) deleteProduct(productId);
-        });
-      }
-    } else {
-      productCard.addEventListener('click', () => {
-        const productId = productCard.getAttribute('data-product-id');
-        if (productId) showProductDetails(productId);
-      });
-    }
-  });
-}
-
-// --- PRODUCT DELISTING ---
-async function deleteProduct(productId) {
-  if (!confirm('Are you sure you want to permanently delist this product? This action cannot be undone.')) return;
-  try {
-    await deleteDoc(doc(db, "products", productId));
-    alert('Product delisted successfully!');
-    await loadProducts('');
-    await showDashboard();
-  } catch (error) {
-    console.error("Error removing document: ", error);
-    alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
-  }
-}
-
-// --- PRODUCT DETAILS & PURCHASE ---
-async function showProductDetails(productId) {
-  showTab('productDetails');
-  productDetailsError.classList.add('hidden');
-  try {
-    const productDoc = await getDoc(doc(db, "products", productId));
-    if (!productDoc.exists()) {
-      productDetailsError.textContent = 'Product not found.';
-      productDetailsError.classList.remove('hidden');
-      return;
-    }
-    const product = { id: productDoc.id, ...productDoc.data() };
-    detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
-    detailProductTitle.textContent = product.title;
-    detailProductDescription.textContent = product.description;
-    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
-    detailProductPrice.textContent = displayPrice;
-    detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
-    detailActionButton.disabled = false;
-
-    if (parseFloat(product.price) > 0) {
-      detailActionButton.style.display = 'none';
-      paypalButtonContainer.innerHTML = '';
-      if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
-        window.paypal.Buttons({
-          createOrder: function(data, actions) {
-            return actions.order.create({
-              purchase_units: [{
-                amount: { value: product.price.toString() },
-                description: product.title
-              }]
-            });
-          },
-          onApprove: async function(data, actions) {
-            return actions.order.capture().then(async function(details) {
-              alert('Payment completed by ' + details.payer.name.given_name + '!');
-              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
-              await handleProductPurchase(product);
-              // --- Send EmailJS sale notification ---
-              sendSaleEmail({
-                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
-                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
-                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
-                productTitle: product.title || 'Unknown',
-                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
-              });
-            });
-          },
-          onError: function(err) {
-            alert('Payment could not be completed. Please try again.');
-            console.error(err);
-          }
-        }).render('#paypal-button-container');
-      } else {
-        paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
-      }
-    } else {
-      detailActionButton.style.display = '';
-      paypalButtonContainer.innerHTML = '';
-      detailActionButton.textContent = 'Download';
-      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
-      detailActionButton.onclick = () => {
-        window.open(product.fileUrl, '_blank');
-      };
-      detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
-    }
-  } catch (error) {
-    console.error("Error loading product details:", error);
-    productDetailsError.textContent = 'Error loading product details. Please try again.';
-    productDetailsError.classList.remove('hidden');
-  }
-}
-
-// --- DASHBOARD LOGIC ---
-async function updateSellerBalance(userId) {
-  try {
-    const balDoc = await getDoc(doc(db, "balances", userId));
-    let value = 0;
-    if (balDoc.exists() && typeof balDoc.data().balance === 'number') {
-      value = balDoc.data().balance;
-    }
-    sellerBalance.textContent = `$${value.toFixed(2)}`;
-  } catch (e) {
-    sellerBalance.textContent = "$0.00";
-  }
-}
-let balanceUnsub = null;
-function watchSellerBalance(userId) {
-  if (balanceUnsub) balanceUnsub();
-  balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
-    let value = 0;
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
-    sellerBalance.textContent = `$${value.toFixed(2)}`;
-  });
-}
-async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = '';
-  noMyProductsMessage.classList.add('hidden');
-  try {
-    const q = query(
-      collection(db, "products"),
-      where("sellerId", "==", userId)
-      // Add back orderBy if data/index is ready:
-      // , orderBy("createdAt", "desc")
-    );
-    const snapshot = await getDocs(q);
-    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if (products.length === 0) {
-      noMyProductsMessage.classList.remove('hidden');
-      return;
-    }
-    // Use your existing rendering function for consistency:
-    renderProducts(products, myProductsContainer, noMyProductsMessage, true);
-  } catch (e) {
-    console.error("Error loading user's products:", e);
-    myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
-  }
-}
-function openEditProductModal(product) {
-  editProductIdInput.value = product.id;
-  editTitleInput.value = product.title;
-  editDescriptionInput.value = product.description;
-  editPriceInput.value = product.price;
-  editFileUrlInput.value = product.fileUrl;
-  editProductModal.classList.remove('hidden');
-}
-function closeEditProductModal() {
-  editProductModal.classList.add('hidden');
-}
-editProductForm.onsubmit = async function (e) {
-  e.preventDefault();
-  const id = editProductIdInput.value;
-  const updated = {
-    title: editTitleInput.value.trim(),
-    description: editDescriptionInput.value.trim(),
-    price: parseFloat(editPriceInput.value),
-    fileUrl: editFileUrlInput.value.trim()
-  };
-  try {
-    await updateDoc(doc(db, "products", id), updated);
-    closeEditProductModal();
-    if (auth.currentUser) {
-      await loadMyProducts(auth.currentUser.uid);
-    }
-  } catch (err) {
-    alert("Failed to update product.");
-  }
+// Event listener to open the Cloudinary widget
+openPreviewImageWidgetButton.onclick = () => {
+    widget.open();
 };
-cancelEditBtn.onclick = closeEditProductModal;
 
-async function showDashboard() {
-  if (!auth.currentUser) return;
-  showTab('dashboard');
-  await updateSellerBalance(auth.currentUser.uid);
-  watchSellerBalance(auth.currentUser.uid);
-  await loadMyProducts(auth.currentUser.uid);
-}
-async function incrementSellerBalance(sellerId, amount) {
-  const balRef = doc(db, "balances", sellerId);
-  await runTransaction(db, async (tx) => {
-    const docSnap = await tx.get(balRef);
-    let newBalance = amount;
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
-      newBalance += docSnap.data().balance;
+/**
+ * Handles the upload of the actual product file (e.g., PDF, ZIP).
+ * This uses a simple file input and stores the URL in a hidden input.
+ * In a real application, you might use Cloudinary for files or a dedicated file storage service.
+ */
+document.getElementById('productFile').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        // For simplicity, we'll create a local URL. In a real app, you'd upload this.
+        // For this example, we're assuming the file URL will come from Cloudinary or similar.
+        // If the user uploads a local file, we'll just store its name for now and prompt for a URL.
+        console.warn("Local file upload is for demonstration. In production, upload to cloud storage.");
+        // A robust solution would upload this to Cloudinary or Firebase Storage and get a public URL.
+        // For now, let's just use a placeholder or prompt the user for a URL.
+        // To integrate properly with Cloudinary for files, you'd configure a separate widget
+        // or a direct upload API call.
+        alert("Please provide a direct public URL for the product file for now. File upload functionality needs cloud storage integration.");
+        productFileUrlInput.value = ''; // Clear existing
+        productFileUrlInput.focus(); // Focus user to input the URL
     }
-    tx.set(balRef, { balance: newBalance }, { merge: true });
-  });
-}
-async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) return;
-  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+});
+
+// --- Form Validation Helpers & Submit ---
+/**
+ * Validates the sell product form fields.
+ * @returns {string[]} An array of error messages. Empty if validation passes.
+ */
+function validateSellForm() {
+    const errors = [];
+    if (!productNameInput.value.trim()) {
+        errors.push("Product Name is required.");
+    }
+    if (!productDescriptionTextarea.value.trim()) {
+        errors.push("Product Description is required.");
+    }
+    const price = parseFloat(productPriceInput.value);
+    if (isNaN(price) || price < 0) {
+        errors.push("Price must be a valid non-negative number.");
+    }
+    if (!productPreviewImage.src || productPreviewImage.src.includes('placehold.co')) {
+        errors.push("Product Preview Image is required.");
+    }
+    if (!productFileUrlInput.value.trim()) {
+        errors.push("Product File URL is required (e.g., a link to your digital product).");
+    }
+    if (isPreviewUploading) {
+        errors.push("Please wait for the image upload to complete.");
+    }
+
+    if (errors.length > 0) {
+        alert("Please correct the following errors:\n" + errors.join('\n'));
+    }
+    return errors;
 }
 
-// --- Initial Load ---
-loadProducts();
-showTab('home');
-enableSubmitButton();
+/**
+ * Enables the submit button after initial page load or validation checks.
+ * (Placeholder function as its logic was not provided in snippets)
+ */
+function enableSubmitButton() {
+    if (sellFormSubmitButton) {
+        sellFormSubmitButton.disabled = false;
+        // You might add visual styles here for enabled state
+    }
+}
+
+/**
+ * Disables the submit button during form submission to prevent multiple submissions.
+ */
+function disableSubmitButton() {
+    if (sellFormSubmitButton) {
+        sellFormSubmitButton.disabled = true;
+        // You might add visual styles here for disabled state
+    }
+}
+
+
+/**
+ * Handles the submission of the product upload form.
+ * Validates inputs, uploads product data to Firestore, and clears the form.
+ * @param {Event} e - The submit event.
+ */
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    disableSubmitButton(); // Disable button to prevent double submission
+
+    const errors = validateSellForm();
+    if (errors.length) {
+        enableSubmitButton(); // Re-enable if validation fails
+        return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+        alert("You must be logged in to sell a product.");
+        enableSubmitButton();
+        return;
+    }
+
+    const priceValue = parseFloat(productPriceInput.value);
+
+    const productData = {
+        name: productNameInput.value.trim(),
+        description: productDescriptionTextarea.value.trim(),
+        price: priceValue,
+        previewImage: productPreviewImage.src,
+        fileUrl: productFileUrlInput.value.trim(),
+        sellerId: user.uid,
+        sellerEmail: user.email,
+        timestamp: serverTimestamp(), // Firestore timestamp for creation
+        isSold: false // Initial status
+    };
+
+    try {
+        await addDoc(collection(db, "products"), productData);
+        alert("Product uploaded successfully!");
+        console.log("Product uploaded:", productData);
+
+        // Clear the form and saved state after successful upload
+        productUploadForm.reset();
+        productPreviewImage.src = 'https://placehold.co/150x150/e0e0e0/000000?text=No+Image';
+        productPreviewImage.classList.add('hidden');
+        localStorage.removeItem(SELL_FORM_KEY);
+        currentProductFileUrl = ''; // Reset file URL
+
+        // Reload products to show the new one
+        await loadProducts();
+        showTab('home'); // Optionally switch back to home view
+
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        alert("Failed to upload product. Please try again.");
+    } finally {
+        enableSubmitButton(); // Always re-enable button
+    }
+}
+
+// Add submit event listener to the product upload form
+productUploadForm.addEventListener('submit', handleFormSubmit);
+
+
+// --- Products Listing, Details & Purchase Flow ---
+
+/**
+ * Loads products from Firestore and renders them as cards in the products grid.
+ * @param {string} [filter=''] - Optional filter string for product names.
+ */
+async function loadProducts(filter = '') {
+    productsGrid.innerHTML = '<p class="text-center col-span-full">Loading products...</p>'; // Loading indicator
+
+    try {
+        let productsQuery = collection(db, "products");
+        // Only show products that are not marked as sold
+        productsQuery = query(productsQuery, where("isSold", "==", false), orderBy("timestamp", "desc"));
+
+        // If a filter is provided, add a basic client-side filter
+        // Firestore doesn't support 'contains' for text, so we'll filter after fetching.
+        const querySnapshot = await getDocs(productsQuery);
+        const products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+
+        const filteredProducts = products.filter(product =>
+            product.name.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        productsGrid.innerHTML = ''; // Clear loading indicator
+
+        if (filteredProducts.length === 0) {
+            productsGrid.innerHTML = '<p class="text-center col-span-full text-gray-500">No products found.</p>';
+            return;
+        }
+
+        filteredProducts.forEach(product => {
+            const productCard = `
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+                     data-product-id="${product.id}">
+                    <img src="${product.previewImage || 'https://placehold.co/300x200/e0e0e0/000000?text=No+Image'}"
+                         alt="${product.name}" class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 truncate">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mt-1 mb-2 line-clamp-2">${product.description}</p>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-blue-600 font-bold text-xl">$${product.price.toFixed(2)}</span>
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            productsGrid.insertAdjacentHTML('beforeend', productCard);
+        });
+
+        // Add event listeners to newly rendered product cards
+        productsGrid.querySelectorAll('.product-card, [data-product-id]').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Ensure we click on the card, not inner buttons that might have their own handlers
+                if (!e.target.closest('button')) {
+                    const productId = card.dataset.productId;
+                    if (productId) {
+                        showProductDetails(productId);
+                    }
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("Error loading products:", error);
+        productsGrid.innerHTML = '<p class="text-center col-span-full text-red-500">Failed to load products. Please try again.</p>';
+    }
+}
+
+
+/**
+ * Displays the detailed view of a product, including purchase options.
+ * @param {string} productId - The ID of the product to show details for.
+ */
+async function showProductDetails(productId) {
+    paypalButtonContainer.innerHTML = 'Loading PayPal button...'; // Show loading message
+
+    try {
+        const docSnap = await getDoc(doc(db, "products", productId));
+
+        if (!docSnap.exists()) {
+            alert("Product not found.");
+            productDetailsOverlay.classList.add('hidden');
+            return;
+        }
+
+        const product = { id: docSnap.id, ...docSnap.data() };
+
+        // Populate product details UI
+        productDetailImage.src = product.previewImage || 'https://placehold.co/400x300/e0e0e0/000000?text=No+Image';
+        productDetailName.textContent = product.name;
+        productDetailDescription.textContent = product.description;
+        productDetailPrice.textContent = `$${product.price.toFixed(2)}`;
+        productDetailSeller.textContent = `Sold by: ${product.sellerEmail || 'Unknown'}`;
+
+        // Show the product details overlay
+        productDetailsOverlay.classList.remove('hidden');
+
+        // Close button for product details
+        closeProductDetailsButton.onclick = () => {
+            productDetailsOverlay.classList.add('hidden');
+            paypalButtonContainer.innerHTML = ''; // Clear button after closing
+        };
+
+        // Determine if it's a free product or requires PayPal
+        if (parseFloat(product.price) > 0) {
+            // Check if PayPal SDK is loaded
+            if (typeof window.paypal === 'undefined') {
+                paypalButtonContainer.innerHTML = '<p class="text-red-500">PayPal SDK not loaded. Please refresh the page.</p>';
+                console.error("PayPal SDK (window.paypal) is not loaded.");
+                return;
+            }
+
+            // Render PayPal Buttons
+            window.paypal.Buttons({
+                // createOrder is called when the buyer clicks the PayPal button
+                createOrder: (data, actions) => {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: product.price.toFixed(2) // Ensure price is a string with 2 decimal places
+                            },
+                            description: `Purchase of ${product.name}`
+                        }]
+                    });
+                },
+                // onApprove is called when the buyer approves the transaction
+                onApprove: (data, actions) => handlePayPalApproval({
+                    data,
+                    actions,
+                    product, // Pass the product object
+                    verifyBackendURL: VERIFY_URL, // Your serverless verification endpoint
+                    // Callback to update UI on successful purchase (e.g., show download link)
+                    updateUI: (prod) => {
+                        paypalButtonContainer.innerHTML = `
+                            <a href="${prod.fileUrl}" target="_blank"
+                               class="w-full bg-gradient-to-r from-green-500 to-green-600
+                                     text-white py-3 rounded-xl font-bold shadow hover:shadow-lg transition
+                                     flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                    <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H4.5a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+                                </svg>
+                                Download Product
+                            </a>`;
+                        productDetailsOverlay.classList.remove('hidden'); // Keep overlay open to show download
+                    },
+                    // Callback to update seller's balance in Firestore
+                    updateSellerBalanceFn: incrementSellerBalance,
+                    // Callback to send a sale confirmation email (if implemented)
+                    sendEmail: sendSaleEmail // Assuming this function is defined elsewhere or will be.
+                }),
+                // onError is called when a payment error occurs
+                onError: err => {
+                    console.error("PayPal payment error:", err);
+                    alert('Payment failed or cancelled. Please try again.');
+                    paypalButtonContainer.innerHTML = ''; // Clear buttons on error
+                }
+            }).render('#paypal-button-container'); // Render the buttons into the specified container
+        } else {
+            // Free download logic
+            paypalButtonContainer.innerHTML = `
+                <a href="${product.fileUrl}" target="_blank"
+                   class="w-full bg-gradient-to-r from-blue-500 to-blue-600
+                         text-white py-3 rounded-xl font-bold shadow hover:shadow-lg transition
+                         flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H4.5a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+                    </svg>
+                    Download for FREE!
+                </a>`;
+        }
+    } catch (error) {
+        console.error("Error showing product details or setting up PayPal:", error);
+        alert("Failed to load product details. Please try again.");
+        paypalButtonContainer.innerHTML = ''; // Clear buttons on error
+        productDetailsOverlay.classList.add('hidden');
+    }
+}
+
+// --- Dashboard & Utilities ---
+
+/**
+ * Increments the seller's balance using a Firestore transaction to ensure atomicity.
+ * @param {string} sellerId - The UID of the seller.
+ * @param {number} amount - The amount to increment the balance by.
+ */
+async function incrementSellerBalance(sellerId, amount) {
+    const balRef = doc(db, "balances", sellerId); // Reference to the seller's balance document
+
+    try {
+        await runTransaction(db, async tx => {
+            const snap = await tx.get(balRef); // Get the current balance document
+            const prevBalance = snap.exists() ? snap.data().balance || 0 : 0; // Get existing balance or 0
+
+            // Update the balance document
+            tx.set(balRef, { balance: prevBalance + amount, lastUpdated: serverTimestamp() }, { merge: true });
+        });
+        console.log(`Seller ${sellerId} balance incremented by ${amount}`);
+    } catch (error) {
+        console.error("Transaction failed: ", error);
+        alert("Failed to update seller balance.");
+    }
+}
+
+/**
+ * Watches the seller's balance in real-time using onSnapshot.
+ * Updates the UI whenever the balance changes.
+ * @param {string} userId - The UID of the current user.
+ */
+function watchSellerBalance(userId) {
+    const balanceRef = doc(db, "balances", userId);
+
+    // Set up real-time listener for the user's balance
+    onSnapshot(balanceRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const balanceData = docSnap.data();
+            sellerBalanceDisplay.textContent = `$${(balanceData.balance || 0).toFixed(2)}`;
+        } else {
+            sellerBalanceDisplay.textContent = '$0.00'; // No balance document yet
+        }
+    }, (error) => {
+        console.error("Error watching seller balance:", error);
+        sellerBalanceDisplay.textContent = '$Error';
+    });
+}
+
+/**
+ * Loads and renders the products uploaded by the current user for the dashboard view.
+ * @param {string} userId - The UID of the current user.
+ */
+async function loadMyProducts(userId) {
+    myProductsList.innerHTML = '<p class="text-center">Loading your products...</p>';
+
+    try {
+        const q = query(collection(db, "products"),
+                        where("sellerId", "==", userId),
+                        orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        myProductsList.innerHTML = ''; // Clear loading message
+
+        if (querySnapshot.empty) {
+            myProductsList.innerHTML = '<p class="text-center text-gray-500">You haven\'t uploaded any products yet.</p>';
+            return;
+        }
+
+        querySnapshot.forEach((doc) => {
+            const product = { id: doc.id, ...doc.data() };
+            const productItem = `
+                <div class="bg-gray-50 p-4 rounded-lg shadow-md flex items-center space-x-4">
+                    <img src="${product.previewImage || 'https://placehold.co/80x80/e0e0e0/000000?text=Prod'}"
+                         alt="${product.name}" class="w-20 h-20 object-cover rounded-md">
+                    <div class="flex-grow">
+                        <h4 class="font-semibold text-gray-800">${product.name}</h4>
+                        <p class="text-gray-600 text-sm">$${product.price.toFixed(2)}</p>
+                        <p class="text-xs text-gray-500">Status: ${product.isSold ? '<span class="text-red-500">Sold</span>' : '<span class="text-green-500">Available</span>'}</p>
+                    </div>
+                    <button class="delete-product-btn bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition"
+                            data-product-id="${product.id}">
+                        Delete
+                    </button>
+                </div>
+            `;
+            myProductsList.insertAdjacentHTML('beforeend', productItem);
+        });
+
+        // Add event listeners to delete buttons
+        myProductsList.querySelectorAll('.delete-product-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const productId = e.currentTarget.dataset.productId;
+                if (confirm("Are you sure you want to delete this product?")) {
+                    deleteProduct(productId);
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("Error loading user products:", error);
+        myProductsList.innerHTML = '<p class="text-center text-red-500">Failed to load your products.</p>';
+    }
+}
+
+/**
+ * Deletes a product document from Firestore.
+ * @param {string} productId - The ID of the product to delete.
+ */
+async function deleteProduct(productId) {
+    try {
+        await deleteDoc(doc(db, "products", productId));
+        alert("Product deleted successfully.");
+        console.log("Product deleted:", productId);
+        // Reload user's products after deletion
+        if (auth.currentUser) {
+            loadMyProducts(auth.currentUser.uid);
+        }
+        // Also reload main products view to remove the deleted item
+        loadProducts();
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        alert("Failed to delete product. Please try again.");
+    }
+}
+
+/**
+ * Placeholder function for sending a sale confirmation email.
+ * This would typically involve a server-side function or an email service API.
+ * @param {object} saleDetails - Details about the sale (buyer, product, etc.).
+ */
+async function sendSaleEmail(saleDetails) {
+    console.log("Attempting to send sale email (functionality to be implemented server-side).", saleDetails);
+    // In a real application, you would make a fetch call to a serverless function
+    // that handles sending emails securely (e.g., using SendGrid, Mailgun, etc.).
+    /*
+    try {
+        const response = await fetch('/api/send-sale-email', { // Your serverless email endpoint
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saleDetails)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        console.log("Sale email request sent.");
+    } catch (error) {
+        console.error("Failed to send sale email:", error);
+    }
+    */
+}
+
+
+// --- Initial Load & Event Binding ---
+/**
+ * Initializes the application: loads initial products, sets default tab,
+ * and enables the submit button.
+ */
+(async function init() {
+    // Initial product load for the home screen
+    await loadProducts();
+    // Set the default active tab to 'home'
+    showTab('home');
+    // Ensure the sell form submit button is enabled on load
+    enableSubmitButton();
+    // Restore sell form state if any was saved from previous session
+    restoreSellForm();
+})();
