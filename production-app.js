@@ -38,6 +38,36 @@ const detailProductImage = document.getElementById('detailProductImage');
 const detailProductTitle = document.getElementById('detailProductTitle');
 const detailProductDescription = document.getElementById('detailProductDescription');
 const detailProductPrice = document.getElementById('detailProductPrice');
+const productsContainer = document.getElementById('productsContainer');
+
+// --- Load Products ---
+async function loadProducts() {
+  const productsRef = collection(db, "products");
+  const q = query(productsRef, orderBy("timestamp", "desc"));
+
+  try {
+    const querySnapshot = await getDocs(q);
+    productsContainer.innerHTML = "";
+
+    querySnapshot.forEach((docSnap) => {
+      const product = docSnap.data();
+      const productEl = document.createElement("div");
+      productEl.className = "bg-white rounded-xl shadow-md p-4 mb-4";
+
+      productEl.innerHTML = `
+        <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" class="w-full h-48 object-cover rounded-md mb-2" />
+        <h2 class="text-lg font-semibold">${product.title}</h2>
+        <p class="text-gray-700 text-sm mb-2">${product.description}</p>
+        <p class="font-bold">${parseFloat(product.price) === 0 ? 'Free' : '$' + parseFloat(product.price).toFixed(2)}</p>
+        <button class="mt-2 w-full bg-blue-600 text-white py-2 rounded" onclick="showProductDetails('${docSnap.id}')">View Product</button>
+      `;
+
+      productsContainer.appendChild(productEl);
+    });
+  } catch (err) {
+    console.error("Failed to load products:", err);
+  }
+}
 
 // --- PRODUCT DETAILS & PURCHASE ---
 async function showProductDetails(productId) {
@@ -74,7 +104,6 @@ async function showProductDetails(productId) {
             try {
               const orderID = data.orderID;
 
-              // 🔒 Secure server-side verification
               const res = await fetch('https://paypal-verification-api.vercel.app/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -92,7 +121,6 @@ async function showProductDetails(productId) {
                 return;
               }
 
-              // ✅ Verified — grant access
               paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
               await handleProductPurchase(product);
               sendSaleEmail({
@@ -116,7 +144,6 @@ async function showProductDetails(productId) {
         paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
       }
     } else {
-      // Free product flow
       detailActionButton.style.display = '';
       paypalButtonContainer.innerHTML = '';
       detailActionButton.textContent = 'Download';
