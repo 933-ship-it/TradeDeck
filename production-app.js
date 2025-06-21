@@ -38,7 +38,7 @@ const detailProductImage = document.getElementById('detailProductImage');
 const detailProductTitle = document.getElementById('detailProductTitle');
 const detailProductDescription = document.getElementById('detailProductDescription');
 const detailProductPrice = document.getElementById('detailProductPrice');
-const productsContainer = document.getElementById('productsContainer');
+const productsContainer = document.getElementById('productList');
 
 // --- Load Products ---
 async function loadProducts() {
