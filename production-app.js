@@ -25,13 +25,13 @@ import {
 
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyB4WYZojOArqdAceRQZD6a6re7MP0Ikl0c",
-  authDomain: "fluxr-913c8.firebaseapp.com",
-  projectId: "fluxr-913c8",
-  storageBucket: "fluxr-913c8.appspot.com",
-  messagingSenderId: "779319537916",
-  appId: "1:779319537916:web:5afa18aade22959ca3a779",
-  measurementId: "G-QX76Q1Z1QB"
+  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+  authDomain: "tradedeck-82bbb.firebaseapp.com",
+  projectId: "tradedeck-82bbb",
+  storageBucket: "tradedeck-82bbb.firebasestorage.app",
+  messagingSenderId: "755235931546",
+  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+  measurementId: "G-4RXR7V9NCW"
 };
 
 // --- Initialize Firebase ---
