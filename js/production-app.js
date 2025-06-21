@@ -1,143 +1,244 @@
+// --- Firebase Modular SDK Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { sendEmailNotification } from "./helpers.js"; // if using separate helper
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  deleteUser
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
+// --- Helper Imports ---
+import { sendEmailNotification, formatCurrency } from "./helpers.js";
+
+// --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-  authDomain: "tradedeck-82bbb.firebaseapp.com",
-  projectId: "tradedeck-82bbb",
-  storageBucket: "tradedeck-82bbb.firebasestorage.app",
-  messagingSenderId: "755235931546",
-  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-  measurementId: "G-4RXR7V9NCW"
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "fluxr-913c8.firebaseapp.com",
+  projectId: "fluxr-913c8",
+  storageBucket: "fluxr-913c8.appspot.com",
+  messagingSenderId: "779319537916",
+  appId: "1:779319537916:web:5afa18aade22959ca3a779",
+  measurementId: "G-QX76Q1Z1QB"
 };
 
+// --- Init Firebase ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// --- DOM Ready Check ---
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM ready");
+  const requiredElements = [
+    "userProfilePic", "userEmail", "signOutBtn", "deleteAccountBtn",
+    "searchBar", "productList", "noProductsMessage",
+    "productDetails", "detailProductTitle", "detailProductPrice",
+    "detailActionButton", "paypal-button-container",
+    "dashboard", "sellerBalance", "myProducts"
+  ];
 
-  const signOutBtn      = document.getElementById("signOutBtn");
-  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
-  const userProfilePic  = document.getElementById("userProfilePic");
-  const dropdownMenu    = document.getElementById("dropdownMenu");
-  const userEmailEl     = document.getElementById("userEmail");
-  const authOverlay     = document.getElementById("authOverlay");
-  const tabs            = document.querySelectorAll("aside nav a[data-tab]");
-  const sections        = document.querySelectorAll("main section");
-  const backToHomeBtn   = document.getElementById("backToHomeBtn");
+  const dom = {};
+  let missing = false;
+  requiredElements.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) {
+      console.error(`❌ Missing element: ${id}`);
+      missing = true;
+    }
+    dom[id] = el;
+  });
 
-  // Dashboard & product-detail buttons
-  const sellerBalanceEl        = document.getElementById("sellerBalance");
-  const paypalBtnContainer     = document.getElementById("paypal-button-container");
-  const detailProductImage     = document.getElementById("detailProductImage");
-  const detailProductTitle     = document.getElementById("detailProductTitle");
-  const detailProductDesc      = document.getElementById("detailProductDescription");
-  const detailProductPrice     = document.getElementById("detailProductPrice");
-  const detailActionBtn        = document.getElementById("detailActionButton");
-  const productDetailsSection  = document.getElementById("productDetails");
+  if (missing) return;
 
-  // Validate critical elements:
-  if (!authOverlay || !tabs.length || !sections.length || !sellerBalanceEl || !paypalBtnContainer) {
-    console.error("❌ One or more critical DOM elements are missing");
-    return;
-  }
-
-  // --- Auth State Handling ---
-  onAuthStateChanged(auth, user => {
+  // --- Auth State ---
+  onAuthStateChanged(auth, async user => {
     if (user) {
-      authOverlay.style.display = "none";
-      userProfilePic.style.visibility = "";
-      userProfilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || "")}`;
-      userEmailEl.textContent = user.email;
+      console.log("🔐 Authenticated:", user.email);
+      setupUserSession(user);
     } else {
-      authOverlay.style.display = "flex";
+      window.location.href = "https://933-ship-it.github.io/TradeDeck-landing-page/";
     }
   });
 
-  if (signOutBtn) {
-    signOutBtn.addEventListener("click", () => signOut(auth));
-  }
-  if (deleteAccountBtn) {
-    deleteAccountBtn.addEventListener("click", async () => {
-      try {
-        await deleteUser(auth.currentUser);
+  // --- Session Setup ---
+  async function setupUserSession(user) {
+    dom.userProfilePic.src = user.photoURL || "";
+    dom.userProfilePic.classList.remove("hidden");
+    dom.userEmail.textContent = user.email;
+
+    // Show email dropdown
+    dom.userProfilePic.addEventListener("click", () => {
+      document.getElementById("dropdownMenu").classList.toggle("hidden");
+    });
+
+    // Sign Out
+    dom.signOutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      location.reload();
+    });
+
+    // Delete Account
+    dom.deleteAccountBtn.addEventListener("click", async () => {
+      if (confirm("Are you sure you want to delete your account?")) {
+        await deleteUser(user);
         alert("Account deleted.");
-      } catch (e) {
-        alert("Delete failed.");
-        console.error(e);
+        location.reload();
       }
     });
+
+    // Load Products
+    await loadAllProducts();
+    await loadMyProducts(user.email);
+    await updateBalance(user.email);
   }
 
-  // --- Tab Navigation Handler ---
-  tabs.forEach(tab => {
-    tab.addEventListener("click", async e => {
-      e.preventDefault();
-      const target = tab.getAttribute("data-tab");
-      sections.forEach(s => s.id === target ? s.classList.remove("hidden") : s.classList.add("hidden"));
-      if (target === "dashboard") {
-        // load dashboard-related logic here...
-      }
-      if (target === "home") {
-        // load home page...
-      }
-    });
-  });
+  // --- Product Listing ---
+  async function loadAllProducts() {
+    const productList = dom.productList;
+    productList.innerHTML = "";
+    const q = query(collection(db, "products"));
+    const snapshot = await getDocs(q);
 
-  if (backToHomeBtn) {
-    backToHomeBtn.addEventListener("click", () => {
-      sections.forEach(s => s.id === "home" ? s.classList.remove("hidden") : s.classList.add("hidden"));
+    if (snapshot.empty) {
+      dom.noProductsMessage.classList.remove("hidden");
+      return;
+    }
+
+    dom.noProductsMessage.classList.add("hidden");
+    snapshot.forEach(doc => {
+      const product = doc.data();
+      const card = document.createElement("div");
+      card.className = "bg-white rounded-lg p-4 product-card cursor-pointer shadow";
+      card.innerHTML = `
+        <img src="${product.previewImageUrl}" alt="" class="h-32 object-cover w-full mb-3 rounded">
+        <h3 class="text-lg font-bold">${product.title}</h3>
+        <p class="text-sm text-gray-600">${formatCurrency(product.price)}</p>
+      `;
+      card.onclick = () => showProductDetails(doc.id, product);
+      productList.appendChild(card);
     });
   }
 
   // --- Product Details View ---
-  window.showProductDetails = async productId => {
-    if (!productId) return;
-    productDetailsSection.classList.remove("hidden");
-    const snap = await getDoc(doc(db, "products", productId));
-    if (!snap.exists()) return alert("Product not found.");
-    const prod = { id: snap.id, ...snap.data() };
-    detailProductImage.src = prod.previewImageUrl;
-    detailProductTitle.textContent = prod.title;
-    detailProductDesc.textContent = prod.description;
-    detailProductPrice.textContent = `$${prod.price?.toFixed(2)}`;
+  async function showProductDetails(id, product) {
+    document.getElementById("home").classList.add("hidden");
+    dom.productDetails.classList.remove("hidden");
 
-    if (prod.price > 0) {
-      detailActionBtn.style.display = "none";
-      paypalBtnContainer.innerHTML = "";
-      window.paypal.Buttons({
-        createOrder: (data, actions) =>
-          actions.order.create({
-            purchase_units: [{ amount: { value: prod.price.toFixed(2) }, description: prod.title }]
-          }),
-        onApprove: async (data, actions) => {
-          const res = await actions.order.capture();
-          paypalBtnContainer.innerHTML = `<a href="${prod.fileUrl}" target="_blank" class="w-full bg-green-500 text-white py-3 rounded-xl flex justify-center">Download</a>`;
-          await incrementSellerBalance(prod.sellerId, parseFloat(prod.price));
-          sendEmailNotification(prod, res);
-        },
-        onError: err => console.error(err)
-      }).render("#paypal-button-container");
+    dom.detailProductTitle.textContent = product.title;
+    dom.detailProductPrice.textContent = formatCurrency(product.price);
+    dom.detailProductDescription.textContent = product.description;
+    document.getElementById("detailProductImage").src = product.previewImageUrl;
+
+    const actionBtn = dom.detailActionButton;
+    actionBtn.textContent = product.price === 0 ? "Download for Free" : "Buy Now";
+    actionBtn.className = product.price === 0 ? "bg-green-600 text-white" : "bg-blue-600 text-white";
+
+    if (product.price === 0) {
+      actionBtn.onclick = () => window.open(product.productFileUrl, "_blank");
+      document.getElementById("paypal-button-container").innerHTML = "";
     } else {
-      detailActionBtn.style.display = "";
-      detailActionBtn.textContent = "Download";
-      detailActionBtn.onclick = () => window.open(prod.fileUrl, "_blank");
+      actionBtn.onclick = () => alert("Scroll below to PayPal section to continue.");
+      renderPayPalButton(product, id);
     }
-  };
+  }
 
-  // --- Increment Balance Logic ---
-  async function incrementSellerBalance(uid, delta) {
-    const ref = doc(db, "balances", uid);
-    await runTransaction(db, async tx => {
-      const snap = await tx.get(ref);
-      const curr = (snap.data()?.balance || 0);
-      tx.set(ref, { balance: curr + delta }, { merge: true });
+  // --- Render PayPal Button ---
+  function renderPayPalButton(product, id) {
+    paypal.Buttons({
+      createOrder: function (data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: { value: product.price.toFixed(2) },
+            description: product.title
+          }]
+        });
+      },
+      onApprove: function (data, actions) {
+        return actions.order.capture().then(async function (details) {
+          const res = await fetch("https://verify-payment-js.vercel.app/api/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: data.orderID,
+              productId: id,
+              buyerEmail: auth.currentUser.email
+            })
+          });
+
+          const verified = await res.json();
+          if (verified.success) {
+            await updateDoc(doc(db, "products", id), {
+              buyer: auth.currentUser.email,
+              lastSoldAt: serverTimestamp()
+            });
+            sendEmailNotification({
+              to: auth.currentUser.email,
+              subject: "Purchase Confirmation",
+              message: `Your purchase of ${product.title} was successful.`
+            });
+            alert("✅ Purchase complete!");
+            window.open(product.productFileUrl, "_blank");
+            updateBalance(product.sellerEmail);
+          } else {
+            alert("❌ Payment could not be verified.");
+          }
+        });
+      }
+    }).render("#paypal-button-container");
+  }
+
+  // --- Load User Products ---
+  async function loadMyProducts(email) {
+    const container = dom.myProducts;
+    container.innerHTML = "";
+    const q = query(collection(db, "products"), where("sellerEmail", "==", email));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      document.getElementById("noMyProductsMessage").classList.remove("hidden");
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded-lg shadow";
+      card.innerHTML = `
+        <h4 class="font-bold mb-1">${p.title}</h4>
+        <p class="text-sm text-gray-500">${formatCurrency(p.price)}</p>
+      `;
+      container.appendChild(card);
     });
   }
 
-  console.log("✅ production-app.js loaded");
+  // --- Update Balance ---
+  async function updateBalance(email) {
+    const q = query(collection(db, "products"), where("sellerEmail", "==", email));
+    const snapshot = await getDocs(q);
+    let total = 0;
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      if (p.buyer) total += Number(p.price || 0);
+    });
+    dom.sellerBalance.textContent = formatCurrency(total * 0.8); // 80% earnings
+  }
+
+  // --- Back Button ---
+  document.getElementById("backToHomeBtn").onclick = () => {
+    dom.productDetails.classList.add("hidden");
+    document.getElementById("home").classList.remove("hidden");
+  };
+
 });
