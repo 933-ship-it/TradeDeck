@@ -1,38 +1,50 @@
-// js/helpers.js
+// File: js/helpers.js
+// Fully production-ready utility functions
 
-/** Sends an email notification via EmailJS */
-export async function sendEmailNotification(toEmail, productTitle, amount) {
+// Firebase Modular SDK (required for Firestore access here)
+import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { send } from "https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js";
+
+/**
+ * Sends a transaction email to a buyer or seller
+ * @param {string} template - emailjs template ID
+ * @param {Object} variables - data to populate the email template
+ * @returns {Promise<void>}
+ */
+export async function sendEmailNotification(template, variables) {
   try {
-    const templateParams = {
-      seller_email: toEmail,
-      product_title: productTitle,
-      amount: amount.toString(),
-    };
-    const res = await emailjs.send("service_px8mdvo", "template_4gvs2zf", templateParams);
-    console.log("Sale email sent:", res.status, res.text);
-  } catch (err) {
-    console.error("Failed sending sale email:", err);
+    await send("service_w8u2lvj", template, variables, "fmwYD8DAojsvufds2");
+    console.log("✅ Email sent");
+  } catch (error) {
+    console.error("❌ Failed to send email:", error);
   }
 }
 
-/** Show toast-like notifications in-app */
-export function showToast(message, type = "info") {
-  const el = document.createElement("div");
-  el.textContent = message;
-  el.className = `fixed bottom-4 right-4 px-4 py-2 rounded shadow text-white ${
-    type === "success" ? "bg-green-500" : type === "error" ? "bg-red-500" : "bg-gray-700"
-  }`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+/**
+ * Formats a number to USD
+ * @param {number} amount
+ * @returns {string}
+ */
+export function formatUSD(amount) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
 }
 
-/** Simple validation: ensure required fields present */
-export function validateFields(obj, requiredFields = []) {
-  const errors = [];
-  requiredFields.forEach((f) => {
-    if (!obj[f] || obj[f].toString().trim() === "") {
-      errors.push(`${f} is required.`);
-    }
-  });
-  return errors;
+/**
+ * Increments user balance in Firestore
+ * @param {string} userId
+ * @param {number} amount
+ * @returns {Promise<void>}
+ */
+export async function incrementUserBalance(userId, amount) {
+  const db = getFirestore();
+  const userRef = doc(db, "users", userId);
+  try {
+    await updateDoc(userRef, { balance: increment(amount) });
+    console.log(`💰 Balance updated for ${userId}`);
+  } catch (err) {
+    console.error("❌ Error updating balance:", err);
+  }
 }
