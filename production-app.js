@@ -31,19 +31,19 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // --- DOM Elements ---
-... // [All your DOM queries remain unchanged]
+// [All your DOM queries remain unchanged]
 
 // --- Auth and Profile ---
-... // [All unchanged auth logic]
+ // [All unchanged auth logic]
 
 // --- EmailJS sale notification ---
-... // [Unchanged]
+ // [Unchanged]
 
 // --- Tab Navigation ---
-... // [Unchanged]
+ // [Unchanged]
 
 // --- Sell Form Autosave/Restore, Cloudinary widget, utilities, form validation, listing logic, etc. ---
-... // [Everything unchanged up to showProductDetails]
+ // [Everything unchanged up to showProductDetails]
 
 // --- PRODUCT DETAILS & PURCHASE ---
 async function showProductDetails(productId) {
@@ -138,7 +138,7 @@ async function showProductDetails(productId) {
 }
 
 // --- DASHBOARD, balance, other functions (unchanged) ---
-... // [All remaining functions unchanged]
+ // [All remaining functions unchanged]
 
 // --- Initial Load ---
 loadProducts();
