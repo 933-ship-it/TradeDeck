@@ -4,13 +4,13 @@ import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, dele
 import { sendEmailNotification } from "./helpers.js"; // if using separate helper
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDxxxxx",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456",
-  measurementId: "G-XXXXXX"
+  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+  authDomain: "tradedeck-82bbb.firebaseapp.com",
+  projectId: "tradedeck-82bbb",
+  storageBucket: "tradedeck-82bbb.firebasestorage.app",
+  messagingSenderId: "755235931546",
+  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+  measurementId: "G-4RXR7V9NCW"
 };
 
 const app = initializeApp(firebaseConfig);
