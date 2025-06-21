@@ -51,7 +51,7 @@ const tabContents = document.querySelectorAll(".tab-content");
 // --- Auth State Listener ---
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "/signin.html";
+    window.location.href = "https://trade-deck-landing-page.vercel.app/";
     return;
   }
 
