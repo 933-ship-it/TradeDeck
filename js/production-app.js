@@ -1,244 +1,294 @@
-// --- Firebase Modular SDK Imports ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut,
-  deleteUser
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  query,
-  where,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+// production-app.js
 
-// --- Helper Imports ---
-import { sendEmailNotification, formatCurrency } from "./helpers.js";
+import { formatPrice, showToast, sendEmailNotification } from './helpers.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged, signOut, deleteUser
+} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+import {
+  getFirestore, collection, doc, getDoc, getDocs, setDoc,
+  addDoc, updateDoc, query, where, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
-// --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "fluxr-913c8.firebaseapp.com",
-  projectId: "fluxr-913c8",
-  storageBucket: "fluxr-913c8.appspot.com",
-  messagingSenderId: "779319537916",
-  appId: "1:779319537916:web:5afa18aade22959ca3a779",
-  measurementId: "G-QX76Q1Z1QB"
+  apiKey: "...",  // <–– INSERT YOUR ACTUAL CONFIG VALUES
+  authDomain: "...",
+  projectId: "...",
+  // ...other fields
 };
 
-// --- Init Firebase ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- DOM Ready Check ---
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ DOM ready");
-  const requiredElements = [
-    "userProfilePic", "userEmail", "signOutBtn", "deleteAccountBtn",
-    "searchBar", "productList", "noProductsMessage",
-    "productDetails", "detailProductTitle", "detailProductPrice",
-    "detailActionButton", "paypal-button-container",
-    "dashboard", "sellerBalance", "myProducts"
-  ];
+window.addEventListener('DOMContentLoaded', () => {
+  // DOM refs (ensure IDs match your HTML exactly)
+  const profilePic = document.getElementById('userProfilePic');
+  const dropdown = document.getElementById('dropdownMenu');
+  const userEmailDisplay = document.getElementById('userEmail');
+  const deleteBtn = document.getElementById('deleteAccountBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const authOverlay = document.getElementById('authOverlay');
+  const navLinks = document.querySelectorAll('aside nav a');
+  const sections = {
+    home: document.getElementById('home'),
+    sell: document.getElementById('sell'),
+    dashboard: document.getElementById('dashboard'),
+  };
 
-  const dom = {};
-  let missing = false;
-  requiredElements.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) {
-      console.error(`❌ Missing element: ${id}`);
-      missing = true;
-    }
-    dom[id] = el;
+  const productList = document.getElementById('productList');
+  const noProductsMessage = document.getElementById('noProductsMessage');
+  const detailSection = document.getElementById('productDetails');
+  const homeSection = document.getElementById('home');
+  const detailImage = document.getElementById('detailProductImage');
+  const detailTitle = document.getElementById('detailProductTitle');
+  const detailDescription = document.getElementById('detailProductDescription');
+  const detailPrice = document.getElementById('detailProductPrice');
+  const paypalContainer = document.getElementById('paypal-button-container');
+  const backBtn = document.getElementById('backToHomeBtn');
+
+  const sellerBalanceDisplay = document.getElementById('sellerBalance');
+  const myProductsGrid = document.getElementById('myProducts');
+  const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+  const uploadBtn = document.getElementById('uploadProductBtn');
+  const productTitleInput = document.getElementById('productTitle');
+  const productDescInput = document.getElementById('productDescription');
+  const productPriceInput = document.getElementById('productPrice');
+  const previewInput = document.getElementById('productPreview');
+  const fileInput = document.getElementById('productFile');
+  const previewThumbnail = document.getElementById('previewThumbnail');
+
+  // --- Navigation ---
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = link.getAttribute('href').slice(1);
+      Object.entries(sections).forEach(([key, el]) => {
+        el.classList.toggle('hidden', key !== target);
+      });
+      navLinks.forEach(l => l.classList.remove('bg-blue-100'));
+      link.classList.add('bg-blue-100');
+
+      if (target === 'home') loadProducts();
+      if (target === 'dashboard') loadMyProducts(currentUserEmail);
+    });
   });
 
-  if (missing) return;
+  backBtn.addEventListener('click', () => {
+    detailSection.classList.add('hidden');
+    homeSection.classList.remove('hidden');
+  });
 
   // --- Auth State ---
-  onAuthStateChanged(auth, async user => {
-    if (user) {
-      console.log("🔐 Authenticated:", user.email);
-      setupUserSession(user);
-    } else {
-      window.location.href = "https://933-ship-it.github.io/TradeDeck-landing-page/";
+  let currentUserEmail = null;
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      authOverlay.style.display = 'flex';
+      return;
+    }
+    authOverlay.style.display = 'none';
+    currentUserEmail = user.email;
+
+    if (user.photoURL) {
+      profilePic.src = user.photoURL;
+      profilePic.classList.remove('hidden');
+    }
+
+    userEmailDisplay.textContent = currentUserEmail;
+    loadProducts();
+    loadMyProducts();
+
+    // Balance watcher via Firestore
+    const userDoc = doc(db, 'users', currentUserEmail);
+    onSnapshot(userDoc, snap => {
+      const bal = snap.exists() && snap.data().balance ? snap.data().balance : 0;
+      sellerBalanceDisplay.textContent = formatPrice(bal);
+    });
+  });
+
+  // --- Dropdown Profile Menu ---
+  profilePic.addEventListener('click', () => dropdown.classList.toggle('hidden'));
+  document.addEventListener('click', e => {
+    if (!profilePic.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
     }
   });
 
-  // --- Session Setup ---
-  async function setupUserSession(user) {
-    dom.userProfilePic.src = user.photoURL || "";
-    dom.userProfilePic.classList.remove("hidden");
-    dom.userEmail.textContent = user.email;
-
-    // Show email dropdown
-    dom.userProfilePic.addEventListener("click", () => {
-      document.getElementById("dropdownMenu").classList.toggle("hidden");
-    });
-
-    // Sign Out
-    dom.signOutBtn.addEventListener("click", async () => {
-      await signOut(auth);
+  signOutBtn.addEventListener('click', () => signOut(auth).then(() => location.reload()));
+  deleteBtn.addEventListener('click', async () => {
+    if (!confirm('Delete account? This cannot be undone.')) return;
+    try {
+      await deleteUser(auth.currentUser);
+      showToast('Account deleted', 'success');
       location.reload();
-    });
-
-    // Delete Account
-    dom.deleteAccountBtn.addEventListener("click", async () => {
-      if (confirm("Are you sure you want to delete your account?")) {
-        await deleteUser(user);
-        alert("Account deleted.");
-        location.reload();
-      }
-    });
-
-    // Load Products
-    await loadAllProducts();
-    await loadMyProducts(user.email);
-    await updateBalance(user.email);
-  }
-
-  // --- Product Listing ---
-  async function loadAllProducts() {
-    const productList = dom.productList;
-    productList.innerHTML = "";
-    const q = query(collection(db, "products"));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      dom.noProductsMessage.classList.remove("hidden");
-      return;
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to delete account', 'error');
     }
+  });
 
-    dom.noProductsMessage.classList.add("hidden");
-    snapshot.forEach(doc => {
-      const product = doc.data();
-      const card = document.createElement("div");
-      card.className = "bg-white rounded-lg p-4 product-card cursor-pointer shadow";
+  // --- Load Products ---
+  async function loadProducts() {
+    productList.innerHTML = '';
+    noProductsMessage.classList.remove('hidden');
+
+    const snapshot = await getDocs(collection(db, 'products'));
+    if (snapshot.empty) return;
+
+    noProductsMessage.classList.add('hidden');
+    snapshot.forEach(docSnap => {
+      const pd = docSnap.data();
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-lg p-4 cursor-pointer product-card';
       card.innerHTML = `
-        <img src="${product.previewImageUrl}" alt="" class="h-32 object-cover w-full mb-3 rounded">
-        <h3 class="text-lg font-bold">${product.title}</h3>
-        <p class="text-sm text-gray-600">${formatCurrency(product.price)}</p>
+        <img src="${pd.preview}" class="w-full h-48 object-cover rounded-md mb-3">
+        <div class="font-bold text-lg">${pd.title}</div>
+        <div class="text-sm text-gray-500 mb-1">${pd.description}</div>
+        <div class="text-blue-600 font-semibold">${formatPrice(pd.price)}</div>
       `;
-      card.onclick = () => showProductDetails(doc.id, product);
+      card.addEventListener('click', () => showProductDetail(pd, docSnap.id));
       productList.appendChild(card);
     });
   }
 
-  // --- Product Details View ---
-  async function showProductDetails(id, product) {
-    document.getElementById("home").classList.add("hidden");
-    dom.productDetails.classList.remove("hidden");
+  // --- Show Product Details & PayPal integration ---
+  function showProductDetail(product, id) {
+    homeSection.classList.add('hidden');
+    detailSection.classList.remove('hidden');
 
-    dom.detailProductTitle.textContent = product.title;
-    dom.detailProductPrice.textContent = formatCurrency(product.price);
-    dom.detailProductDescription.textContent = product.description;
-    document.getElementById("detailProductImage").src = product.previewImageUrl;
+    detailImage.src = product.preview;
+    detailTitle.textContent = product.title;
+    detailDescription.textContent = product.description;
+    detailPrice.textContent = formatPrice(product.price);
 
-    const actionBtn = dom.detailActionButton;
-    actionBtn.textContent = product.price === 0 ? "Download for Free" : "Buy Now";
-    actionBtn.className = product.price === 0 ? "bg-green-600 text-white" : "bg-blue-600 text-white";
+    paypalContainer.innerHTML = '';
+    if (product.price > 0) {
+      paypal.Buttons({
+        createOrder: (data, actions) => actions.order.create({
+          purchase_units: [{ amount: { value: product.price.toFixed(2) } }]
+        }),
+        onApprove: async (data, actions) => {
+          const order = await actions.order.capture();
 
-    if (product.price === 0) {
-      actionBtn.onclick = () => window.open(product.productFileUrl, "_blank");
-      document.getElementById("paypal-button-container").innerHTML = "";
-    } else {
-      actionBtn.onclick = () => alert("Scroll below to PayPal section to continue.");
-      renderPayPalButton(product, id);
+          // verify backend
+          const resp = await fetch('https://your-verification-endpoint/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderID: data.orderID })
+          });
+          const result = await resp.json();
+          if (!result.verified) {
+            showToast('Payment failed verification.', 'error');
+            return;
+          }
+
+          // Log sale
+          await setDoc(doc(db, 'sales', data.orderID), {
+            productId: id,
+            title: product.title,
+            seller: product.seller,
+            buyer: currentUserEmail,
+            price: product.price,
+            time: serverTimestamp()
+          });
+
+          // Update seller balance with 70% payout
+          const userDocRef = doc(db, 'users', product.seller);
+          const snap = await getDoc(userDocRef);
+          const currentBal = snap.exists() && snap.data().balance ? snap.data().balance : 0;
+          await setDoc(userDocRef, { balance: currentBal + product.price * 0.7 }, { merge: true });
+
+          // Notify via email
+          await sendEmailNotification({
+            product_title: product.title,
+            price: formatPrice(product.price),
+            buyer_email: currentUserEmail,
+            seller_email: product.seller
+          });
+
+          showToast('✅ Purchase successful', 'success');
+        },
+        onError: err => {
+          console.error(err);
+          showToast('Payment error', 'error');
+        }
+      }).render('#paypal-button-container');
     }
   }
 
-  // --- Render PayPal Button ---
-  function renderPayPalButton(product, id) {
-    paypal.Buttons({
-      createOrder: function (data, actions) {
-        return actions.order.create({
-          purchase_units: [{
-            amount: { value: product.price.toFixed(2) },
-            description: product.title
-          }]
-        });
-      },
-      onApprove: function (data, actions) {
-        return actions.order.capture().then(async function (details) {
-          const res = await fetch("https://verify-payment-js.vercel.app/api/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              orderId: data.orderID,
-              productId: id,
-              buyerEmail: auth.currentUser.email
-            })
-          });
-
-          const verified = await res.json();
-          if (verified.success) {
-            await updateDoc(doc(db, "products", id), {
-              buyer: auth.currentUser.email,
-              lastSoldAt: serverTimestamp()
-            });
-            sendEmailNotification({
-              to: auth.currentUser.email,
-              subject: "Purchase Confirmation",
-              message: `Your purchase of ${product.title} was successful.`
-            });
-            alert("✅ Purchase complete!");
-            window.open(product.productFileUrl, "_blank");
-            updateBalance(product.sellerEmail);
-          } else {
-            alert("❌ Payment could not be verified.");
-          }
-        });
-      }
-    }).render("#paypal-button-container");
+  // --- Dashboard: My Products & Balance ---
+  async function loadMyProducts() {
+    myProductsGrid.innerHTML = '';
+    const q = query(collection(db, 'products'), where('seller', '==', currentUserEmail));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      noMyProductsMessage.classList.remove('hidden');
+      return;
+    }
+    snapshot.forEach(docSnap => {
+      const pd = docSnap.data();
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow p-4 product-card';
+      card.innerHTML = `
+        <img src="${pd.preview}" class="w-full h-48 object-cover rounded-lg mb-3">
+        <div class="font-bold">${pd.title}</div>
+        <div class="text-gray-600">${pd.description}</div>
+        <div class="text-blue-600 font-bold">${formatPrice(pd.price)}</div>
+      `;
+      myProductsGrid.appendChild(card);
+    });
   }
 
-  // --- Load User Products ---
-  async function loadMyProducts(email) {
-    const container = dom.myProducts;
-    container.innerHTML = "";
-    const q = query(collection(db, "products"), where("sellerEmail", "==", email));
-    const snapshot = await getDocs(q);
+  // --- Sell product handler ---
+  uploadBtn.addEventListener('click', async () => {
+    const title = productTitleInput.value.trim();
+    const description = productDescInput.value.trim();
+    const price = parseFloat(productPriceInput.value);
+    const preview = previewInput.files[0];
 
-    if (snapshot.empty) {
-      document.getElementById("noMyProductsMessage").classList.remove("hidden");
+    if (!title || !description || isNaN(price) || !preview) {
+      showToast('❌ Complete all fields.', 'error');
       return;
     }
 
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-lg shadow";
-      card.innerHTML = `
-        <h4 class="font-bold mb-1">${p.title}</h4>
-        <p class="text-sm text-gray-500">${formatCurrency(p.price)}</p>
-      `;
-      container.appendChild(card);
-    });
-  }
+    const formData = new FormData();
+    formData.append('file', preview);
+    formData.append('upload_preset', 'Your_Cloudinary_Preset');
 
-  // --- Update Balance ---
-  async function updateBalance(email) {
-    const q = query(collection(db, "products"), where("sellerEmail", "==", email));
-    const snapshot = await getDocs(q);
-    let total = 0;
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      if (p.buyer) total += Number(p.price || 0);
-    });
-    dom.sellerBalance.textContent = formatCurrency(total * 0.8); // 80% earnings
-  }
+    try {
+      const cloudRes = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const { secure_url } = await cloudRes.json();
 
-  // --- Back Button ---
-  document.getElementById("backToHomeBtn").onclick = () => {
-    dom.productDetails.classList.add("hidden");
-    document.getElementById("home").classList.remove("hidden");
-  };
+      await addDoc(collection(db, 'products'), {
+        title, description, price, preview: secure_url,
+        seller: currentUserEmail, time: serverTimestamp()
+      });
+      showToast('✅ Product listed!', 'success');
 
+      // Refresh UI
+      productTitleInput.value = '';
+      productDescInput.value = '';
+      productPriceInput.value = '';
+      previewInput.value = '';
+      previewThumbnail.src = '';
+      loadProducts();
+      loadMyProducts();
+    } catch (e) {
+      console.error(e);
+      showToast('❌ Error listing product.', 'error');
+    }
+  });
+
+  // --- Preview thumbnail view ---
+  previewInput.addEventListener('change', () => {
+    const f = previewInput.files[0];
+    if (f && f.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => previewThumbnail.src = reader.result;
+      reader.readAsDataURL(f);
+    }
+  });
 });
