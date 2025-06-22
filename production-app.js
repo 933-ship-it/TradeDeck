@@ -1,30 +1,12 @@
-// production-app.js (updated for testing PIN gating & Seller ID card)
-
+// --- Firebase Modular SDK Imports ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
-  getAuth,
-  onAuthStateChanged,
-  signOut,
-  deleteUser
+  getAuth, onAuthStateChanged, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc, // Added setDoc for creating user documents
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  serverTimestamp,
-  onSnapshot,
-  runTransaction,
-  increment // Added for balance increment
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
@@ -45,28 +27,15 @@ const firebaseConfig = {
 
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
-
-// --- Global User Variable ---
-let currentUser = null; // Consolidated from currentUser and userGlobal
-let sellerID = null;
-// userPIN is removed as it should not be stored client-side after initial fetch for security.
-// PIN verification is strictly server-side through /api/verify-pin or in this case, direct Firestore check as requested.
+const auth = getAuth(app);
 
 // --- DOM Elements ---
-// Removed `const sellerCard = document.getElementById("seller-card");` as it does not exist in HTML.
-const sellerIdText = document.getElementById("sellerIdText"); // New element for seller ID display
-const sellTabBtn = document.getElementById("tab-sell");
-const sellFormContainer = document.getElementById("sell-container");
-// const pinModal = document.getElementById("pin-modal"); // No longer needed with prompt()
-// const pinInput = document.getElementById("pin-input"); // No longer needed with prompt()
-// const pinSubmit = document.getElementById("pin-submit"); // No longer needed with prompt()
-
 const profilePic = document.getElementById('userProfilePic');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const userEmail = document.getElementById('userEmail');
 const authOverlay = document.getElementById('authOverlay');
+let userGlobal = null;
 
 // Navigation
 const tabs = document.querySelectorAll('aside nav a[data-tab]');
@@ -82,7 +51,7 @@ const descriptionInput = document.getElementById('description');
 const priceInput = document.getElementById('price');
 const paypalEmailContainer = document.getElementById('paypalEmailContainer');
 const paypalEmailInput = document.getElementById('paypalEmail');
-const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg'); // Unused in original, kept for completeness
+const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
 const productFileUrlInput = document.getElementById('productFileUrlInput');
 const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget');
 const previewImageUrlInput = document.getElementById('previewImageUrl');
@@ -113,7 +82,7 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-// Edit modal (appears to be incomplete in original dashboard logic, kept elements)
+// Edit modal
 const editProductModal = document.getElementById('editProductModal');
 const editProductForm = document.getElementById('editProductForm');
 const editProductIdInput = document.getElementById('editProductId');
@@ -123,117 +92,22 @@ const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-// --- Helper Functions ---
-function showSellForm() {
-  // pinModal.style.display = "none"; // No longer needed
-  sellFormContainer.style.display = "block";
-}
-
-function hideSellForm() {
-  sellFormContainer.style.display = "none";
-}
-
-function hideOtherTabs() {
-  sections.forEach(sec => sec.classList.add('hidden'));
-}
-
-/**
- * Generates a unique 8-digit PIN by checking existing pins in Firestore.
- * NOTE: For a truly secure production system, PINs should be hashed server-side
- * and this check should also occur server-side. This client-side implementation
- * is for demonstration purposes as per user request.
- * @returns {Promise<string>} A promise that resolves with a unique 8-digit PIN.
- */
-async function generateUniquePin() {
-  let unique = false;
-  let pin = '';
-  while (!unique) {
-    pin = Math.floor(10000000 + Math.random() * 90000000).toString(); // Generate 8-digit number
-    const q = query(collection(db, "users"), where("pin", "==", pin));
-    const snapshot = await getDocs(q);
-    if (snapshot.empty) {
-      unique = true;
-    }
-  }
-  return pin;
-}
-
-
-// --- AUTH STATE CHANGE: initialize user & UI ---
-document.body.style.visibility = "hidden"; // Hide body until auth state is known
-
-onAuthStateChanged(auth, async user => {
-  document.body.style.visibility = ""; // Show body once auth state is known
-  if (user) {
-    currentUser = user; // Use consolidated global variable
-
-    // Display basic profile UI (email, pic, sign out, delete)
-    showProfileUI(user);
-
-    // --- New User Detection and PIN Generation ---
-    const userDocRef = doc(db, "users", user.uid);
-    const userDocSnap = await getDoc(userDocRef);
-
-    if (!userDocSnap.exists()) {
-      // New user: generate PIN and save to Firestore
-      const generatedPin = await generateUniquePin();
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        pin: generatedPin, // Storing PIN directly as requested. WARNING: See generateUniquePin() note.
-        createdAt: serverTimestamp(),
-        // You might add other default user data here
-      });
-      alert(`Welcome! Your Seller ID (UID) is: ${user.uid}\nYour new PIN is: ${generatedPin}\nPlease keep this PIN safe.`);
-      sellerID = user.uid; // Set sellerID for new users
-    } else {
-      // Existing user: retrieve their sellerID
-      sellerID = userDocSnap.data().uid; // Assuming UID is stored as sellerID
-      // Note: PIN is NOT retrieved here for direct client-side storage, but will be fetched on demand for verification.
-    }
-    // Display Seller ID card using the new sellerIdText element
-    if (sellerIdText) { // Add null check for sellerIdText
-      sellerIdText.innerHTML = `Seller ID: <strong>${sellerID}</strong>`;
-      sellerIdText.classList.remove('hidden'); // Ensure seller ID text is visible
-    } else {
-      console.error("Error: Element with ID 'sellerIdText' not found in the DOM. Seller ID cannot be displayed.");
-    }
-    // Ensure userProfilePic is visible as it is part of the seller info display
-    if (profilePic) {
-      profilePic.classList.remove('hidden');
-    }
-
-
-    showTab('home'); // Go to home after login
-    loadProducts(); // Load products on home tab
+// --- Auth and Profile ---
+document.body.style.visibility = "hidden";
+onAuthStateChanged(auth, user => {
+  document.body.style.visibility = "";
+  if (!user) {
+    authOverlay.style.display = "flex";
+    userGlobal = null;
   } else {
-    currentUser = null;
-    sellerID = null; // Clear seller ID
-    // Hide seller ID text and profile picture when logged out
-    if (sellerIdText) {
-      sellerIdText.innerHTML = ""; // Clear seller ID text
-      sellerIdText.classList.add('hidden'); // Hide seller ID text
-    }
-    if (profilePic) {
-      profilePic.classList.add('hidden'); // Hide profile picture
-    }
-    authOverlay.style.display = "flex"; // Show login overlay
-    showTab('home'); // Still show home for unauthenticated users
+    authOverlay.style.display = "none";
+    userGlobal = user;
+    showProfileUI(user);
   }
 });
 
 // --- EmailJS sale notification ---
-function sendSaleEmail({
-  buyerName,
-  buyerEmail,
-  sellerPaypalEmail,
-  productTitle,
-  amount
-}) {
-  // Ensure emailjs is loaded before attempting to send
-  if (typeof emailjs === 'undefined') {
-    console.error('EmailJS SDK not loaded. Cannot send sale email.');
-    return;
-  }
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
   emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
     buyer_name: buyerName,
     buyer_email: buyerEmail,
@@ -250,7 +124,7 @@ function sendSaleEmail({
 function showProfileUI(user) {
   if (!user) return;
   profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
-  profilePic.classList.remove("hidden"); // Ensure profile pic is visible here too
+  profilePic.classList.remove("hidden");
   userEmail.textContent = user.email || "(no email)";
   profilePic.onclick = function(e) {
     e.stopPropagation();
@@ -297,46 +171,15 @@ function showTab(targetTabId) {
     else sec.classList.add('hidden');
   });
 }
-
 tabs.forEach(tab => {
   tab.addEventListener('click', async (e) => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
-
-    // --- Sell Tab PIN Gating ---
-    if (target === 'sell') {
-      if (!currentUser) {
-        alert("You must be logged in to access the Sell tab.");
-        return;
-      }
-      const userDocRef = doc(db, "users", currentUser.uid);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (userDocSnap.exists() && userDocSnap.data().pin) {
-        const storedPin = userDocSnap.data().pin;
-        const enteredPin = prompt("Please enter your 8-digit PIN to access the Sell tab:");
-
-        if (enteredPin === storedPin) {
-          showTab(target); // Allow access to Sell tab
-          toggleProductForm(true); // Ensure product form is shown
-        } else {
-          alert("Incorrect PIN — access denied.");
-          // Do not switch tab, remain on current tab (or home)
-          showTab('home'); // Redirect to home if PIN is incorrect
-        }
-      } else {
-        alert("Your PIN is not set up. Please sign in again or contact support.");
-        showTab('home'); // Redirect to home if PIN is not found
-      }
-    } else {
-      // For other tabs, just switch
-      showTab(target);
-      if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-        toggleProductForm(false); // Hide product form if not on sell tab
-      }
+    showTab(target);
+    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+      toggleProductForm(false);
     }
-    productDetailsSection.classList.add('hidden'); // Always hide product details when switching tabs
-
+    productDetailsSection.classList.add('hidden');
     if (target === 'home') {
       await loadProducts(searchBar.value.trim());
       searchBar.value = '';
@@ -345,12 +188,10 @@ tabs.forEach(tab => {
     }
   });
 });
-
 backToHomeBtn.addEventListener('click', () => {
   showTab('home');
   loadProducts(searchBar.value.trim());
 });
-
 startSellingBtn.addEventListener('click', () => {
   toggleProductForm(true);
 });
@@ -359,7 +200,7 @@ function toggleProductForm(showForm) {
   if (showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
-    // showTab('sell'); // This is handled by the tab click listener now
+    showTab('sell');
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
@@ -381,7 +222,6 @@ function saveSellForm() {
   };
   localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
 }
-
 function restoreSellForm() {
   const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
   titleInput.value = state.title || "";
@@ -417,7 +257,8 @@ document.addEventListener("DOMContentLoaded", restoreSellForm);
 
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
-const previewImageWidget = window.cloudinary.createUploadWidget({
+const previewImageWidget = window.cloudinary.createUploadWidget(
+  {
     cloudName: CLOUDINARY_CLOUD_NAME,
     uploadPreset: CLOUDINARY_UPLOAD_PRESET,
     sources: ['local'],
@@ -471,7 +312,6 @@ function setFileInputStatus(statusElement, message, type = 'default') {
   else if (type === 'error') statusElement.classList.add('error');
   else if (type === 'loading') statusElement.classList.add('loading');
 }
-
 function convertToGoogleDriveDirectDownload(url) {
   if (!url) return url;
   let convertedUrl = url;
@@ -527,7 +367,6 @@ function enableSubmitButton() {
     submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
   }
 }
-
 function disableSubmitButton() {
   submitProductBtn.disabled = true;
   submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -584,9 +423,9 @@ productUploadForm.addEventListener('submit', async (e) => {
     await addDoc(collection(db, "products"), newProduct);
     alert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
-    toggleProductForm(false); // Hide the product form and show selling landing content
-    await loadProducts(''); // Refresh all products displayed
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Refresh dashboard products
+    toggleProductForm(false);
+    await loadProducts('');
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
     showFormErrors(["Failed to list product. Please try again."]);
     console.error("Error adding document to Firestore:", error);
@@ -605,11 +444,8 @@ async function loadProducts(filterQuery = '') {
   try {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
-    const fetchedProducts = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    window.allProducts = fetchedProducts; // Store all products for client-side filtering
+    const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window.allProducts = fetchedProducts;
     const lowerCaseQuery = filterQuery.toLowerCase();
     const filteredProducts = fetchedProducts.filter(product =>
       (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
@@ -623,9 +459,9 @@ async function loadProducts(filterQuery = '') {
   }
 }
 searchBar.addEventListener('input', () => {
-  if (!document.getElementById('home').classList.contains('hidden')) { // Only search if home tab is active
+  if (!document.getElementById('home').classList.contains('hidden')) {
     const query = searchBar.value.trim().toLowerCase();
-    if (!window.allProducts) return; // Ensure products are loaded
+    if (!window.allProducts) return;
     if (!query) {
       renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
       return;
@@ -669,7 +505,6 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
         <div class="mt-auto flex justify-end items-center pt-2">
           <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Download</a>
           <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
-          <button data-product-id="${product.id}" class="edit-product-btn px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition ml-2">Edit</button>
         </div>
       `;
     }
@@ -683,7 +518,6 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
       </div>
     `;
     container.appendChild(productCard);
-
     if (isDashboardView) {
       const delistButton = productCard.querySelector('.delist-product-btn');
       if (delistButton) {
@@ -691,16 +525,6 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
           e.stopPropagation();
           const productId = delistButton.getAttribute('data-product-id');
           if (productId) deleteProduct(productId);
-        });
-      }
-      const editButton = productCard.querySelector('.edit-product-btn');
-      if (editButton) {
-        editButton.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const productId = editButton.getAttribute('data-product-id');
-          // Find the product from the array to pass to the edit modal
-          const productToEdit = productArray.find(p => p.id === productId);
-          if (productToEdit) openEditProductModal(productToEdit);
         });
       }
     } else {
@@ -718,8 +542,8 @@ async function deleteProduct(productId) {
   try {
     await deleteDoc(doc(db, "products", productId));
     alert('Product delisted successfully!');
-    await loadProducts(''); // Refresh all products
-    if (currentUser) await loadMyProducts(currentUser.uid); // Refresh dashboard products
+    await loadProducts('');
+    await showDashboard();
   } catch (error) {
     console.error("Error removing document: ", error);
     alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
@@ -737,10 +561,7 @@ async function showProductDetails(productId) {
       productDetailsError.classList.remove('hidden');
       return;
     }
-    const product = {
-      id: productDoc.id,
-      ...productDoc.data()
-    };
+    const product = { id: productDoc.id, ...productDoc.data() };
     detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
     detailProductTitle.textContent = product.title;
     detailProductDescription.textContent = product.description;
@@ -750,16 +571,14 @@ async function showProductDetails(productId) {
     detailActionButton.disabled = false;
 
     if (parseFloat(product.price) > 0) {
-      detailActionButton.style.display = 'none'; // Hide general action button for paid products
-      paypalButtonContainer.innerHTML = ''; // Clear previous PayPal buttons
+      detailActionButton.style.display = 'none';
+      paypalButtonContainer.innerHTML = '';
       if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
         window.paypal.Buttons({
           createOrder: function(data, actions) {
             return actions.order.create({
               purchase_units: [{
-                amount: {
-                  value: product.price.toString()
-                },
+                amount: { value: product.price.toString() },
                 description: product.title
               }]
             });
@@ -767,9 +586,8 @@ async function showProductDetails(productId) {
           onApprove: async function(data, actions) {
             return actions.order.capture().then(async function(details) {
               alert('Payment completed by ' + details.payer.name.given_name + '!');
-              // Show download link after successful payment
               paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
-              await handleProductPurchase(product); // Handle backend purchase logic (e.g., increment seller balance)
+              await handleProductPurchase(product);
               // --- Send EmailJS sale notification ---
               sendSaleEmail({
                 buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
@@ -789,16 +607,14 @@ async function showProductDetails(productId) {
         paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
       }
     } else {
-      detailActionButton.style.display = ''; // Show general action button for free products
-      paypalButtonContainer.innerHTML = ''; // Hide PayPal buttons
+      detailActionButton.style.display = '';
+      paypalButtonContainer.innerHTML = '';
       detailActionButton.textContent = 'Download';
       detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
       detailActionButton.onclick = () => {
         window.open(product.fileUrl, '_blank');
       };
       detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
-      // For free products, also consider calling handleProductPurchase to log the "sale"
-      await handleProductPurchase(product);
     }
   } catch (error) {
     console.error("Error loading product details:", error);
@@ -806,35 +622,6 @@ async function showProductDetails(productId) {
     productDetailsError.classList.remove('hidden');
   }
 }
-
-// Function to handle product purchase logic (e.g., increment seller balance)
-async function handleProductPurchase(product) {
-  if (product.price > 0 && product.sellerId) {
-    try {
-      await incrementSellerBalance(product.sellerId, parseFloat(product.price));
-      console.log(`Seller ${product.sellerId} balance incremented by ${product.price}`);
-    } catch (e) {
-      console.error("Failed to increment seller balance:", e);
-    }
-  }
-  // You might also want to log the sale in a 'sales' collection
-  try {
-    await addDoc(collection(db, "sales"), {
-      productId: product.id,
-      buyerId: currentUser ? currentUser.uid : 'anonymous',
-      sellerId: product.sellerId,
-      amount: product.price,
-      timestamp: serverTimestamp(),
-      // Add other relevant details like buyer email, product title etc.
-      productTitle: product.title,
-      buyerEmail: currentUser ? currentUser.email : 'N/A'
-    });
-    console.log("Sale recorded successfully.");
-  } catch (e) {
-    console.error("Failed to record sale:", e);
-  }
-}
-
 
 // --- DASHBOARD LOGIC ---
 async function updateSellerBalance(userId) {
@@ -847,51 +634,40 @@ async function updateSellerBalance(userId) {
     sellerBalance.textContent = `$${value.toFixed(2)}`;
   } catch (e) {
     sellerBalance.textContent = "$0.00";
-    console.error("Error updating seller balance:", e);
   }
 }
 let balanceUnsub = null;
-
 function watchSellerBalance(userId) {
-  if (balanceUnsub) balanceUnsub(); // Unsubscribe previous listener if any
+  if (balanceUnsub) balanceUnsub();
   balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
     let value = 0;
     if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
     sellerBalance.textContent = `$${value.toFixed(2)}`;
-  }, (error) => {
-    console.error("Error listening to seller balance:", error);
-    sellerBalance.textContent = "$0.00 (Error)";
   });
 }
-
 async function loadMyProducts(userId) {
   myProductsContainer.innerHTML = '';
-  noMyProductsMessage.textContent = 'Loading your products...';
   noMyProductsMessage.classList.add('hidden');
   try {
     const q = query(
       collection(db, "products"),
-      where("sellerId", "==", userId),
-      orderBy("createdAt", "desc") // Added orderBy back, ensure Firestore index exists for sellerId + createdAt
+      where("sellerId", "==", userId)
+      // Add back orderBy if data/index is ready:
+      // , orderBy("createdAt", "desc")
     );
     const snapshot = await getDocs(q);
-    const products = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if (products.length === 0) {
       noMyProductsMessage.classList.remove('hidden');
-      noMyProductsMessage.textContent = 'You have not listed any products yet.';
       return;
     }
+    // Use your existing rendering function for consistency:
     renderProducts(products, myProductsContainer, noMyProductsMessage, true);
-  }
-  catch (e) {
+  } catch (e) {
     console.error("Error loading user's products:", e);
     myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
   }
 }
-
 function openEditProductModal(product) {
   editProductIdInput.value = product.id;
   editTitleInput.value = product.title;
@@ -900,79 +676,52 @@ function openEditProductModal(product) {
   editFileUrlInput.value = product.fileUrl;
   editProductModal.classList.remove('hidden');
 }
-
 function closeEditProductModal() {
   editProductModal.classList.add('hidden');
 }
-// Event listener for closing modal via X button or outside click (if applicable)
-cancelEditBtn.onclick = closeEditProductModal;
-
-editProductForm.onsubmit = async function(e) {
+editProductForm.onsubmit = async function (e) {
   e.preventDefault();
   const id = editProductIdInput.value;
   const updated = {
     title: editTitleInput.value.trim(),
     description: editDescriptionInput.value.trim(),
     price: parseFloat(editPriceInput.value),
-    fileUrl: convertToGoogleDriveDirectDownload(editFileUrlInput.value.trim()) // Ensure conversion on edit too
+    fileUrl: editFileUrlInput.value.trim()
   };
-
-  // Basic validation for edit form
-  if (!updated.title || !updated.description || isNaN(updated.price) || updated.price < 0 || !updated.fileUrl) {
-    alert("Please fill all required fields correctly in the edit form.");
-    return;
-  }
-
   try {
     await updateDoc(doc(db, "products", id), updated);
-    alert("Product updated successfully!");
     closeEditProductModal();
-    if (currentUser) {
-      await loadMyProducts(currentUser.uid); // Refresh dashboard products
+    if (auth.currentUser) {
+      await loadMyProducts(auth.currentUser.uid);
     }
-    await loadProducts(''); // Refresh all products to reflect changes
   } catch (err) {
-    console.error("Failed to update product:", err);
-    alert("Failed to update product. Please try again. (Check Firestore rules!)");
+    alert("Failed to update product.");
   }
 };
-
+cancelEditBtn.onclick = closeEditProductModal;
 
 async function showDashboard() {
-  if (!currentUser) {
-    alert("You must be signed in to view your dashboard.");
-    showTab('home'); // Redirect to home if not signed in
-    return;
-  }
+  if (!auth.currentUser) return;
   showTab('dashboard');
-  await updateSellerBalance(currentUser.uid); // Initial balance load
-  watchSellerBalance(currentUser.uid); // Set up real-time listener for balance
-  await loadMyProducts(currentUser.uid);
+  await updateSellerBalance(auth.currentUser.uid);
+  watchSellerBalance(auth.currentUser.uid);
+  await loadMyProducts(auth.currentUser.uid);
 }
-
-// Complete the incrementSellerBalance function
 async function incrementSellerBalance(sellerId, amount) {
-  if (amount <= 0) return; // Only increment with positive amounts
   const balRef = doc(db, "balances", sellerId);
-
-  await runTransaction(db, async (transaction) => {
-    const docSnap = await transaction.get(balRef);
+  await runTransaction(db, async (tx) => {
+    const docSnap = await tx.get(balRef);
     let newBalance = amount;
-    if (docSnap.exists()) {
-      const currentBalance = docSnap.data().balance;
-      if (typeof currentBalance === 'number') {
-        newBalance = currentBalance + amount;
-      }
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+      newBalance += docSnap.data().balance;
     }
-    // Set or update the balance document
-    transaction.set(balRef, {
-      balance: newBalance
-    }, {
-      merge: true
-    }); // merge: true ensures other fields (if any) are not overwritten
+    tx.set(balRef, { balance: newBalance }, { merge: true });
   });
 }
-
+async function handleProductPurchase(product) {
+  if (!product || !product.sellerId || !product.price) return;
+  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+}
 
 // --- Initial Load ---
 loadProducts();
