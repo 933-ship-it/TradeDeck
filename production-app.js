@@ -190,19 +190,27 @@ onAuthStateChanged(auth, async user => {
       // Note: PIN is NOT retrieved here for direct client-side storage, but will be fetched on demand for verification.
     }
     // Display Seller ID card
-    sellerCard.innerHTML = `
-      <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.email || "U")}" alt="Profile" class="rounded-full w-10 h-10 object-cover mr-2"/>
-      <span class="text-gray-700">Seller ID: <strong>${sellerID}</strong></span>
-    `;
-    sellerCard.classList.remove('hidden'); // Ensure seller card is visible
+    if (sellerCard) { // Add null check for sellerCard
+      sellerCard.innerHTML = `
+        <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.email || "U")}" alt="Profile" class="rounded-full w-10 h-10 object-cover mr-2"/>
+        <span class="text-gray-700">Seller ID: <strong>${sellerID}</strong></span>
+      `;
+      sellerCard.classList.remove('hidden'); // Ensure seller card is visible
+    } else {
+      console.error("Error: Element with ID 'seller-card' not found in the DOM. Seller ID card cannot be displayed.");
+    }
 
     showTab('home'); // Go to home after login
     loadProducts(); // Load products on home tab
   } else {
     currentUser = null;
     sellerID = null; // Clear seller ID
-    sellerCard.innerHTML = ""; // Clear seller card
-    sellerCard.classList.add('hidden'); // Hide seller card
+    if (sellerCard) { // Add null check for sellerCard
+      sellerCard.innerHTML = ""; // Clear seller card
+      sellerCard.classList.add('hidden'); // Hide seller card
+    } else {
+      console.error("Error: Element with ID 'seller-card' not found in the DOM. Seller ID card cannot be hidden.");
+    }
     authOverlay.style.display = "flex"; // Show login overlay
     showTab('home'); // Still show home for unauthenticated users
   }
