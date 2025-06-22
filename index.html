@@ -85,7 +85,10 @@
     <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
       <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
       <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
-        <img id="userProfilePic" class="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 hidden" src="" alt="Profile" />
+        <div class="flex items-center"> <!-- This div helps align the profile pic and seller ID text -->
+          <img id="userProfilePic" class="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 hidden" src="" alt="Profile" />
+          <span id="sellerIdText" class="text-gray-700 ml-2 hidden"></span> <!-- Added this span -->
+        </div>
         <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
           <div class="px-4 py-2 text-gray-700 text-sm border-b border-gray-100" id="userEmail"></div>
           <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">Delete Account</button>
