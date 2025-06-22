@@ -55,7 +55,8 @@ let sellerID = null;
 // PIN verification is strictly server-side through /api/verify-pin or in this case, direct Firestore check as requested.
 
 // --- DOM Elements ---
-const sellerCard = document.getElementById("seller-card");
+// Removed `const sellerCard = document.getElementById("seller-card");` as it does not exist in HTML.
+const sellerIdText = document.getElementById("sellerIdText"); // New element for seller ID display
 const sellTabBtn = document.getElementById("tab-sell");
 const sellFormContainer = document.getElementById("sell-container");
 // const pinModal = document.getElementById("pin-modal"); // No longer needed with prompt()
@@ -189,27 +190,31 @@ onAuthStateChanged(auth, async user => {
       sellerID = userDocSnap.data().uid; // Assuming UID is stored as sellerID
       // Note: PIN is NOT retrieved here for direct client-side storage, but will be fetched on demand for verification.
     }
-    // Display Seller ID card
-    if (sellerCard) { // Add null check for sellerCard
-      sellerCard.innerHTML = `
-        <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.email || "U")}" alt="Profile" class="rounded-full w-10 h-10 object-cover mr-2"/>
-        <span class="text-gray-700">Seller ID: <strong>${sellerID}</strong></span>
-      `;
-      sellerCard.classList.remove('hidden'); // Ensure seller card is visible
+    // Display Seller ID card using the new sellerIdText element
+    if (sellerIdText) { // Add null check for sellerIdText
+      sellerIdText.innerHTML = `Seller ID: <strong>${sellerID}</strong>`;
+      sellerIdText.classList.remove('hidden'); // Ensure seller ID text is visible
     } else {
-      console.error("Error: Element with ID 'seller-card' not found in the DOM. Seller ID card cannot be displayed.");
+      console.error("Error: Element with ID 'sellerIdText' not found in the DOM. Seller ID cannot be displayed.");
     }
+    // Ensure userProfilePic is visible as it is part of the seller info display
+    if (profilePic) {
+      profilePic.classList.remove('hidden');
+    }
+
 
     showTab('home'); // Go to home after login
     loadProducts(); // Load products on home tab
   } else {
     currentUser = null;
     sellerID = null; // Clear seller ID
-    if (sellerCard) { // Add null check for sellerCard
-      sellerCard.innerHTML = ""; // Clear seller card
-      sellerCard.classList.add('hidden'); // Hide seller card
-    } else {
-      console.error("Error: Element with ID 'seller-card' not found in the DOM. Seller ID card cannot be hidden.");
+    // Hide seller ID text and profile picture when logged out
+    if (sellerIdText) {
+      sellerIdText.innerHTML = ""; // Clear seller ID text
+      sellerIdText.classList.add('hidden'); // Hide seller ID text
+    }
+    if (profilePic) {
+      profilePic.classList.add('hidden'); // Hide profile picture
     }
     authOverlay.style.display = "flex"; // Show login overlay
     showTab('home'); // Still show home for unauthenticated users
@@ -245,7 +250,7 @@ function sendSaleEmail({
 function showProfileUI(user) {
   if (!user) return;
   profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
-  profilePic.classList.remove("hidden");
+  profilePic.classList.remove("hidden"); // Ensure profile pic is visible here too
   userEmail.textContent = user.email || "(no email)";
   profilePic.onclick = function(e) {
     e.stopPropagation();
@@ -880,7 +885,8 @@ async function loadMyProducts(userId) {
       return;
     }
     renderProducts(products, myProductsContainer, noMyProductsMessage, true);
-  } catch (e) {
+  }
+  catch (e) {
     console.error("Error loading user's products:", e);
     myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
   }
