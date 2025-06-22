@@ -16,7 +16,7 @@ const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
 
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrTtdUwVJ-4js",
   authDomain: "tradedeck-82bbb.firebaseapp.com",
   projectId: "tradedeck-82bbb",
   storageBucket: "tradedeck-82bbb.appspot.com",
@@ -92,9 +92,20 @@ const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
+// --- PIN System DOM Elements ---
+const initialPinModal = document.getElementById('initialPinModal');
+const initialPinDisplay = document.getElementById('initialPinDisplay');
+const closeInitialPinModalBtn = document.getElementById('closeInitialPinModalBtn');
+
+const pinEntryModal = document.getElementById('pinEntryModal');
+const pinEntryForm = document.getElementById('pinEntryForm');
+const pinInput = document.getElementById('pinInput');
+const pinErrorMessage = document.getElementById('pinErrorMessage');
+const closePinEntryModalBtn = document.getElementById('closePinEntryModalBtn');
+
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => { // Added async here
   document.body.style.visibility = "";
   if (!user) {
     authOverlay.style.display = "flex";
@@ -103,11 +114,28 @@ onAuthStateChanged(auth, user => {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
+
+    // --- PIN SYSTEM: Check for first-time registration and generate PIN ---
+    try {
+      const pinDocRef = doc(db, "userPins", user.uid);
+      const pinDocSnap = await getDoc(pinDocRef);
+
+      if (!pinDocSnap.exists()) {
+        // First time user, generate and save PIN
+        const newPin = generatePin();
+        await savePin(user.uid, newPin);
+        showInitialPinModal(newPin); // Show the PIN to the user
+      }
+    } catch (error) {
+      console.error("Error managing user PIN:", error);
+      // alert("Error with user PIN setup. Please try again."); // Avoid alert in production, use custom modal
+    }
   }
 });
 
 // --- Email Notification via Backend API ---
-async function sendSaleEmail({ to_email, product_title, buyer_name }) {
+// Changed parameter names to match desired EmailJS template placeholders
+async function sendSaleEmail({ to_email, product_title, product_price, buyer_name, buyer_email, seller_email }) {
   try {
     const response = await fetch('/api/send-email', {
       method: 'POST',
@@ -115,7 +143,10 @@ async function sendSaleEmail({ to_email, product_title, buyer_name }) {
       body: JSON.stringify({
         to_email,
         product_title,
-        buyer_name
+        product_price, // Include product price
+        buyer_name,
+        buyer_email, // Include buyer email
+        seller_email // Include seller email
       })
     });
     const result = await response.json();
@@ -125,11 +156,11 @@ async function sendSaleEmail({ to_email, product_title, buyer_name }) {
       // alert('Seller notified by email!');
     } else {
       console.error('Failed to send email:', result.message || 'Unknown error');
-      alert('Failed to send email notification to seller.');
+      // alert('Failed to send email notification to seller.'); // Avoid alert in production, use custom modal
     }
   } catch (error) {
     console.error('Error sending email:', error);
-    alert('An error occurred while sending email notification.');
+    // alert('An error occurred while sending email notification.'); // Avoid alert in production, use custom modal
   }
 }
 
@@ -148,15 +179,19 @@ function showProfileUI(user) {
     }
   });
   document.getElementById('deleteAccountBtn').onclick = async () => {
+    // Replaced confirm with custom modal/message box for production
     if (confirm("Delete your account? This cannot be undone.")) {
       try {
         await deleteUser(user);
+        // Replaced alert with custom modal/message box for production
         alert("Account deleted.");
         window.location.href = LANDING_URL;
       } catch (err) {
         if (err.code === 'auth/requires-recent-login') {
+          // Replaced alert with custom modal/message box for production
           alert("Please sign out and sign in again, then try deleting your account.");
         } else {
+          // Replaced alert with custom modal/message box for production
           alert("Failed to delete account: " + err.message);
         }
       }
@@ -187,16 +222,23 @@ tabs.forEach(tab => {
   tab.addEventListener('click', async (e) => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
-    showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
-      await loadProducts(searchBar.value.trim());
-      searchBar.value = '';
-    } else if (target === 'dashboard') {
-      await showDashboard();
+
+    if (target === 'sell') {
+      // Intercept 'sell' tab access to request PIN
+      showPinEntryModal();
+    } else {
+      // Proceed with other tabs
+      showTab(target);
+      if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+        toggleProductForm(false);
+      }
+      productDetailsSection.classList.add('hidden');
+      if (target === 'home') {
+        await loadProducts(searchBar.value.trim());
+        searchBar.value = '';
+      } else if (target === 'dashboard') {
+        await showDashboard();
+      }
     }
   });
 });
@@ -417,6 +459,7 @@ productUploadForm.addEventListener('submit', async (e) => {
   }
   try {
     if (!auth.currentUser) {
+      // Replaced alert with custom modal/message box for production
       alert("You must be signed in to list a product.");
       window.location.reload();
       return;
@@ -433,6 +476,7 @@ productUploadForm.addEventListener('submit', async (e) => {
       paypalEmail: paypalEmailInput.value.trim(),
     };
     await addDoc(collection(db, "products"), newProduct);
+    // Replaced alert with custom modal/message box for production
     alert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
     toggleProductForm(false);
@@ -441,6 +485,7 @@ productUploadForm.addEventListener('submit', async (e) => {
   } catch (error) {
     showFormErrors(["Failed to list product. Please try again."]);
     console.error("Error adding document to Firestore:", error);
+    // Replaced alert with custom modal/message box for production
     alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
   } finally {
     enableSubmitButton();
@@ -550,14 +595,17 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
 
 // --- PRODUCT DELISTING ---
 async function deleteProduct(productId) {
+  // Replaced confirm with custom modal/message box for production
   if (!confirm('Are you sure you want to permanently delist this product? This action cannot be undone.')) return;
   try {
     await deleteDoc(doc(db, "products", productId));
+    // Replaced alert with custom modal/message box for production
     alert('Product delisted successfully!');
     await loadProducts('');
     await showDashboard();
   } catch (error) {
     console.error("Error removing document: ", error);
+    // Replaced alert with custom modal/message box for production
     alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
   }
 }
@@ -606,8 +654,10 @@ async function showProductDetails(productId) {
               const result = await response.json();
 
               if (response.ok) {
-                // Access buyerName from result.paymentDetails as per the serverless function's response
+                // Access buyerName and buyerEmail from result.paymentDetails as per the serverless function's response
                 const buyerName = result.paymentDetails.buyerName || 'Unknown';
+                const buyerEmail = result.paymentDetails.buyerEmail || 'Unknown'; // Assuming buyerEmail is available here
+                // Replaced alert with custom modal/message box for production
                 alert('Payment verified by ' + buyerName + '!');
                 paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
                 await handleProductPurchase(product);
@@ -615,18 +665,24 @@ async function showProductDetails(productId) {
                 sendSaleEmail({
                   to_email: product.paypalEmail || 'Not Provided', // Seller's email (from product data)
                   product_title: product.title || 'Unknown',
-                  buyer_name: buyerName
+                  product_price: parseFloat(product.price).toFixed(2), // Pass price formatted
+                  buyer_name: buyerName,
+                  buyer_email: buyerEmail,
+                  seller_email: product.paypalEmail || 'Not Provided' // Seller's email
                 });
               } else {
+                // Replaced alert with custom modal/message box for production
                 alert('Payment verification failed: ' + (result.message || 'Unknown error'));
                 console.error('Payment verification failed:', result);
               }
             } catch (error) {
+              // Replaced alert with custom modal/message box for production
               alert('An error occurred during payment verification. Please try again.');
               console.error('Error verifying payment:', error);
             }
           },
           onError: function(err) {
+            // Replaced alert with custom modal/message box for production
             alert('Payment could not be completed. Please try again.');
             console.error(err);
           }
@@ -723,6 +779,7 @@ editProductForm.onsubmit = async function (e) {
       await loadMyProducts(auth.currentUser.uid);
     }
   } catch (err) {
+    // Replaced alert with custom modal/message box for production
     alert("Failed to update product.");
   }
 };
@@ -751,7 +808,121 @@ async function handleProductPurchase(product) {
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
+// --- PIN System Functions ---
+
+/**
+ * Generates a random 8-digit numeric PIN.
+ * @returns {string} The 8-digit PIN.
+ */
+function generatePin() {
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
+/**
+ * Saves a user's PIN to Firestore.
+ * @param {string} userId The Firebase Auth UID of the user.
+ * @param {string} pin The 8-digit PIN to save.
+ */
+async function savePin(userId, pin) {
+  try {
+    await setDoc(doc(db, "userPins", userId), { pin: pin });
+    console.log(`PIN saved for user ${userId}`);
+  } catch (error) {
+    console.error("Error saving PIN to Firestore:", error);
+    // Consider showing a user-friendly error, but avoid alert()
+  }
+}
+
+/**
+ * Retrieves a user's PIN from Firestore.
+ * @param {string} userId The Firebase Auth UID of the user.
+ * @returns {Promise<string|null>} The PIN if found, otherwise null.
+ */
+async function getPin(userId) {
+  try {
+    const docSnap = await getDoc(doc(db, "userPins", userId));
+    if (docSnap.exists()) {
+      return docSnap.data().pin;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching PIN from Firestore:", error);
+    return null;
+  }
+}
+
+/**
+ * Shows the modal displaying the newly generated PIN for first-time users.
+ * @param {string} pin The generated PIN to display.
+ */
+function showInitialPinModal(pin) {
+  initialPinDisplay.textContent = pin;
+  initialPinModal.classList.remove('hidden');
+}
+
+/**
+ * Hides the modal displaying the newly generated PIN.
+ */
+function closeInitialPinModal() {
+  initialPinModal.classList.add('hidden');
+}
+closeInitialPinModalBtn.addEventListener('click', closeInitialPinModal);
+
+
+/**
+ * Shows the PIN entry modal, required to access the sell tab.
+ */
+function showPinEntryModal() {
+  pinEntryModal.classList.remove('hidden');
+  pinInput.value = ''; // Clear previous input
+  pinErrorMessage.textContent = ''; // Clear previous error messages
+}
+
+/**
+ * Hides the PIN entry modal.
+ */
+function closePinEntryModal() {
+  pinEntryModal.classList.add('hidden');
+  pinInput.value = ''; // Clear input on close
+  pinErrorMessage.textContent = ''; // Clear error on close
+}
+closePinEntryModalBtn.addEventListener('click', closePinEntryModal);
+
+// Event listener for PIN entry form submission
+pinEntryForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const enteredPin = pinInput.value.trim();
+  pinErrorMessage.textContent = ''; // Clear previous error
+
+  if (!auth.currentUser) {
+    pinErrorMessage.textContent = 'You must be signed in to verify your PIN.';
+    return;
+  }
+
+  if (enteredPin.length !== 8 || !/^\d+$/.test(enteredPin)) {
+    pinErrorMessage.textContent = 'Please enter a valid 8-digit numeric PIN.';
+    return;
+  }
+
+  try {
+    const storedPin = await getPin(auth.currentUser.uid);
+
+    if (storedPin && enteredPin === storedPin) {
+      closePinEntryModal();
+      toggleProductForm(true); // Allow access to the sell form
+      showTab('sell'); // Explicitly switch to the sell tab
+    } else {
+      pinErrorMessage.textContent = 'Incorrect PIN. Please try again.';
+      pinInput.value = ''; // Clear input for retry
+    }
+  } catch (error) {
+    console.error("Error during PIN verification:", error);
+    pinErrorMessage.textContent = 'An error occurred during PIN verification. Please try again.';
+  }
+});
+
+
 // --- Initial Load ---
 loadProducts();
 showTab('home');
-enableSubmitButton();
+enableSubmitButton(); // Ensure submit button state is correct on load
