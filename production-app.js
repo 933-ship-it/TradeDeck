@@ -958,10 +958,7 @@ async function incrementSellerBalance(sellerId, amount) {
     }); // merge: true ensures other fields (if any) are not overwritten
   });
 }
-async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) return;
-  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
-}
+
 
 // --- Initial Load ---
 loadProducts();
