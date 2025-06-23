@@ -1,3 +1,5 @@
+// production-app.js
+
 // --- Firebase Modular SDK Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
@@ -109,10 +111,10 @@ function showAlert(message) {
   customAlertModal.classList.add('modal-enter-active');
   return new Promise(resolve => {
     customAlertOkBtn.onclick = () => {
+      customAlertModal.classList.add('hidden'); // ADDED: Ensures modal hides immediately
       customAlertModal.classList.remove('modal-enter-active');
       customAlertModal.classList.add('modal-exit-active');
       setTimeout(() => {
-        customAlertModal.classList.add('hidden');
         customAlertModal.classList.remove('modal-exit-active');
         resolve(true);
       }, 200);
@@ -126,20 +128,20 @@ function showConfirm(message) {
   customConfirmModal.classList.add('modal-enter-active');
   return new Promise(resolve => {
     const handleConfirm = () => {
+      customConfirmModal.classList.add('hidden'); // ADDED: Ensures modal hides immediately
       customConfirmModal.classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
       setTimeout(() => {
-        customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
         resolve(true);
       }, 200);
     };
 
     const handleCancel = () => {
+      customConfirmModal.classList.add('hidden'); // ADDED: Ensures modal hides immediately
       customConfirmModal.classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
       setTimeout(() => {
-        customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
         resolve(false);
       }, 200);
@@ -493,7 +495,6 @@ productUploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   disableSubmitButton();
   submitProductBtn.textContent = 'Listing...';
-  
   const errors = validateSellForm();
   if (errors.length) {
     showFormErrors(errors);
@@ -501,14 +502,12 @@ productUploadForm.addEventListener('submit', async (e) => {
     enableSubmitButton();
     return;
   }
-
   try {
     if (!auth.currentUser) {
       await showAlert("You must be signed in to list a product.");
       window.location.reload();
       return;
     }
-
     const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
     const newProduct = {
       title: titleInput.value.trim(),
@@ -521,7 +520,6 @@ productUploadForm.addEventListener('submit', async (e) => {
       paypalEmail: paypalEmailInput.value.trim(),
       category: categorySelect.value || 'Other'
     };
-
     await addDoc(collection(db, "products"), newProduct);
     await showAlert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
@@ -530,56 +528,55 @@ productUploadForm.addEventListener('submit', async (e) => {
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
     console.error("Error adding document:", error);
-    await showAlert('Failed to list product. Please try again.');
+    await showAlert('Failed to list product: ' + error.message);
   } finally {
     submitProductBtn.textContent = 'List Product';
     enableSubmitButton();
   }
 });
 
-// --- PRODUCT LISTING & SEARCH ---
-async function loadProducts() {
+// --- PRODUCT LISTING (HOME) ---
+function createProductCardHtml(product, isDashboard = false) {
+  const priceDisplay = product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free';
+  const actionButton = isDashboard ?
+    `<button class="delete-product-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200" data-product-id="${product.id}">Delete</button>` :
+    `<button class="view-product-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200" data-product-id="${product.id}">View Details</button>`;
+
+  return `
+    <div class="product-card bg-white rounded-xl shadow-md overflow-hidden interactive-card p-4 flex flex-col" data-product-id="${product.id}">
+      <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-lg mb-4">
+      <div class="flex-grow">
+        <h3 class="font-bold text-lg mb-1 truncate">${product.title}</h3>
+        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description}</p>
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-blue-700 font-extrabold text-xl">${priceDisplay}</span>
+          <span class="text-gray-500 text-xs">${product.category}</span>
+        </div>
+      </div>
+      <div class="mt-auto">
+        ${actionButton}
+      </div>
+    </div>
+  `;
+}
+
+async function filterAndRenderProducts(searchTerm = '', categoryFilter = 'All') {
   productListContainer.innerHTML = '';
   noProductsMessage.textContent = 'Loading products...';
   noProductsMessage.classList.remove('hidden');
 
-  try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
-
-    window.allProducts = [];
-    if (querySnapshot.empty) {
-      noProductsMessage.textContent = 'No products listed yet.';
-      return;
-    }
-
-    noProductsMessage.classList.add('hidden');
-    querySnapshot.forEach((doc) => {
-      const product = { id: doc.id, ...doc.data() };
-      window.allProducts.push(product);
-    });
-
-    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-  } catch (error) {
-    console.error("Error loading products:", error);
-    noProductsMessage.textContent = 'Failed to load products. Please try again later.';
-    noProductsMessage.classList.remove('hidden');
-  }
-}
-
-async function filterAndRenderProducts(searchTerm = '', category = 'All') {
-  productListContainer.innerHTML = '';
   let filteredProducts = window.allProducts;
 
-  if (category !== 'All') {
-    filteredProducts = filteredProducts.filter(p => p.category === category);
+  if (categoryFilter !== 'All') {
+    filteredProducts = filteredProducts.filter(product => product.category === categoryFilter);
   }
 
   if (searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    filteredProducts = filteredProducts.filter(p =>
-      p.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-      p.description.toLowerCase().includes(lowerCaseSearchTerm)
+    filteredProducts = filteredProducts.filter(product =>
+      product.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+      product.description.toLowerCase().includes(lowerCaseSearchTerm) ||
+      product.category.toLowerCase().includes(lowerCaseSearchTerm)
     );
   }
 
@@ -588,38 +585,18 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
     noProductsMessage.classList.remove('hidden');
     return;
   }
-
   noProductsMessage.classList.add('hidden');
+
   filteredProducts.forEach(product => {
-    const productCard = `
-      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
-        <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
-        <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
-        <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
-        <div class="flex items-center justify-between mt-auto">
-          <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
-        </div>
-      </div>
-    `;
-    productListContainer.innerHTML += productCard;
+    productListContainer.insertAdjacentHTML('beforeend', createProductCardHtml(product));
   });
 
-  // Add event listeners
+  // Re-attach view product button listeners for dynamically loaded products
   productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
     button.addEventListener('click', (e) => {
       e.stopPropagation();
       const productId = e.target.dataset.productId;
       showProductDetails(productId);
-    });
-  });
-
-  productListContainer.querySelectorAll('.product-card.interactive-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (!e.target.closest('.view-product-btn')) {
-        const productId = card.dataset.productId;
-        showProductDetails(productId);
-      }
     });
   });
 }
@@ -632,223 +609,155 @@ categoryTabs.forEach(tab => {
   tab.addEventListener('click', (e) => {
     categoryTabs.forEach(t => t.classList.remove('active'));
     e.currentTarget.classList.add('active');
-    currentCategoryFilter = e.currentTarget.dataset.category || 'All';
+    currentCategoryFilter = e.currentTarget.dataset.category;
     filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
   });
 });
 
+// --- PRODUCT DETAILS ---
 async function showProductDetails(productId) {
-  productDetailsSection.classList.remove('hidden');
-  showTab('productDetails');
-  productDetailsError.textContent = '';
-  detailActionButton.innerHTML = 'Loading...';
-  detailActionButton.disabled = true;
+  productDetailsSection.classList.add('hidden'); // Hide details while loading
+  productDetailsError.classList.add('hidden');
+  paypalButtonContainer.innerHTML = ''; // Clear previous PayPal button
 
   try {
-    const productRef = doc(db, "products", productId);
-    const productSnap = await getDoc(productRef);
-    
-    if (!productSnap.exists()) {
-      throw new Error("Product not found");
-    }
+    const docRef = doc(db, "products", productId);
+    const docSnap = await getDoc(docRef);
 
-    const product = { id: productSnap.id, ...productSnap.data() };
-    detailProductImage.src = product.previewImageUrl;
-    detailProductTitle.textContent = product.title;
-    detailProductDescription.textContent = product.description;
-    detailProductPrice.textContent = `$${parseFloat(product.price).toFixed(2)}`;
-    paypalButtonContainer.innerHTML = '';
+    if (docSnap.exists()) {
+      const product = { id: docSnap.id, ...docSnap.data() };
+      detailProductImage.src = product.previewImageUrl;
+      detailProductImage.alt = product.title;
+      detailProductTitle.textContent = product.title;
+      detailProductDescription.textContent = product.description;
+      detailProductPrice.textContent = product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free';
 
-    if (product.price > 0) {
-      if (auth.currentUser && auth.currentUser.uid === product.sellerId) {
-        detailActionButton.innerHTML = '<span class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 font-bold">Your Product</span>';
-        detailActionButton.disabled = true;
+      // Dynamically set action button (Buy/Download)
+      detailActionButton.innerHTML = ''; // Clear previous button
+
+      if (product.price > 0) {
+        // Render PayPal button
+        renderPayPalButton(product);
+        detailActionButton.classList.add('hidden'); // Hide generic action button for paid products
       } else {
-        detailActionButton.innerHTML = '';
-        detailActionButton.disabled = false;
-        
-        paypal.Buttons({
-          createOrder: function(data, actions) {
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  value: product.price.toFixed(2)
-                }
-              }]
-            });
-          },
-          onApprove: function(data, actions) {
-            return actions.order.capture().then(async function(details) {
-              await showAlert('Transaction completed by ' + details.payer.name.given_name + '!');
-
-              await addDoc(collection(db, "sales"), {
-                productId: product.id,
-                productTitle: product.title,
-                price: product.price,
-                buyerId: auth.currentUser ? auth.currentUser.uid : 'guest',
-                buyerEmail: auth.currentUser ? auth.currentUser.email : details.payer.email_address,
-                sellerId: product.sellerId,
-                sellerPaypalEmail: product.paypalEmail,
-                saleDate: serverTimestamp(),
-                paypalOrderId: data.orderID
-              });
-
-              sendSaleEmail({
-                buyerName: details.payer.name.given_name + ' ' + details.payer.name.surname,
-                buyerEmail: details.payer.email_address,
-                sellerPaypalEmail: product.paypalEmail,
-                productTitle: product.title,
-                amount: product.price.toFixed(2)
-              });
-
-              await handleProductPurchase(product);
-              await showAlert(`Purchase successful! Your download link is: <a href="${product.fileUrl}" target="_blank" class="text-blue-500 underline">Download Now</a>`);
-            });
-          },
-          onError: function(err) {
-            console.error('PayPal button error:', err);
-            showAlert('An error occurred during payment. Please try again.');
-          }
-        }).render('#paypal-button-container');
+        // Show generic "Download" button for free products
+        detailActionButton.classList.remove('hidden');
+        detailActionButton.onclick = () => {
+          window.open(product.fileUrl, '_blank');
+          showAlert(`Downloading "${product.title}"...`);
+        };
+        detailActionButton.textContent = 'Download Product';
+        detailActionButton.className = 'px-8 py-4 bg-green-600 text-white rounded-full font-bold text-lg hover:bg-green-700 transition-colors duration-200 shadow-lg';
       }
+
+      showTab('productDetails'); // Switch to product details section
+      productDetailsSection.classList.remove('hidden'); // Show details after content is loaded
     } else {
-      detailActionButton.innerHTML = `
-        <button class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 font-bold text-lg transition-colors duration-200"
-                onclick="window.open('${product.fileUrl}', '_blank')">Download Free</button>
-      `;
-      detailActionButton.disabled = false;
+      productDetailsError.textContent = 'Product not found.';
+      productDetailsError.classList.remove('hidden');
+      showTab('home'); // Go back to home if product not found
     }
   } catch (error) {
     console.error("Error fetching product details:", error);
-    productDetailsError.textContent = 'Failed to load product details.';
-    detailProductTitle.textContent = '';
-    detailProductDescription.textContent = '';
-    detailProductPrice.textContent = '';
-    detailProductImage.src = '';
-    detailActionButton.innerHTML = '';
-    paypalButtonContainer.innerHTML = '';
-  } finally {
-    detailActionButton.disabled = false;
+    productDetailsError.textContent = 'Failed to load product details. Please try again later.';
+    productDetailsError.classList.remove('hidden');
+    showTab('home'); // Go back to home on error
   }
 }
 
-// Watch seller balance in real-time
-function watchSellerBalance(sellerId) {
-  const balRef = doc(db, "balances", sellerId);
-  onSnapshot(balRef, (docSnap) => {
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
-      sellerBalance.textContent = `$${docSnap.data().balance.toFixed(2)}`;
-    } else {
-      sellerBalance.textContent = `$0.00`;
+// --- PayPal Integration ---
+function renderPayPalButton(product) {
+  paypalButtonContainer.innerHTML = ''; // Clear existing buttons
+  paypalButtonContainer.classList.remove('hidden');
+
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: product.price.toFixed(2)
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        // Show success message and provide download link
+        showAlert(`Payment successful for "${product.title}"! You can download your product now.`);
+        window.open(product.fileUrl, '_blank'); // Open download link
+        // Optionally, record the purchase in Firestore
+        if (auth.currentUser) {
+          addDoc(collection(db, "purchases"), {
+            productId: product.id,
+            productTitle: product.title,
+            buyerId: auth.currentUser.uid,
+            sellerId: product.sellerId,
+            amount: product.price,
+            purchaseTime: serverTimestamp()
+          }).catch(e => console.error("Error recording purchase:", e));
+
+          // Increment seller balance
+          const sellerRef = doc(db, "users", product.sellerId);
+          runTransaction(db, async (transaction) => {
+            const sellerDoc = await transaction.get(sellerRef);
+            if (!sellerDoc.exists()) {
+              transaction.set(sellerRef, { balance: product.price, productsSold: 1 });
+            } else {
+              const newBalance = (sellerDoc.data().balance || 0) + product.price;
+              const newProductsSold = (sellerDoc.data().productsSold || 0) + 1;
+              transaction.update(sellerRef, { balance: newBalance, productsSold: newProductsSold });
+            }
+          }).catch(e => console.error("Error updating seller balance:", e));
+        }
+      });
+    },
+    onError: function(err) {
+      console.error('PayPal Checkout Error', err);
+      showAlert('Payment failed. Please try again.');
+    },
+    onCancel: function (data) {
+      showAlert('Payment cancelled.');
     }
-  }, (error) => {
-    console.error("Error watching balance:", error);
-  });
+  }).render('#paypal-button-container');
 }
 
-// Function to update seller balance (one-off fetch)
-async function updateSellerBalance(sellerId) {
-  const balRef = doc(db, "balances", sellerId);
-  try {
-    const docSnap = await getDoc(balRef);
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
-      sellerBalance.textContent = `$${docSnap.data().balance.toFixed(2)}`;
-    } else {
-      sellerBalance.textContent = `$0.00`;
-    }
-  } catch (e) {
-    console.error("Error fetching balance:", e);
-    sellerBalance.textContent = `$0.00`;
-  }
-}
-
+// --- DASHBOARD ---
 async function showDashboard() {
   if (!auth.currentUser) {
-    await showAlert("Please sign in to view your dashboard.");
+    noMyProductsMessage.textContent = 'Please sign in to view your dashboard.';
+    noMyProductsMessage.classList.remove('hidden');
+    myProductsContainer.innerHTML = ''; // Clear products if not signed in
+    sellerBalance.textContent = '0.00';
     return;
   }
-  showTab('dashboard');
-  await updateSellerBalance(auth.currentUser.uid);
-  watchSellerBalance(auth.currentUser.uid);
+
   await loadMyProducts(auth.currentUser.uid);
+  loadSellerBalance(auth.currentUser.uid);
 }
 
-async function incrementSellerBalance(sellerId, amount) {
-  const balRef = doc(db, "balances", sellerId);
-  try {
-    await runTransaction(db, async (tx) => {
-      const docSnap = await tx.get(balRef);
-      let newBalance = amount;
-      if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
-        newBalance += docSnap.data().balance;
-      }
-      tx.set(balRef, { balance: newBalance }, { merge: true });
-    });
-  } catch (e) {
-    console.error("Transaction failed: ", e);
-  }
-}
-
-async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) {
-    console.error("Invalid product data for purchase handling.");
-    return;
-  }
-  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
-}
-
-// --- EmailJS sale notification ---
-function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
-  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
-    buyer_name: buyerName,
-    buyer_email: buyerEmail,
-    seller_paypal_email: sellerPaypalEmail,
-    product_title: productTitle,
-    amount: amount
-  }).then(function(response) {
-    console.log('Sale email sent!', response.status, response.text);
-  }, function(error) {
-    console.error('FAILED to send sale email.', error);
-  });
-}
-
-// --- Load My Products for Dashboard ---
 async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = '';
+  myProductsContainer.innerHTML = ''; // Clear previous products
   noMyProductsMessage.textContent = 'Loading your products...';
   noMyProductsMessage.classList.remove('hidden');
 
   try {
-    const q = query(collection(db, "products"), 
-      where("sellerId", "==", userId), 
-      orderBy("createdAt", "desc"));
+    const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
       noMyProductsMessage.textContent = 'You have not listed any products yet.';
+      noMyProductsMessage.classList.remove('hidden');
       return;
     }
 
     noMyProductsMessage.classList.add('hidden');
-    myProductsContainer.innerHTML = querySnapshot.docs.map(doc => {
+    querySnapshot.forEach(doc => {
       const product = { id: doc.id, ...doc.data() };
-      return `
-        <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card" data-product-id="${product.id}">
-          <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
-          <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
-          <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
-          <div class="flex items-center justify-between mt-auto">
-            <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
-            <div class="flex space-x-2">
-              <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
-              <button class="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-colors duration-200 delete-product-btn" data-product-id="${product.id}">Delete</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
+      const productCardHtml = createProductCardHtml(product, true); // true for dashboard view
+      myProductsContainer.insertAdjacentHTML('beforeend', productCardHtml);
+    });
 
-    // Add event listeners
+    // Attach event listeners for view and delete buttons
     myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
       button.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -872,6 +781,21 @@ async function loadMyProducts(userId) {
   }
 }
 
+async function loadSellerBalance(userId) {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists() && userDocSnap.data().balance !== undefined) {
+      sellerBalance.textContent = userDocSnap.data().balance.toFixed(2);
+    } else {
+      sellerBalance.textContent = '0.00';
+    }
+  } catch (error) {
+    console.error("Error loading seller balance:", error);
+    sellerBalance.textContent = 'Error';
+  }
+}
+
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
   if (!auth.currentUser) {
@@ -890,6 +814,7 @@ productListContainer.addEventListener('click', (event) => {
     const productId = viewButton.dataset.productId;
     showProductDetails(productId);
   } else if (productCard) {
+    // If a non-button part of the card is clicked, also show details
     const productId = productCard.dataset.productId;
     showProductDetails(productId);
   }
