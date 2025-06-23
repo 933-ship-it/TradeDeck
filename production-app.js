@@ -558,78 +558,212 @@ async function loadProducts() {
   noProductsMessage.classList.remove('hidden');
   try {
     // Note: orderBy("createdAt", "desc") requires a Firestore index.
-    // The console will provide a link to create it if it...
+    // The console will provide a link to create it if it doesn't exist.
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    window.allProducts = []; // Clear previous products
+    if (querySnapshot.empty) {
+      noProductsMessage.textContent = 'No products listed yet.';
+      return;
+    }
+    noProductsMessage.classList.add('hidden'); // Hide if products are found
+
+    querySnapshot.forEach((doc) => {
+      const product = { id: doc.id, ...doc.data() };
+      window.allProducts.push(product); // Add to global list
+    });
+    // Now filter and render based on current search and category
+    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
+
+  } catch (error) {
+    console.error("Error loading products:", error);
+    noProductsMessage.textContent = 'Failed to load products. Please try again later.';
+    noProductsMessage.classList.remove('hidden');
   }
 }
-async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = '';
-  noMyProductsMessage.classList.remove('hidden');
 
-  const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
-  const querySnapshot = await getDocs(q);
+async function filterAndRenderProducts(searchTerm = '', category = 'All') {
+  productListContainer.innerHTML = '';
+  let filteredProducts = window.allProducts;
 
-  if (querySnapshot.empty) {
-    noMyProductsMessage.textContent = 'You haven\'t listed any products yet. Start selling now!';
+  if (category !== 'All') {
+    filteredProducts = filteredProducts.filter(p => p.category === category);
+  }
+
+  if (searchTerm) {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    filteredProducts = filteredProducts.filter(p =>
+      p.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+      p.description.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }
+
+  if (filteredProducts.length === 0) {
+    noProductsMessage.textContent = 'No products found matching your criteria.';
+    noProductsMessage.classList.remove('hidden');
     return;
   }
-  noMyProductsMessage.classList.add('hidden'); // Hide if products are found
+  noProductsMessage.classList.add('hidden');
 
-  querySnapshot.forEach((doc) => {
-    const product = { id: doc.id, ...doc.data() };
+  filteredProducts.forEach(product => {
     const productCard = `
-      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card">
+      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
         <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
         <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
         <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
-        <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-100"> <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
-          <div class="flex space-x-3"> <button class="bg-red-600 text-white px-5 py-2 rounded-full hover:bg-red-700 transition-colors duration-200 delete-product-btn" data-product-id="${product.id}">Delete</button>
-            <button class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button> </div>
+        <div class="flex items-center justify-between mt-auto">
+          <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
         </div>
       </div>
     `;
-    myProductsContainer.innerHTML += productCard;
+    productListContainer.innerHTML += productCard;
+  });
+
+  // Add event listeners for view buttons after rendering for home section
+  productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const productId = e.target.dataset.productId;
+      showProductDetails(productId);
+    });
+  });
+  // Also add listener for the whole card to show details
+  productListContainer.querySelectorAll('.product-card.interactive-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      // Only trigger if click is not on the button itself (delegated to button already)
+      if (!e.target.closest('.view-product-btn')) {
+        const productId = card.dataset.productId;
+        showProductDetails(productId);
+      }
+    });
   });
 }
 
-// Event delegation for delete and view buttons on myProductsContainer
-myProductsContainer.addEventListener('click', async (event) => {
-    const deleteButton = event.target.closest('.delete-product-btn');
-    const viewButton = event.target.closest('.view-product-btn');
+searchBar.addEventListener('input', () => {
+  filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
+});
 
-    if (deleteButton) {
-        event.stopPropagation();
-        const productId = deleteButton.dataset.productId;
-        const confirmed = await showConfirm("Are you sure you want to delete this product? This action cannot be undone.");
-        if (confirmed) {
-            try {
-                await deleteDoc(doc(db, "products", productId));
-                await showAlert("Product deleted successfully!", "success");
-                if (auth.currentUser) {
-                    await loadMyProducts(auth.currentUser.uid); // Reload products after deletion
+categoryTabs.forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    categoryTabs.forEach(t => t.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    currentCategoryFilter = e.currentTarget.dataset.category || 'All';
+    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
+  });
+});
+
+async function showProductDetails(productId) {
+  productDetailsSection.classList.remove('hidden');
+  showTab('productDetails'); // Make sure the product details section is visible
+  productDetailsError.textContent = ''; // Clear previous errors
+  detailActionButton.innerHTML = 'Loading...';
+  detailActionButton.disabled = true;
+
+  try {
+    const productRef = doc(db, "products", productId);
+    const productSnap = await getDoc(productRef);
+
+    if (!productSnap.exists()) {
+      productDetailsError.textContent = 'Product not found.';
+      detailProductTitle.textContent = '';
+      detailProductDescription.textContent = '';
+      detailProductPrice.textContent = '';
+      detailProductImage.src = '';
+      paypalButtonContainer.innerHTML = '';
+      return;
+    }
+
+    const product = { id: productSnap.id, ...productSnap.data() };
+
+    detailProductImage.src = product.previewImageUrl;
+    detailProductTitle.textContent = product.title;
+    detailProductDescription.textContent = product.description;
+    detailProductPrice.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+
+    // Clear previous PayPal button and set up for new product
+    paypalButtonContainer.innerHTML = '';
+    detailActionButton.style.display = 'block'; // Ensure button container is visible
+
+    if (product.price > 0) {
+      if (auth.currentUser && auth.currentUser.uid === product.sellerId) {
+        detailActionButton.innerHTML = '<span class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 font-bold">Your Product</span>';
+        detailActionButton.disabled = true;
+        detailActionButton.style.cursor = 'default';
+      } else {
+        detailActionButton.innerHTML = ''; // Clear the "Loading..."
+        detailActionButton.disabled = false; // Enable for purchase
+        paypal.Buttons({
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: product.price.toFixed(2)
                 }
-            } catch (error) {
-                console.error("Error deleting product:", error);
-                await showAlert("Error deleting product: " + error.message, "error");
-            }
-        }
-    } else if (viewButton) {
-        event.stopPropagation();
-        const productId = viewButton.dataset.productId;
-        showProductDetails(productId);
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+            return actions.order.capture().then(async function(details) {
+              await showAlert('Transaction completed by ' + details.payer.name.given_name + '!');
+
+              // Record sale in Firestore
+              await addDoc(collection(db, "sales"), {
+                productId: product.id,
+                productTitle: product.title,
+                price: product.price,
+                buyerId: auth.currentUser ? auth.currentUser.uid : 'guest',
+                buyerEmail: auth.currentUser ? auth.currentUser.email : details.payer.email_address,
+                sellerId: product.sellerId,
+                sellerPaypalEmail: product.paypalEmail,
+                saleDate: serverTimestamp(),
+                paypalOrderId: data.orderID
+              });
+
+              // Send sale notification email
+              sendSaleEmail({
+                buyerName: details.payer.name.given_name + ' ' + details.payer.name.surname,
+                buyerEmail: details.payer.email_address,
+                sellerPaypalEmail: product.paypalEmail,
+                productTitle: product.title,
+                amount: product.price.toFixed(2)
+              });
+
+              // Increment seller's balance
+              await handleProductPurchase(product);
+
+              // Provide download link
+              await showAlert(`Purchase successful! Your download link is: <a href="${product.fileUrl}" target="_blank" class="text-blue-500 underline">Download Now</a>`);
+            });
+          },
+          onError: function(err) {
+            console.error('PayPal button error:', err);
+            showAlert('An error occurred during payment. Please try again.');
+          }
+        }).render('#paypal-button-container'); // Render the PayPal button
+      }
+    } else { // Free product
+      detailActionButton.innerHTML = `
+        <button class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 font-bold text-lg transition-colors duration-200"
+                onclick="window.open('${product.fileUrl}', '_blank')">Download Free</button>
+      `;
+      detailActionButton.disabled = false;
     }
-});
 
-
-// ... (rest of your production-app.js code) ...
-
-// --- Initial Load ---
-document.addEventListener("DOMContentLoaded", () => {
-    // Only load products if not already authenticated, onAuthStateChanged will handle it
-    if (!auth.currentUser) {
-        loadProducts(); // Load for unauthenticated users
-    }
-    restoreSellForm();
-});
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+    productDetailsError.textContent = 'Failed to load product details.';
+    detailProductTitle.textContent = '';
+    detailProductDescription.textContent = '';
+    detailProductPrice.textContent = '';
+    detailProductImage.src = '';
+    detailActionButton.innerHTML = '';
+    paypalButtonContainer.innerHTML = '';
+  } finally {
+    detailActionButton.disabled = false; // Re-enable if it was disabled by 'loading'
+  }
+}
 
 // Watch seller balance in real-time
 function watchSellerBalance(sellerId) {
@@ -694,3 +828,29 @@ async function handleProductPurchase(product) {
   }
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
+
+// --- Initial Load ---
+document.addEventListener("DOMContentLoaded", () => {
+    // Only load products if not already authenticated, onAuthStateChanged will handle it
+    if (!auth.currentUser) {
+        loadProducts(); // Load for unauthenticated users
+    }
+    restoreSellForm();
+});
+
+// Event listener for general product list (home page)
+productListContainer.addEventListener('click', (event) => {
+    const productCard = event.target.closest('.product-card.interactive-card');
+    const viewButton = event.target.closest('.view-product-btn'); // For specific 'Details' button on home page
+
+    if (viewButton) {
+        // If the 'Details' button was clicked directly
+        event.stopPropagation(); // Prevent card click from firing too
+        const productId = viewButton.dataset.productId;
+        showProductDetails(productId);
+    } else if (productCard) {
+        // If any other part of the card was clicked
+        const productId = productCard.dataset.productId;
+        showProductDetails(productId);
+    }
+});
