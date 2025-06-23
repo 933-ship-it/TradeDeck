@@ -44,7 +44,7 @@ const tabs = document.querySelectorAll('aside nav a[data-tab]');
 const sections = document.querySelectorAll('main section');
 const startSellingBtn = document.getElementById('startSellingBtn');
 const sellLandingContent = document.getElementById('sellLandingContent');
-const productForm = document.getElementById('productForm');
+const productForm = document.getElementById('productUploadForm'); // Corrected ID to productUploadForm
 const formErrorSummary = document.getElementById('formErrorSummary');
 
 // Sell form fields
@@ -60,7 +60,7 @@ const previewImageUrlInput = document.getElementById('previewImageUrl');
 const previewImageStatus = document.getElementById('previewImageStatus');
 const previewImageContainer = document.getElementById('previewImageContainer');
 const currentPreviewImage = document.getElementById('currentPreviewImage');
-const productUploadForm = document.getElementById('productUploadForm');
+// const productUploadForm = document.getElementById('productUploadForm'); // Already defined above
 const submitProductBtn = document.getElementById('submitProductBtn');
 const categorySelect = document.getElementById('category');
 
@@ -104,16 +104,29 @@ function showAlert(message) {
   customAlertMessage.innerHTML = message;
   customAlertModal.classList.remove('hidden');
   customAlertModal.classList.add('modal-enter-active');
+  customAlertModal.setAttribute('aria-hidden', 'false'); // Accessibility
+  document.body.classList.add('overflow-hidden'); // Prevent scrolling body
+
   return new Promise(resolve => {
-    customAlertOkBtn.onclick = () => {
+    const handleOk = () => {
       customAlertModal.classList.remove('modal-enter-active');
       customAlertModal.classList.add('modal-exit-active');
       setTimeout(() => {
         customAlertModal.classList.add('hidden');
         customAlertModal.classList.remove('modal-exit-active');
+        customAlertModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
         resolve(true);
       }, 200);
     };
+    customAlertOkBtn.onclick = handleOk;
+    // Allow closing with Escape key
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        handleOk();
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
   });
 }
 
@@ -121,6 +134,9 @@ function showConfirm(message) {
   customConfirmMessage.textContent = message;
   customConfirmModal.classList.remove('hidden');
   customConfirmModal.classList.add('modal-enter-active');
+  customConfirmModal.setAttribute('aria-hidden', 'false'); // Accessibility
+  document.body.classList.add('overflow-hidden'); // Prevent scrolling body
+
   return new Promise(resolve => {
     const handleConfirm = () => {
       customConfirmModal.classList.remove('modal-enter-active');
@@ -128,6 +144,8 @@ function showConfirm(message) {
       setTimeout(() => {
         customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
+        customConfirmModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
         resolve(true);
       }, 200);
     };
@@ -138,30 +156,48 @@ function showConfirm(message) {
       setTimeout(() => {
         customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
+        customConfirmModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
         resolve(false);
       }, 200);
     };
 
     customConfirmOkBtn.onclick = handleConfirm;
     customConfirmCancelBtn.onclick = handleCancel;
+    // Allow closing with Escape key
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        handleCancel(); // Escape should typically cancel a confirm
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
   });
 }
 
+
 // --- Auth and Profile ---
-document.body.style.visibility = "hidden";
+document.body.style.visibility = "hidden"; // Hide body until auth state is known
 onAuthStateChanged(auth, user => {
-  document.body.style.visibility = "";
+  document.body.style.visibility = ""; // Show body once auth state is known
   if (!user) {
     authOverlay.style.display = "flex";
     userGlobal = null;
+    // If not authenticated and not on landing, redirect to landing
+    if (window.location.href !== LANDING_URL) {
+      // Small delay to prevent flickering if component mounts quickly
+      // setTimeout(() => { window.location.href = LANDING_URL; }, 100);
+    }
   } else {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
-    loadProducts();
+    loadProducts(); // Load products once user is known (even if guest, this still runs)
+    // If user is authenticated and on dashboard, reload dashboard specifically
     if (document.querySelector('aside nav a[data-tab="dashboard"]').classList.contains('bg-blue-100')) {
       showDashboard();
     }
+    // Set initial active tab
+    showTab('home'); // Ensure 'home' is always the default view on load
   }
 });
 
@@ -174,17 +210,22 @@ function showProfileUI(user) {
 
   profileToggleArea.onclick = function(e) {
     e.stopPropagation();
-    dropdownMenu.classList.toggle('hidden');
-    if (!dropdownMenu.classList.contains('hidden')) {
-      dropdownMenu.classList.remove('modal-exit-active');
+    // Toggle modal classes for transition
+    if (dropdownMenu.classList.contains('hidden')) {
+      dropdownMenu.classList.remove('hidden', 'modal-exit-active');
       dropdownMenu.classList.add('modal-enter-active');
     } else {
       dropdownMenu.classList.remove('modal-enter-active');
       dropdownMenu.classList.add('modal-exit-active');
+      setTimeout(() => {
+        dropdownMenu.classList.add('hidden');
+        dropdownMenu.classList.remove('modal-exit-active');
+      }, 200); // Match CSS transition duration
     }
   };
 
   document.addEventListener('click', (e) => {
+    // Hide dropdown if click outside
     if (!profileToggleArea.contains(e.target) && !dropdownMenu.contains(e.target)) {
       if (!dropdownMenu.classList.contains('hidden')) {
         dropdownMenu.classList.remove('modal-enter-active');
@@ -221,23 +262,30 @@ function showProfileUI(user) {
 
 // --- Tab Navigation ---
 function showTab(targetTabId) {
+  // Deactivate all tabs
   tabs.forEach(t => {
     t.classList.remove('bg-blue-100');
     t.removeAttribute('aria-current');
   });
+  // Activate the target tab
   const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
   if (currentTab) {
     currentTab.classList.add('bg-blue-100');
     currentTab.setAttribute('aria-current', 'page');
   }
 
+  // Show/hide sections with transition
   sections.forEach(sec => {
     if (sec.id === targetTabId) {
-      sec.classList.remove('hidden');
+      sec.classList.remove('hidden', 'modal-exit-active');
       sec.classList.add('modal-enter-active');
     } else {
       sec.classList.remove('modal-enter-active');
-      sec.classList.add('hidden');
+      sec.classList.add('modal-exit-active');
+      // Adding a small delay for hidden to allow exit transition
+      setTimeout(() => {
+        sec.classList.add('hidden');
+      }, 200); // Match CSS transition duration
     }
   });
 }
@@ -247,16 +295,31 @@ tabs.forEach(tab => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
     showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
+
+    // Specific logic for each tab
+    if (target === 'sell') {
+      // When navigating to 'sell', ensure the landing content is visible by default
+      // This will allow 'Start Listing Now' button to be clicked.
+      sellLandingContent.classList.remove('hidden');
+      productForm.classList.add('hidden');
+      // Reset form on navigating to sell tab, unless it's already open for editing (future feature)
+      productUploadForm.reset();
+      restoreSellForm();
+      enableSubmitButton(); // Re-evaluate button state
+      formErrorSummary.classList.add('hidden'); // Clear errors
+    } else if (target === 'home') {
       await filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-      searchBar.value = '';
+      searchBar.value = ''; // Clear search bar on tab switch
     } else if (target === 'dashboard') {
-      await showDashboard();
+      if (auth.currentUser) {
+        await showDashboard();
+      } else {
+        await showAlert("Please sign in to view your dashboard.");
+        showTab('home'); // Redirect back to home if not signed in
+      }
     }
+    // Always hide product details if navigating to other main tabs
+    productDetailsSection.classList.add('hidden');
   });
 });
 
@@ -271,21 +334,35 @@ startSellingBtn.addEventListener('click', () => {
 
 function toggleProductForm(showForm) {
   if (showForm) {
-    sellLandingContent.classList.add('hidden');
-    productForm.classList.remove('hidden');
-    productForm.classList.add('modal-enter-active');
+    // Hide landing content with transition
+    sellLandingContent.classList.remove('modal-enter-active');
+    sellLandingContent.classList.add('modal-exit-active');
+    setTimeout(() => {
+      sellLandingContent.classList.add('hidden');
+      sellLandingContent.classList.remove('modal-exit-active');
+      // Show product form with transition after landing content is hidden
+      productForm.classList.remove('hidden', 'modal-exit-active');
+      productForm.classList.add('modal-enter-active');
+    }, 200); // Match CSS transition duration
+    
+    // Ensure the sell tab is active
     showTab('sell');
+    // Always reset and restore form when toggling to show, in case of prior incomplete entries
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
+    formErrorSummary.classList.add('hidden'); // Clear any previous errors
   } else {
+    // Hide product form with transition
     productForm.classList.remove('modal-enter-active');
     productForm.classList.add('modal-exit-active');
     setTimeout(() => {
-      sellLandingContent.classList.remove('hidden');
       productForm.classList.add('hidden');
       productForm.classList.remove('modal-exit-active');
-    }, 200);
+      // Show landing content with transition after form is hidden
+      sellLandingContent.classList.remove('hidden', 'modal-exit-active');
+      sellLandingContent.classList.add('modal-enter-active');
+    }, 200); // Match CSS transition duration
   }
 }
 
@@ -321,14 +398,11 @@ function restoreSellForm() {
     currentPreviewImage.src = "";
   }
 
-  const priceVal = parseFloat(state.price);
-  if (!isNaN(priceVal) && priceVal > 0) {
-    paypalEmailContainer.classList.remove('hidden');
-    paypalEmailInput.setAttribute('required', 'required');
-  } else {
-    paypalEmailContainer.classList.add('hidden');
-    paypalEmailInput.removeAttribute('required');
-  }
+  // Trigger price input change to correctly show/hide paypalEmailContainer
+  // This is important for initial load if price was saved.
+  const event = new Event('input', { bubbles: true });
+  priceInput.dispatchEvent(event);
+  enableSubmitButton(); // Re-evaluate validation on restore
 }
 
 [
@@ -338,7 +412,8 @@ function restoreSellForm() {
   input.addEventListener('input', saveSellForm);
 });
 
-document.addEventListener("DOMContentLoaded", restoreSellForm);
+// Removed DOMContentLoaded listener for restoreSellForm
+// It's now called within onAuthStateChanged or toggleProductForm for more controlled behavior.
 
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
@@ -357,7 +432,7 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
     if (!error && result && result.event === "success") {
       previewImageUrlInput.value = result.info.secure_url;
       setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-      openPreviewImageWidgetBtn.classList.remove('input-invalid');
+      openPreviewImageWidgetBtn.classList.remove('input-invalid'); // Remove invalid styling on success
       currentPreviewImage.src = result.info.secure_url;
       previewImageContainer.classList.remove('hidden');
       isPreviewImageUploading = false;
@@ -372,6 +447,7 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
       isPreviewImageUploading = false;
       enableSubmitButton();
     } else if (result && (result.event === "close" || result.event === "abort")) {
+      // If widget closed without selecting or uploading, ensure validation reflects it
       if (previewImageUrlInput.value === '') {
         setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
         openPreviewImageWidgetBtn.classList.add('input-invalid');
@@ -381,7 +457,7 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
     } else if (result && result.event === "asset_selected") {
       setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
       isPreviewImageUploading = true;
-      disableSubmitButton();
+      disableSubmitButton(); // Disable submit while upload is in progress
     }
   }
 );
@@ -422,17 +498,27 @@ function validateSellForm() {
   let errors = [];
   if (!titleInput.value.trim()) errors.push("Product title is required.");
   if (!descriptionInput.value.trim()) errors.push("Product description is required.");
-  if (isNaN(parseFloat(priceInput.value))) errors.push("Price must be a valid number.");
-  if (parseFloat(priceInput.value) < 0) errors.push("Price cannot be negative.");
+  
+  const priceVal = parseFloat(priceInput.value);
+  if (isNaN(priceVal)) {
+      errors.push("Price must be a valid number.");
+  } else if (priceVal < 0) {
+      errors.push("Price cannot be negative.");
+  }
+
+  // Regex for basic URL validation, ensures it starts with http(s)
   if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) {
-    errors.push("Valid download link is required.");
+    errors.push("Valid download link is required (must start with http:// or https://).");
   }
   if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
   if (!categorySelect.value) errors.push("Product category is required.");
-  if (!paypalEmailContainer.classList.contains('hidden')) {
+  
+  // Only validate PayPal email if price is greater than 0
+  if (priceVal > 0) {
     const v = paypalEmailInput.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
   }
+  
   if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
   return errors;
 }
@@ -449,7 +535,7 @@ function showFormErrors(errors) {
 
 function enableSubmitButton() {
   const errors = validateSellForm();
-  showFormErrors(errors);
+  showFormErrors(errors); // Always show errors on input
   if (errors.length) {
     submitProductBtn.disabled = true;
     submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -464,6 +550,7 @@ function disableSubmitButton() {
   submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }
 
+// Attach validation to all relevant input events
 [
   titleInput, descriptionInput, priceInput, paypalEmailInput,
   previewImageUrlInput, productFileUrlInput, categorySelect
@@ -471,38 +558,52 @@ function disableSubmitButton() {
   input.addEventListener('input', enableSubmitButton);
 });
 
+// Special handling for price input to show/hide PayPal email field
 priceInput.addEventListener('input', () => {
   const price = parseFloat(priceInput.value);
-  if (isNaN(price) || price === 0) {
+  if (isNaN(price) || price <= 0) { // Price 0 or less also hides it
     paypalEmailContainer.classList.add('hidden');
     paypalEmailInput.removeAttribute('required');
-    paypalEmailInput.value = '';
+    paypalEmailInput.value = ''; // Clear PayPal email if product becomes free
   } else {
     paypalEmailContainer.classList.remove('hidden');
     paypalEmailInput.setAttribute('required', 'required');
   }
-  enableSubmitButton();
+  enableSubmitButton(); // Re-evaluate validation
   saveSellForm();
 });
+
+// Initial validation check on page load to set button state
+document.addEventListener("DOMContentLoaded", () => {
+  // Initial state check for Sell form
+  if (!productForm.classList.contains('hidden')) {
+    restoreSellForm(); // Only restore if the form is somehow visible on load
+    enableSubmitButton();
+  }
+});
+
 
 // --- SELL FORM SUBMIT ---
 productUploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  disableSubmitButton();
+  disableSubmitButton(); // Disable immediately to prevent double submission
   submitProductBtn.textContent = 'Listing...';
   
   const errors = validateSellForm();
   if (errors.length) {
     showFormErrors(errors);
     submitProductBtn.textContent = 'List Product';
-    enableSubmitButton();
+    enableSubmitButton(); // Re-enable if validation fails before submission
     return;
   }
 
   try {
     if (!auth.currentUser) {
       await showAlert("You must be signed in to list a product.");
-      window.location.reload();
+      // It's generally better to redirect to login page instead of reloading the current page here.
+      // window.location.reload(); // Removed reload, better to guide user
+      submitProductBtn.textContent = 'List Product'; // Reset text
+      enableSubmitButton(); // Re-enable button
       return;
     }
 
@@ -521,16 +622,24 @@ productUploadForm.addEventListener('submit', async (e) => {
 
     await addDoc(collection(db, "products"), newProduct);
     await showAlert('Product listed successfully!');
-    localStorage.removeItem(SELL_FORM_KEY);
-    toggleProductForm(false);
-    await loadProducts();
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+    localStorage.removeItem(SELL_FORM_KEY); // Clear saved form data
+    productUploadForm.reset(); // Clear form inputs
+    previewImageContainer.classList.add('hidden'); // Hide image preview
+    currentPreviewImage.src = ''; // Clear image src
+    setFileInputStatus(previewImageStatus, '', 'default'); // Clear status message
+    openPreviewImageWidgetBtn.classList.remove('input-invalid'); // Remove any invalid styling
+
+    toggleProductForm(false); // Go back to sell landing content
+    await loadProducts(); // Reload all products in home
+    if (auth.currentUser) {
+      await loadMyProducts(auth.currentUser.uid); // Reload user's dashboard products
+    }
   } catch (error) {
     console.error("Error adding document:", error);
-    await showAlert('Failed to list product. Please try again.');
+    await showAlert('Failed to list product: ' + error.message);
   } finally {
     submitProductBtn.textContent = 'List Product';
-    enableSubmitButton();
+    enableSubmitButton(); // Ensure button is re-enabled in finally block
   }
 });
 
@@ -602,7 +711,8 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
     productListContainer.innerHTML += productCard;
   });
 
-  // Add event listeners
+  // Add event listeners using delegation for better performance and future proofing
+  // (though direct attachment here is fine for small numbers)
   productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
     button.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -613,6 +723,7 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
 
   productListContainer.querySelectorAll('.product-card.interactive-card').forEach(card => {
     card.addEventListener('click', (e) => {
+      // Ensure click on button doesn't trigger card click
       if (!e.target.closest('.view-product-btn')) {
         const productId = card.dataset.productId;
         showProductDetails(productId);
@@ -636,10 +747,11 @@ categoryTabs.forEach(tab => {
 
 async function showProductDetails(productId) {
   productDetailsSection.classList.remove('hidden');
-  showTab('productDetails');
+  showTab('productDetails'); // Make productDetails tab active in UI
   productDetailsError.textContent = '';
   detailActionButton.innerHTML = 'Loading...';
   detailActionButton.disabled = true;
+  paypalButtonContainer.innerHTML = ''; // Clear previous PayPal button
 
   try {
     const productRef = doc(db, "products", productId);
@@ -654,16 +766,19 @@ async function showProductDetails(productId) {
     detailProductTitle.textContent = product.title;
     detailProductDescription.textContent = product.description;
     detailProductPrice.textContent = `$${parseFloat(product.price).toFixed(2)}`;
-    paypalButtonContainer.innerHTML = '';
 
+    // Handle purchase/download button
     if (product.price > 0) {
       if (auth.currentUser && auth.currentUser.uid === product.sellerId) {
         detailActionButton.innerHTML = '<span class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 font-bold">Your Product</span>';
         detailActionButton.disabled = true;
       } else {
-        detailActionButton.innerHTML = '';
-        detailActionButton.disabled = false;
+        detailActionButton.innerHTML = ''; // Clear any existing action text
+        detailActionButton.disabled = false; // Ensure button is enabled for PayPal
         
+        // Render PayPal buttons
+        // Ensure the PayPal SDK is loaded before this runs.
+        // It's in the index.html with async load.
         paypal.Buttons({
           createOrder: function(data, actions) {
             return actions.order.create({
@@ -708,7 +823,7 @@ async function showProductDetails(productId) {
           }
         }).render('#paypal-button-container');
       }
-    } else {
+    } else { // Free product
       detailActionButton.innerHTML = `
         <button class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 font-bold text-lg transition-colors duration-200"
                 onclick="window.open('${product.fileUrl}', '_blank')">Download Free</button>
@@ -717,22 +832,35 @@ async function showProductDetails(productId) {
     }
   } catch (error) {
     console.error("Error fetching product details:", error);
-    productDetailsError.textContent = 'Failed to load product details.';
-    detailProductTitle.textContent = '';
-    detailProductDescription.textContent = '';
+    productDetailsError.textContent = 'Failed to load product details. ' + error.message;
+    detailProductTitle.textContent = 'Product Not Available';
+    detailProductDescription.textContent = 'The product you are looking for might have been removed or does not exist.';
     detailProductPrice.textContent = '';
-    detailProductImage.src = '';
+    detailProductImage.src = 'https://via.placeholder.com/400x300?text=Product+Not+Found'; // Placeholder for missing image
     detailActionButton.innerHTML = '';
     paypalButtonContainer.innerHTML = '';
   } finally {
-    detailActionButton.disabled = false;
+    // This finally block ensures the action button state is reset after fetch attempts
+    // If PayPal button is rendered, its own rendering handles enablement.
+    // If it's a free product, the button is set.
+    // If it's "Your Product", it's disabled.
+    // Only re-enable if it's not handled by the PayPal render or free product button setting.
+    if (detailActionButton.innerHTML === 'Loading...') {
+      detailActionButton.innerHTML = ''; // Clear loading text if no action determined
+    }
   }
 }
 
 // Watch seller balance in real-time
+// Using onSnapshot for real-time updates to the dashboard balance
 function watchSellerBalance(sellerId) {
   const balRef = doc(db, "balances", sellerId);
-  onSnapshot(balRef, (docSnap) => {
+  // Unsubscribe from previous snapshot listener if it exists to prevent memory leaks
+  if (window.balanceUnsubscribe) {
+    window.balanceUnsubscribe();
+  }
+
+  window.balanceUnsubscribe = onSnapshot(balRef, (docSnap) => {
     if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
       sellerBalance.textContent = `$${docSnap.data().balance.toFixed(2)}`;
     } else {
@@ -740,10 +868,12 @@ function watchSellerBalance(sellerId) {
     }
   }, (error) => {
     console.error("Error watching balance:", error);
+    sellerBalance.textContent = `$Error`; // Indicate error
   });
 }
 
-// Function to update seller balance (one-off fetch)
+// Function to update seller balance (one-off fetch - replaced by watchSellerBalance)
+// Keeping it for consistency but watchSellerBalance is better for real-time dashboard.
 async function updateSellerBalance(sellerId) {
   const balRef = doc(db, "balances", sellerId);
   try {
@@ -762,10 +892,11 @@ async function updateSellerBalance(sellerId) {
 async function showDashboard() {
   if (!auth.currentUser) {
     await showAlert("Please sign in to view your dashboard.");
+    showTab('home'); // Redirect back to home
     return;
   }
   showTab('dashboard');
-  await updateSellerBalance(auth.currentUser.uid);
+  // Ensure we start watching the balance when the dashboard is shown
   watchSellerBalance(auth.currentUser.uid);
   await loadMyProducts(auth.currentUser.uid);
 }
@@ -783,6 +914,7 @@ async function incrementSellerBalance(sellerId, amount) {
     });
   } catch (e) {
     console.error("Transaction failed: ", e);
+    await showAlert("Failed to update seller balance: " + e.message); // Inform user of balance update failure
   }
 }
 
@@ -822,26 +954,37 @@ function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle,
  * @param {function} loadProducts Function to reload all products in the home section.
  */
 async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts) {
+  // Use a loading state for the dashboard during deletion
+  myProductsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500"><div class="loading-spinner mx-auto mb-2"></div> Deleting product...</div>';
+  noMyProductsMessage.classList.add('hidden'); // Hide "No products" message temporarily
+
   const confirmed = await showConfirm("Are you sure you want to delete this product? This action cannot be undone.");
-  if (confirmed) {
-    try {
-      // Delete the document from the 'products' collection in Firestore
-      await deleteDoc(doc(db, "products", productId));
+  
+  // Re-render my products if confirmation was cancelled, to clear loading state
+  if (!confirmed) {
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+    return;
+  }
 
-      // Show success message to the user
-      await showAlert("Product deleted successfully!");
+  try {
+    // Delete the document from the 'products' collection in Firestore
+    await deleteDoc(doc(db, "products", productId));
 
-      // If a user is authenticated, reload their products in the dashboard
-      if (auth.currentUser) {
-        await loadMyProducts(auth.currentUser.uid);
-      }
-      // Reload all products in the home section to reflect the deletion
-      await loadProducts();
-    } catch (error) {
-      // Log and display error if deletion fails
-      console.error("Error deleting product:", error);
-      await showAlert("Failed to delete product: " + error.message);
+    // Show success message to the user
+    await showAlert("Product deleted successfully!");
+
+    // If a user is authenticated, reload their products in the dashboard
+    if (auth.currentUser) {
+      await loadMyProducts(auth.currentUser.uid);
     }
+    // Reload all products in the home section to reflect the deletion
+    await loadProducts();
+  } catch (error) {
+    // Log and display error if deletion fails
+    console.error("Error deleting product:", error);
+    await showAlert("Failed to delete product: " + error.message);
+    // Ensure UI is reloaded even on error to clear loading state
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   }
 }
 
@@ -852,8 +995,8 @@ async function loadMyProducts(userId) {
   noMyProductsMessage.classList.remove('hidden');
 
   try {
-    const q = query(collection(db, "products"), 
-      where("sellerId", "==", userId), 
+    const q = query(collection(db, "products"),
+      where("sellerId", "==", userId),
       orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
@@ -881,7 +1024,7 @@ async function loadMyProducts(userId) {
       `;
     }).join('');
 
-    // Add event listeners
+    // Add event listeners for new buttons
     myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
       button.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -894,6 +1037,7 @@ async function loadMyProducts(userId) {
       button.addEventListener('click', async (e) => {
         e.stopPropagation();
         const productId = e.target.dataset.productId;
+        // Pass necessary functions for deleteProduct to work correctly
         await deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts);
       });
     });
@@ -905,15 +1049,22 @@ async function loadMyProducts(userId) {
   }
 }
 
-// --- Initial Load ---
+// --- Initial Load Logic ---
 document.addEventListener("DOMContentLoaded", () => {
-  if (!auth.currentUser) {
-    loadProducts();
-  }
-  restoreSellForm();
+  // Initial setup for sell form visibility on page load.
+  // By default, the sell landing content should be visible, and the form hidden.
+  sellLandingContent.classList.remove('hidden');
+  productForm.classList.add('hidden');
+  productForm.classList.remove('modal-enter-active'); // Ensure no lingering modal class
+
+  // This will be handled by onAuthStateChanged which fires after DOMContentLoaded
+  // if (!auth.currentUser) {
+  //   loadProducts(); // Load products if not authenticated, will be re-run by onAuthStateChanged if auth
+  // }
+  // restoreSellForm(); // This is now called within onAuthStateChanged or toggleProductForm
 });
 
-// Event listener for general product list
+// Event listener for general product list (delegation)
 productListContainer.addEventListener('click', (event) => {
   const productCard = event.target.closest('.product-card.interactive-card');
   const viewButton = event.target.closest('.view-product-btn');
