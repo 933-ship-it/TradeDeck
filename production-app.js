@@ -298,15 +298,10 @@ tabs.forEach(tab => {
 
     // Specific logic for each tab
     if (target === 'sell') {
-      // When navigating to 'sell', ensure the landing content is visible by default
-      // This will allow 'Start Listing Now' button to be clicked.
-      sellLandingContent.classList.remove('hidden');
-      productForm.classList.add('hidden');
-      // Reset form on navigating to sell tab, unless it's already open for editing (future feature)
-      productUploadForm.reset();
-      restoreSellForm();
-      enableSubmitButton(); // Re-evaluate button state
-      formErrorSummary.classList.add('hidden'); // Clear errors
+      // *** FIX 2: Directly show the product form when 'sell' tab is clicked ***
+      // Instead of showing sellLandingContent by default and requiring another click,
+      // directly show the product form.
+      toggleProductForm(true); // This will now show the form directly
     } else if (target === 'home') {
       await filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
       searchBar.value = ''; // Clear search bar on tab switch
@@ -962,13 +957,16 @@ async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMy
   
   // Re-render my products if confirmation was cancelled, to clear loading state
   if (!confirmed) {
+    console.log("Product deletion cancelled by user."); // Added log
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
     return;
   }
 
   try {
     // Delete the document from the 'products' collection in Firestore
+    console.log(`Attempting to delete product with ID: ${productId}`); // Added log
     await deleteDoc(doc(db, "products", productId));
+    console.log(`Product ${productId} deleted successfully from Firestore.`); // Added log
 
     // Show success message to the user
     await showAlert("Product deleted successfully!");
@@ -981,8 +979,19 @@ async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMy
     await loadProducts();
   } catch (error) {
     // Log and display error if deletion fails
+    // *** FIX 1: More detailed console logging for deletion errors ***
     console.error("Error deleting product:", error);
-    await showAlert("Failed to delete product: " + error.message);
+    if (error.code) { // Firebase errors usually have a 'code' property
+      console.error(`Firebase error code: ${error.code}`);
+      console.error(`Firebase error message: ${error.message}`);
+      if (error.code === 'permission-denied' || error.code === 'resource-exhausted' || error.code === 'unauthenticated') {
+          await showAlert(`Failed to delete product: Permission denied or authentication error. Please ensure you are logged in and have permission to delete this product. Error: ${error.message}`);
+      } else {
+          await showAlert("Failed to delete product: " + error.message);
+      }
+    } else {
+      await showAlert("Failed to delete product: " + error.message);
+    }
     // Ensure UI is reloaded even on error to clear loading state
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   }
