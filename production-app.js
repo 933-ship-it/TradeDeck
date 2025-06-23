@@ -4,11 +4,11 @@ import {
   getAuth, onAuthStateChanged, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, // Removed deleteDoc from here
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc,
   query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Import the new deleteProduct function
+// Import the deleteProduct function
 import { deleteProduct } from "./delete-product.js";
 
 // --- Constants ---
@@ -17,7 +17,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
 const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
 
-// --- Firebase Config (ensure this matches your project config) ---
+// --- Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
   authDomain: "tradedeck-82bbb.firebaseapp.com",
@@ -27,19 +27,21 @@ const firebaseConfig = {
   appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
   measurementId: "G-4RXR7V9NCW"
 };
+
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+
 // --- DOM Elements ---
-const profileToggleArea = document.getElementById('profileToggleArea'); // Changed from profilePic for larger click area
+const profileToggleArea = document.getElementById('profileToggleArea');
 const profilePic = document.getElementById('userProfilePic');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const userEmail = document.getElementById('userEmail');
 const userEmailDisplay = document.getElementById('userEmailDisplay');
-// For email display next to profile pic
 const authOverlay = document.getElementById('authOverlay');
 let userGlobal = null;
+
 // Navigation
 const tabs = document.querySelectorAll('aside nav a[data-tab]');
 const sections = document.querySelectorAll('main section');
@@ -63,11 +65,11 @@ const previewImageContainer = document.getElementById('previewImageContainer');
 const currentPreviewImage = document.getElementById('currentPreviewImage');
 const productUploadForm = document.getElementById('productUploadForm');
 const submitProductBtn = document.getElementById('submitProductBtn');
+const categorySelect = document.getElementById('category');
 
 // Home/Product listing
 const searchBar = document.getElementById('searchBar');
 const categoryTabs = document.querySelectorAll('.category-tab');
-// New: Category tabs
 const productListContainer = document.getElementById('productList');
 const noProductsMessage = document.getElementById('noProductsMessage');
 
@@ -87,7 +89,6 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-
 // Custom alert/confirm modals
 const customAlertModal = document.getElementById('customAlertModal');
 const customAlertMessage = document.getElementById('customAlertMessage');
@@ -96,30 +97,25 @@ const customConfirmModal = document.getElementById('customConfirmModal');
 const customConfirmMessage = document.getElementById('customConfirmMessage');
 const customConfirmOkBtn = document.getElementById('customConfirmOkBtn');
 const customConfirmCancelBtn = document.getElementById('customConfirmCancelBtn');
-// Global variable for all fetched products to enable client-side filtering by category/search
+
+// Global variable for all fetched products
 window.allProducts = [];
 let currentCategoryFilter = 'All';
-// New: Track current category filter
 
 // --- Custom Alert/Confirm Functions ---
 function showAlert(message) {
-  customAlertMessage.textContent = message;
+  customAlertMessage.innerHTML = message;
   customAlertModal.classList.remove('hidden');
   customAlertModal.classList.add('modal-enter-active');
-  customAlertModal.querySelector('div').classList.add('modal-enter-active');
   return new Promise(resolve => {
     customAlertOkBtn.onclick = () => {
       customAlertModal.classList.remove('modal-enter-active');
-      customAlertModal.querySelector('div').classList.remove('modal-enter-active');
       customAlertModal.classList.add('modal-exit-active');
-      customAlertModal.querySelector('div').classList.add('modal-exit-active');
-
       setTimeout(() => {
         customAlertModal.classList.add('hidden');
         customAlertModal.classList.remove('modal-exit-active');
-        customAlertModal.querySelector('div').classList.remove('modal-exit-active');
         resolve(true);
-      }, 200); // Duration of modal-exit-active transition
+      }, 200);
     };
   });
 }
@@ -128,30 +124,23 @@ function showConfirm(message) {
   customConfirmMessage.textContent = message;
   customConfirmModal.classList.remove('hidden');
   customConfirmModal.classList.add('modal-enter-active');
-  customConfirmModal.querySelector('div').classList.add('modal-enter-active');
   return new Promise(resolve => {
     const handleConfirm = () => {
       customConfirmModal.classList.remove('modal-enter-active');
-      customConfirmModal.querySelector('div').classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
-      customConfirmModal.querySelector('div').classList.add('modal-exit-active');
       setTimeout(() => {
         customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
-        customConfirmModal.querySelector('div').classList.remove('modal-exit-active');
         resolve(true);
       }, 200);
     };
 
     const handleCancel = () => {
       customConfirmModal.classList.remove('modal-enter-active');
-      customConfirmModal.querySelector('div').classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
-      customConfirmModal.querySelector('div').classList.add('modal-exit-active');
       setTimeout(() => {
         customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
-        customConfirmModal.querySelector('div').classList.remove('modal-exit-active');
         resolve(false);
       }, 200);
     };
@@ -160,7 +149,6 @@ function showConfirm(message) {
     customConfirmCancelBtn.onclick = handleCancel;
   });
 }
-
 
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
@@ -173,27 +161,12 @@ onAuthStateChanged(auth, user => {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
-    // Initial load for home products and dashboard if already signed in
     loadProducts();
     if (document.querySelector('aside nav a[data-tab="dashboard"]').classList.contains('bg-blue-100')) {
-      showDashboard(); // If dashboard was the active tab on refresh
+      showDashboard();
     }
   }
 });
-// --- EmailJS sale notification ---
-function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
-  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
-    buyer_name: buyerName,
-    buyer_email: buyerEmail,
-    seller_paypal_email: sellerPaypalEmail,
-    product_title: productTitle,
-    amount: amount
-  }).then(function(response) {
-    console.log('Sale email sent!', response.status, response.text);
-  }, function(error) {
-    console.error('FAILED to send sale email.', error);
-  });
-}
 
 function showProfileUI(user) {
   if (!user) return;
@@ -222,10 +195,11 @@ function showProfileUI(user) {
         setTimeout(() => {
           dropdownMenu.classList.add('hidden');
           dropdownMenu.classList.remove('modal-exit-active');
-        }, 200); // Match modal exit animation duration
+        }, 200);
       }
     }
   });
+
   document.getElementById('deleteAccountBtn').onclick = async () => {
     const confirmed = await showConfirm("Delete your account? This action cannot be undone and all your products will be delisted.");
     if (confirmed) {
@@ -242,6 +216,7 @@ function showProfileUI(user) {
       }
     }
   };
+
   document.getElementById('signOutBtn').onclick = () => {
     signOut(auth);
   };
@@ -262,10 +237,10 @@ function showTab(targetTabId) {
   sections.forEach(sec => {
     if (sec.id === targetTabId) {
       sec.classList.remove('hidden');
-      sec.classList.add('modal-enter-active'); // Apply enter animation
+      sec.classList.add('modal-enter-active');
     } else {
       sec.classList.remove('modal-enter-active');
-      sec.classList.add('hidden'); // Hide immediately if not target
+      sec.classList.add('hidden');
     }
   });
 }
@@ -278,16 +253,16 @@ tabs.forEach(tab => {
     if (target !== 'sell' && !productForm.classList.contains('hidden')) {
       toggleProductForm(false);
     }
-    productDetailsSection.classList.add('hidden'); // Ensure product details is hidden
+    productDetailsSection.classList.add('hidden');
     if (target === 'home') {
-      // Re-apply current category filter and search after switching to home
       await filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-      searchBar.value = ''; // Clear search bar on tab
+      searchBar.value = '';
     } else if (target === 'dashboard') {
       await showDashboard();
     }
   });
 });
+
 backToHomeBtn.addEventListener('click', () => {
   showTab('home');
   filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
@@ -296,12 +271,12 @@ backToHomeBtn.addEventListener('click', () => {
 startSellingBtn.addEventListener('click', () => {
   toggleProductForm(true);
 });
+
 function toggleProductForm(showForm) {
   if (showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
     productForm.classList.add('modal-enter-active');
-    // Animate form in
     showTab('sell');
     productUploadForm.reset();
     restoreSellForm();
@@ -314,7 +289,6 @@ function toggleProductForm(showForm) {
       productForm.classList.add('hidden');
       productForm.classList.remove('modal-exit-active');
     }, 200);
-    // Match exit animation duration
   }
 }
 
@@ -326,10 +300,12 @@ function saveSellForm() {
     price: priceInput.value,
     paypalEmail: paypalEmailInput.value,
     previewImageUrl: previewImageUrlInput.value,
-    productFileUrl: productFileUrlInput.value
+    productFileUrl: productFileUrlInput.value,
+    category: categorySelect.value
   };
   localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
 }
+
 function restoreSellForm() {
   const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
   titleInput.value = state.title || "";
@@ -338,6 +314,8 @@ function restoreSellForm() {
   paypalEmailInput.value = state.paypalEmail || "";
   previewImageUrlInput.value = state.previewImageUrl || "";
   productFileUrlInput.value = state.productFileUrl || "";
+  categorySelect.value = state.category || "Other";
+
   if (state.previewImageUrl) {
     currentPreviewImage.src = state.previewImageUrl;
     previewImageContainer.classList.remove('hidden');
@@ -345,7 +323,7 @@ function restoreSellForm() {
     previewImageContainer.classList.add('hidden');
     currentPreviewImage.src = "";
   }
-  // Show/hide PayPal field based on price
+
   const priceVal = parseFloat(state.price);
   if (!isNaN(priceVal) && priceVal > 0) {
     paypalEmailContainer.classList.remove('hidden');
@@ -355,13 +333,16 @@ function restoreSellForm() {
     paypalEmailInput.removeAttribute('required');
   }
 }
+
 [
   titleInput, descriptionInput, priceInput, paypalEmailInput,
-  previewImageUrlInput, productFileUrlInput
+  previewImageUrlInput, productFileUrlInput, categorySelect
 ].forEach(input => {
   input.addEventListener('input', saveSellForm);
 });
+
 document.addEventListener("DOMContentLoaded", restoreSellForm);
+
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
 const previewImageWidget = window.cloudinary.createUploadWidget(
@@ -379,7 +360,6 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
     if (!error && result && result.event === "success") {
       previewImageUrlInput.value = result.info.secure_url;
       setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-
       openPreviewImageWidgetBtn.classList.remove('input-invalid');
       currentPreviewImage.src = result.info.secure_url;
       previewImageContainer.classList.remove('hidden');
@@ -408,9 +388,11 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
     }
   }
 );
+
 openPreviewImageWidgetBtn.addEventListener('click', () => {
   previewImageWidget.open();
 });
+
 // --- UTILITIES ---
 function setFileInputStatus(statusElement, message, type = 'default') {
   statusElement.textContent = message;
@@ -419,6 +401,7 @@ function setFileInputStatus(statusElement, message, type = 'default') {
   else if (type === 'error') statusElement.classList.add('error');
   else if (type === 'loading') statusElement.classList.add('loading');
 }
+
 function convertToGoogleDriveDirectDownload(url) {
   if (!url) return url;
   let convertedUrl = url;
@@ -436,14 +419,19 @@ function convertToGoogleDriveDirectDownload(url) {
   }
   return convertedUrl;
 }
+
 // --- SELL FORM VALIDATION ---
 function validateSellForm() {
   let errors = [];
   if (!titleInput.value.trim()) errors.push("Product title is required.");
   if (!descriptionInput.value.trim()) errors.push("Product description is required.");
-  if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
-  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
+  if (isNaN(parseFloat(priceInput.value)) errors.push("Price must be a valid number.");
+  if (parseFloat(priceInput.value) < 0) errors.push("Price cannot be negative.");
+  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) {
+    errors.push("Valid download link is required.");
+  }
   if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
+  if (!categorySelect.value) errors.push("Product category is required.");
   if (!paypalEmailContainer.classList.contains('hidden')) {
     const v = paypalEmailInput.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
@@ -451,6 +439,7 @@ function validateSellForm() {
   if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
   return errors;
 }
+
 function showFormErrors(errors) {
   if (!errors.length) {
     formErrorSummary.classList.add('hidden');
@@ -460,6 +449,7 @@ function showFormErrors(errors) {
   formErrorSummary.classList.remove('hidden');
   formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
 }
+
 function enableSubmitButton() {
   const errors = validateSellForm();
   showFormErrors(errors);
@@ -471,16 +461,19 @@ function enableSubmitButton() {
     submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
   }
 }
+
 function disableSubmitButton() {
   submitProductBtn.disabled = true;
   submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }
+
 [
   titleInput, descriptionInput, priceInput, paypalEmailInput,
-  previewImageUrlInput, productFileUrlInput
+  previewImageUrlInput, productFileUrlInput, categorySelect
 ].forEach(input => {
   input.addEventListener('input', enableSubmitButton);
 });
+
 priceInput.addEventListener('input', () => {
   const price = parseFloat(priceInput.value);
   if (isNaN(price) || price === 0) {
@@ -494,27 +487,30 @@ priceInput.addEventListener('input', () => {
   enableSubmitButton();
   saveSellForm();
 });
+
 // --- SELL FORM SUBMIT ---
 productUploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   disableSubmitButton();
   submitProductBtn.textContent = 'Listing...';
+  
   const errors = validateSellForm();
-  showFormErrors(errors);
   if (errors.length) {
+    showFormErrors(errors);
     submitProductBtn.textContent = 'List Product';
     enableSubmitButton();
     return;
   }
+
   try {
     if (!auth.currentUser) {
       await showAlert("You must be signed in to list a product.");
       window.location.reload();
       return;
     }
+
     const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
     const newProduct = {
-
       title: titleInput.value.trim(),
       description: descriptionInput.value.trim(),
       price: parseFloat(priceInput.value),
@@ -523,48 +519,46 @@ productUploadForm.addEventListener('submit', async (e) => {
       createdAt: serverTimestamp(),
       sellerId: auth.currentUser.uid,
       paypalEmail: paypalEmailInput.value.trim(),
-      category: 'Other' // Default category, can be expanded with a dropdown if needed
+      category: categorySelect.value || 'Other'
     };
+
     await addDoc(collection(db, "products"), newProduct);
     await showAlert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
     toggleProductForm(false);
     await loadProducts();
-    // Reload all products after successful listing
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
-    showFormErrors(["Failed to list product. Please try again."]);
-    console.error("Error adding document to Firestore:", error);
-    await showAlert('Failed to list product. Please check console for details. (Check Firestore rules!)');
+    console.error("Error adding document:", error);
+    await showAlert('Failed to list product. Please try again.');
   } finally {
-    enableSubmitButton();
     submitProductBtn.textContent = 'List Product';
+    enableSubmitButton();
   }
 });
+
 // --- PRODUCT LISTING & SEARCH ---
 async function loadProducts() {
   productListContainer.innerHTML = '';
   noProductsMessage.textContent = 'Loading products...';
   noProductsMessage.classList.remove('hidden');
+
   try {
-    // Note: orderBy("createdAt", "desc") requires a Firestore index.
-    // The console will provide a link to create it if it doesn't exist.
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
     window.allProducts = [];
-    // Clear previous products
     if (querySnapshot.empty) {
       noProductsMessage.textContent = 'No products listed yet.';
       return;
     }
-    noProductsMessage.classList.add('hidden'); // Hide if products are found
 
+    noProductsMessage.classList.add('hidden');
     querySnapshot.forEach((doc) => {
       const product = { id: doc.id, ...doc.data() };
-      window.allProducts.push(product); // Add to global list
+      window.allProducts.push(product);
     });
-    // Now filter and render based on current search and category
+
     filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
   } catch (error) {
     console.error("Error loading products:", error);
@@ -594,8 +588,8 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
     noProductsMessage.classList.remove('hidden');
     return;
   }
-  noProductsMessage.classList.add('hidden');
 
+  noProductsMessage.classList.add('hidden');
   filteredProducts.forEach(product => {
     const productCard = `
       <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
@@ -604,14 +598,14 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
         <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
         <div class="flex items-center justify-between mt-auto">
           <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
-
           <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
         </div>
       </div>
     `;
     productListContainer.innerHTML += productCard;
   });
-  // Add event listeners for view buttons after rendering for home section
+
+  // Add event listeners
   productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
     button.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -619,10 +613,9 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
       showProductDetails(productId);
     });
   });
-  // Also add listener for the whole card to show details
+
   productListContainer.querySelectorAll('.product-card.interactive-card').forEach(card => {
     card.addEventListener('click', (e) => {
-      // Only trigger if click is not on the button itself (delegated to button already)
       if (!e.target.closest('.view-product-btn')) {
         const productId = card.dataset.productId;
         showProductDetails(productId);
@@ -643,54 +636,43 @@ categoryTabs.forEach(tab => {
     filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
   });
 });
+
 async function showProductDetails(productId) {
   productDetailsSection.classList.remove('hidden');
-  showTab('productDetails'); // Make sure the product details section is visible
+  showTab('productDetails');
   productDetailsError.textContent = '';
-  // Clear previous errors
   detailActionButton.innerHTML = 'Loading...';
   detailActionButton.disabled = true;
+
   try {
     const productRef = doc(db, "products", productId);
     const productSnap = await getDoc(productRef);
+    
     if (!productSnap.exists()) {
-      productDetailsError.textContent = 'Product not found.';
-      detailProductTitle.textContent = '';
-      detailProductDescription.textContent = '';
-      detailProductPrice.textContent = '';
-      detailProductImage.src = '';
-      paypalButtonContainer.innerHTML = '';
-      return;
+      throw new Error("Product not found");
     }
 
     const product = { id: productSnap.id, ...productSnap.data() };
-
     detailProductImage.src = product.previewImageUrl;
     detailProductTitle.textContent = product.title;
     detailProductDescription.textContent = product.description;
     detailProductPrice.textContent = `$${parseFloat(product.price).toFixed(2)}`;
-
-    // Clear previous PayPal button and set up for new product
     paypalButtonContainer.innerHTML = '';
-    detailActionButton.style.display = 'block'; // Ensure button container is visible
 
     if (product.price > 0) {
       if (auth.currentUser && auth.currentUser.uid === product.sellerId) {
         detailActionButton.innerHTML = '<span class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 font-bold">Your Product</span>';
         detailActionButton.disabled = true;
-        detailActionButton.style.cursor = 'default';
       } else {
         detailActionButton.innerHTML = '';
-        // Clear the "Loading..."
         detailActionButton.disabled = false;
-        // Enable for purchase
+        
         paypal.Buttons({
           createOrder: function(data, actions) {
             return actions.order.create({
               purchase_units: [{
                 amount: {
                   value: product.price.toFixed(2)
-
                 }
               }]
             });
@@ -699,34 +681,27 @@ async function showProductDetails(productId) {
             return actions.order.capture().then(async function(details) {
               await showAlert('Transaction completed by ' + details.payer.name.given_name + '!');
 
-
-              // Record sale in Firestore
               await addDoc(collection(db, "sales"), {
                 productId: product.id,
                 productTitle: product.title,
                 price: product.price,
                 buyerId: auth.currentUser ? auth.currentUser.uid : 'guest',
-
                 buyerEmail: auth.currentUser ? auth.currentUser.email : details.payer.email_address,
                 sellerId: product.sellerId,
                 sellerPaypalEmail: product.paypalEmail,
                 saleDate: serverTimestamp(),
                 paypalOrderId: data.orderID
-
               });
 
-              // Send sale notification email
               sendSaleEmail({
                 buyerName: details.payer.name.given_name + ' ' + details.payer.name.surname,
                 buyerEmail: details.payer.email_address,
                 sellerPaypalEmail: product.paypalEmail,
                 productTitle: product.title,
-
                 amount: product.price.toFixed(2)
               });
-              // Increment seller's balance
+
               await handleProductPurchase(product);
-              // Provide download link
               await showAlert(`Purchase successful! Your download link is: <a href="${product.fileUrl}" target="_blank" class="text-blue-500 underline">Download Now</a>`);
             });
           },
@@ -735,16 +710,14 @@ async function showProductDetails(productId) {
             showAlert('An error occurred during payment. Please try again.');
           }
         }).render('#paypal-button-container');
-        // Render the PayPal button
       }
-    } else { // Free product
+    } else {
       detailActionButton.innerHTML = `
         <button class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 font-bold text-lg transition-colors duration-200"
                 onclick="window.open('${product.fileUrl}', '_blank')">Download Free</button>
       `;
       detailActionButton.disabled = false;
     }
-
   } catch (error) {
     console.error("Error fetching product details:", error);
     productDetailsError.textContent = 'Failed to load product details.';
@@ -756,7 +729,6 @@ async function showProductDetails(productId) {
     paypalButtonContainer.innerHTML = '';
   } finally {
     detailActionButton.disabled = false;
-    // Re-enable if it was disabled by 'loading'
   }
 }
 
@@ -790,18 +762,17 @@ async function updateSellerBalance(sellerId) {
   }
 }
 
-
 async function showDashboard() {
   if (!auth.currentUser) {
-    showAlert("Please sign in to view your dashboard.");
+    await showAlert("Please sign in to view your dashboard.");
     return;
   }
   showTab('dashboard');
   await updateSellerBalance(auth.currentUser.uid);
-  watchSellerBalance(auth.currentUser.uid); // Start real-time updates for balance
+  watchSellerBalance(auth.currentUser.uid);
   await loadMyProducts(auth.currentUser.uid);
-  // Load user's products
 }
+
 async function incrementSellerBalance(sellerId, amount) {
   const balRef = doc(db, "balances", sellerId);
   try {
@@ -817,6 +788,7 @@ async function incrementSellerBalance(sellerId, amount) {
     console.error("Transaction failed: ", e);
   }
 }
+
 async function handleProductPurchase(product) {
   if (!product || !product.sellerId || !product.price) {
     console.error("Invalid product data for purchase handling.");
@@ -825,28 +797,43 @@ async function handleProductPurchase(product) {
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
+// --- EmailJS sale notification ---
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
+}
 
-// --- New: Load My Products for Dashboard ---
+// --- Load My Products for Dashboard ---
 async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = ''; // Clear previous products
+  myProductsContainer.innerHTML = '';
   noMyProductsMessage.textContent = 'Loading your products...';
   noMyProductsMessage.classList.remove('hidden');
 
   try {
-    // Query products where sellerId matches the current user's ID
-    const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "products"), 
+      where("sellerId", "==", userId), 
+      orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
       noMyProductsMessage.textContent = 'You have not listed any products yet.';
       return;
     }
-    noMyProductsMessage.classList.add('hidden'); // Hide if products are found
 
-    querySnapshot.forEach((doc) => {
+    noMyProductsMessage.classList.add('hidden');
+    myProductsContainer.innerHTML = querySnapshot.docs.map(doc => {
       const product = { id: doc.id, ...doc.data() };
-      const productCard = `
-        <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
+      return `
+        <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card" data-product-id="${product.id}">
           <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
           <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
           <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
@@ -859,10 +846,9 @@ async function loadMyProducts(userId) {
           </div>
         </div>
       `;
-      myProductsContainer.innerHTML += productCard;
-    });
+    }).join('');
 
-    // Add event listeners for buttons in "My Products" section
+    // Add event listeners
     myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
       button.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -875,7 +861,6 @@ async function loadMyProducts(userId) {
       button.addEventListener('click', async (e) => {
         e.stopPropagation();
         const productId = e.target.dataset.productId;
-        // Pass necessary dependencies to the imported deleteProduct function
         await deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts);
       });
     });
@@ -889,26 +874,23 @@ async function loadMyProducts(userId) {
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Only load products if not already authenticated, onAuthStateChanged will handle it
-    if (!auth.currentUser) {
-        loadProducts(); // Load for unauthenticated users
-    }
-    restoreSellForm();
+  if (!auth.currentUser) {
+    loadProducts();
+  }
+  restoreSellForm();
 });
-// Event listener for general product list (home page)
+
+// Event listener for general product list
 productListContainer.addEventListener('click', (event) => {
-    const productCard = event.target.closest('.product-card.interactive-card');
-    const viewButton = event.target.closest('.view-product-btn'); // For specific 'Details' button on home page
+  const productCard = event.target.closest('.product-card.interactive-card');
+  const viewButton = event.target.closest('.view-product-btn');
 
-    if (viewButton) {
-        // If the 'Details' button was clicked directly
-        event.stopPropagation(); // Prevent card click from firing too
-        const productId = viewButton.dataset.productId;
-        showProductDetails(productId);
-    } else if (productCard) {
-
-        // If any other part of the card was clicked
-        const productId = productCard.dataset.productId;
-        showProductDetails(productId);
-    }
+  if (viewButton) {
+    event.stopPropagation();
+    const productId = viewButton.dataset.productId;
+    showProductDetails(productId);
+  } else if (productCard) {
+    const productId = productCard.dataset.productId;
+    showProductDetails(productId);
+  }
 });
