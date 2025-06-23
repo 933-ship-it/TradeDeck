@@ -12,7 +12,8 @@ import {
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
-const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
+const THEME_STORAGE_KEY = 'TradeDeckTheme'; // Key for storing theme preference
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -92,17 +93,81 @@ const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
+// PIN Modals
+const initialPinModal = document.getElementById('initialPinModal');
+const closeInitialPinModalBtn = document.getElementById('closeInitialPinModalBtn');
+const initialPinDisplay = document.getElementById('initialPinDisplay');
+const initialPinConfirmBtn = document.getElementById('initialPinConfirmBtn');
+const pinEntryModal = document.getElementById('pinEntryModal');
+const closePinEntryModalBtn = document.getElementById('closePinEntryModalBtn');
+const pinInput = document.getElementById('pinInput');
+const pinErrorMessage = document.getElementById('pinErrorMessage');
+const pinEntryForm = document.getElementById('pinEntryForm');
+let userPIN = null; // To store the user's PIN after generation/retrieval
+
+// Settings & Dark Mode
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const darkModeToggle = document.getElementById('darkModeToggle');
+
+// --- THEME MANAGEMENT ---
+function setTheme(mode) {
+  if (mode === 'dark') {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    darkModeToggle.checked = true;
+  } else {
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'light');
+    darkModeToggle.checked = false;
+  }
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme) {
+    setTheme(savedTheme);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    // Default to system preference if no theme is saved
+    setTheme('dark');
+  } else {
+    setTheme('light');
+  }
+}
+
+darkModeToggle.addEventListener('change', () => {
+  if (darkModeToggle.checked) {
+    setTheme('dark');
+  } else {
+    setTheme('light');
+  }
+});
+
+// Toggle settings panel visibility
+settingsBtn.addEventListener('click', () => {
+  settingsPanel.classList.toggle('hidden');
+});
+
+// Close settings panel when clicking outside
+document.addEventListener('click', (e) => {
+  if (!settingsBtn.contains(e.target) && !settingsPanel.contains(e.target)) {
+    settingsPanel.classList.add('hidden');
+  }
+});
+
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   document.body.style.visibility = "";
   if (!user) {
     authOverlay.style.display = "flex";
     userGlobal = null;
+    userPIN = null; // Clear PIN on sign out
   } else {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
+    await retrieveUserPIN(user.uid); // Retrieve PIN on sign-in
   }
 });
 
@@ -123,7 +188,7 @@ function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle,
 
 function showProfileUI(user) {
   if (!user) return;
-  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
+  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U") + "&background=random";
   profilePic.classList.remove("hidden");
   userEmail.textContent = user.email || "(no email)";
   profilePic.onclick = function(e) {
@@ -136,34 +201,52 @@ function showProfileUI(user) {
     }
   });
   document.getElementById('deleteAccountBtn').onclick = async () => {
-    if (confirm("Delete your account? This cannot be undone.")) {
+    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       try {
         await deleteUser(user);
-        alert("Account deleted.");
+        // Also delete user's data from Firestore (products, balance, PIN)
+        const userProductsQuery = query(collection(db, "products"), where("sellerId", "==", user.uid));
+        const userProductsSnapshot = await getDocs(userProductsQuery);
+        const deleteProductPromises = userProductsSnapshot.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deleteProductPromises);
+        await deleteDoc(doc(db, "balances", user.uid)).catch(e => console.log("No balance to delete or error:", e));
+        await deleteDoc(doc(db, "userPINs", user.uid)).catch(e => console.log("No PIN to delete or error:", e));
+
+        alert("Account and all associated data deleted successfully.");
         window.location.href = LANDING_URL;
       } catch (err) {
         if (err.code === 'auth/requires-recent-login') {
-          alert("Please sign out and sign in again, then try deleting your account.");
+          alert("For security, please sign out and sign in again, then try deleting your account immediately.");
         } else {
           alert("Failed to delete account: " + err.message);
         }
+        console.error("Error deleting account:", err);
       }
     }
   };
-  document.getElementById('signOutBtn').onclick = () => {
-    signOut(auth);
+  document.getElementById('signOutBtn').onclick = async () => {
+    try {
+      await signOut(auth);
+      alert("You have been signed out.");
+      window.location.href = LANDING_URL; // Redirect to landing/sign-in page
+    } catch (error) {
+      console.error("Error signing out:", error);
+      alert("Failed to sign out. Please try again.");
+    }
   };
 }
 
 // --- Tab Navigation ---
-function showTab(targetTabId) {
+async function showTab(targetTabId) {
   tabs.forEach(t => {
-    t.classList.remove('bg-blue-100');
+    t.classList.remove('bg-blue-100', 'dark:bg-blue-600');
+    t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700');
     t.removeAttribute('aria-current');
   });
   const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
   if (currentTab) {
-    currentTab.classList.add('bg-blue-100');
+    currentTab.classList.add('bg-blue-100', 'dark:bg-blue-600');
+    currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700');
     currentTab.setAttribute('aria-current', 'page');
   }
   sections.forEach(sec => {
@@ -171,27 +254,48 @@ function showTab(targetTabId) {
     else sec.classList.add('hidden');
   });
 }
+
 tabs.forEach(tab => {
   tab.addEventListener('click', async (e) => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
-    showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
-      await loadProducts(searchBar.value.trim());
-      searchBar.value = '';
-    } else if (target === 'dashboard') {
-      await showDashboard();
+
+    if (target === 'sell') {
+      if (!userGlobal) {
+        alert("Please sign in to access the 'Sell' section.");
+        showTab('home'); // Redirect to home if not signed in
+        return;
+      }
+      if (userPIN) {
+        pinInput.value = ''; // Clear previous input
+        pinErrorMessage.textContent = '';
+        pinEntryModal.classList.remove('hidden');
+        pinInput.focus();
+      } else {
+        // User has no PIN, generate and show initial PIN modal
+        await generateAndShowInitialPIN();
+      }
+    } else {
+      showTab(target);
+      if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+        toggleProductForm(false);
+      }
+      productDetailsSection.classList.add('hidden');
+      if (target === 'home') {
+        await loadProducts(searchBar.value.trim());
+        searchBar.value = '';
+      } else if (target === 'dashboard') {
+        await showDashboard();
+      }
     }
   });
 });
+
 backToHomeBtn.addEventListener('click', () => {
   showTab('home');
   loadProducts(searchBar.value.trim());
 });
+
 startSellingBtn.addEventListener('click', () => {
   toggleProductForm(true);
 });
@@ -200,7 +304,7 @@ function toggleProductForm(showForm) {
   if (showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
-    showTab('sell');
+    // showTab('sell'); // This is already handled by the tab click
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
@@ -209,6 +313,84 @@ function toggleProductForm(showForm) {
     productForm.classList.add('hidden');
   }
 }
+
+// --- PIN Management ---
+async function retrieveUserPIN(userId) {
+  try {
+    const pinDocRef = doc(db, "userPINs", userId);
+    const docSnap = await getDoc(pinDocRef);
+    if (docSnap.exists()) {
+      userPIN = docSnap.data().pin;
+      console.log("PIN retrieved for user:", userId);
+    } else {
+      userPIN = null;
+      console.log("No PIN found for user:", userId);
+    }
+  } catch (error) {
+    console.error("Error retrieving PIN:", error);
+    userPIN = null;
+  }
+}
+
+async function generateNewPIN(userId) {
+  const newPin = Math.floor(10000000 + Math.random() * 90000000).toString(); // 8-digit PIN
+  try {
+    const pinDocRef = doc(db, "userPINs", userId);
+    await setDoc(pinDocRef, { pin: newPin, userId: userId, createdAt: serverTimestamp() }, { merge: true });
+    userPIN = newPin;
+    return newPin;
+  } catch (error) {
+    console.error("Error generating and saving PIN:", error);
+    return null;
+  }
+}
+
+async function generateAndShowInitialPIN() {
+  if (!userGlobal) {
+    alert("Please sign in to generate a PIN.");
+    return;
+  }
+  const newPin = await generateNewPIN(userGlobal.uid);
+  if (newPin) {
+    initialPinDisplay.textContent = newPin;
+    initialPinModal.classList.remove('hidden');
+  } else {
+    alert("Failed to generate PIN. Please try again.");
+  }
+}
+
+closeInitialPinModalBtn.addEventListener('click', () => {
+  initialPinModal.classList.add('hidden');
+  showTab('home'); // Go back to home if user closes without confirming
+});
+
+initialPinConfirmBtn.addEventListener('click', () => {
+  initialPinModal.classList.add('hidden');
+  // After confirming PIN, proceed to sell tab
+  toggleProductForm(true);
+});
+
+closePinEntryModalBtn.addEventListener('click', () => {
+  pinEntryModal.classList.add('hidden');
+  showTab('home'); // Go back to home if user closes
+});
+
+pinEntryForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const enteredPin = pinInput.value.trim();
+  if (enteredPin === userPIN) {
+    pinEntryModal.classList.add('hidden');
+    toggleProductForm(true); // Allow access to sell form
+  } else {
+    pinErrorMessage.textContent = 'Invalid PIN. Please try again.';
+    pinInput.classList.add('input-invalid');
+  }
+});
+
+pinInput.addEventListener('input', () => {
+  pinInput.classList.remove('input-invalid');
+  pinErrorMessage.textContent = '';
+});
 
 // --- SELL FORM AUTOSAVE/RESTORE ---
 function saveSellForm() {
@@ -491,29 +673,29 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
   noResultsMsgElement.classList.add('hidden');
   if (!Array.isArray(productArray) || productArray.length === 0) {
     noResultsMsgElement.classList.remove('hidden');
-    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
+    noResultsMsgElement.textContent = isDashboardView ? 'No products listed yet.' : 'No products found matching your search.';
     return;
   }
   productArray.forEach(product => {
     const productCard = document.createElement('div');
-    productCard.className = `bg-white rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent'}`;
+    productCard.className = `bg-white rounded-lg shadow-md p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent'} dark:bg-gray-800 dark:shadow-lg dark:border-gray-700`;
     productCard.setAttribute('data-product-id', product.id);
     const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
     let cardButtonsHtml = '';
     if (isDashboardView) {
       cardButtonsHtml = `
         <div class="mt-auto flex justify-end items-center pt-2">
-          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Download</a>
-          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
+          <button data-product-id="${product.id}" class="edit-product-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">Edit</button>
+          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400">Delist</button>
         </div>
       `;
     }
     productCard.innerHTML = `
-      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-      <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-      <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full border border-gray-200 dark:border-gray-700"/>
+      <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
+      <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap dark:text-gray-300">${product.description}</p>
       <div class="mt-auto flex justify-between items-center pt-2">
-        <span class="font-bold text-blue-600">${displayPrice}</span>
+        <span class="font-bold text-blue-600 text-lg">${displayPrice}</span>
         ${cardButtonsHtml}
       </div>
     `;
@@ -525,6 +707,15 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
           e.stopPropagation();
           const productId = delistButton.getAttribute('data-product-id');
           if (productId) deleteProduct(productId);
+        });
+      }
+      const editButton = productCard.querySelector('.edit-product-btn');
+      if (editButton) {
+        editButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const productId = editButton.getAttribute('data-product-id');
+          const productToEdit = productArray.find(p => p.id === productId);
+          if (productToEdit) openEditProductModal(productToEdit);
         });
       }
     } else {
@@ -542,8 +733,8 @@ async function deleteProduct(productId) {
   try {
     await deleteDoc(doc(db, "products", productId));
     alert('Product delisted successfully!');
-    await loadProducts('');
-    await showDashboard();
+    await loadProducts(''); // Refresh home products
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Refresh dashboard products
   } catch (error) {
     console.error("Error removing document: ", error);
     alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
@@ -586,7 +777,7 @@ async function showProductDetails(productId) {
           onApprove: async function(data, actions) {
             return actions.order.capture().then(async function(details) {
               alert('Payment completed by ' + details.payer.name.given_name + '!');
-              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
+              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition focus:outline-none focus:ring-4 focus:ring-green-300">Download Product</a>`;
               await handleProductPurchase(product);
               // --- Send EmailJS sale notification ---
               sendSaleEmail({
@@ -604,13 +795,13 @@ async function showProductDetails(productId) {
           }
         }).render('#paypal-button-container');
       } else {
-        paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
+        paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
       }
     } else {
       detailActionButton.style.display = '';
       paypalButtonContainer.innerHTML = '';
       detailActionButton.textContent = 'Download';
-      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white', 'focus:outline-none', 'focus:ring-4', 'focus:ring-green-300');
       detailActionButton.onclick = () => {
         window.open(product.fileUrl, '_blank');
       };
@@ -634,6 +825,7 @@ async function updateSellerBalance(userId) {
     sellerBalance.textContent = `$${value.toFixed(2)}`;
   } catch (e) {
     sellerBalance.textContent = "$0.00";
+    console.error("Error fetching balance:", e);
   }
 }
 let balanceUnsub = null;
@@ -643,6 +835,9 @@ function watchSellerBalance(userId) {
     let value = 0;
     if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
     sellerBalance.textContent = `$${value.toFixed(2)}`;
+  }, (error) => {
+    console.error("Error listening to balance:", error);
+    sellerBalance.textContent = "$0.00"; // Fallback on error
   });
 }
 async function loadMyProducts(userId) {
@@ -651,9 +846,8 @@ async function loadMyProducts(userId) {
   try {
     const q = query(
       collection(db, "products"),
-      where("sellerId", "==", userId)
-      // Add back orderBy if data/index is ready:
-      // , orderBy("createdAt", "desc")
+      where("sellerId", "==", userId),
+      orderBy("createdAt", "desc") // Re-adding orderBy, assuming index is present
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -661,11 +855,10 @@ async function loadMyProducts(userId) {
       noMyProductsMessage.classList.remove('hidden');
       return;
     }
-    // Use your existing rendering function for consistency:
     renderProducts(products, myProductsContainer, noMyProductsMessage, true);
   } catch (e) {
     console.error("Error loading user's products:", e);
-    myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
+    myProductsContainer.innerHTML = '<p class="col-span-full text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
   }
 }
 function openEditProductModal(product) {
@@ -686,16 +879,31 @@ editProductForm.onsubmit = async function (e) {
     title: editTitleInput.value.trim(),
     description: editDescriptionInput.value.trim(),
     price: parseFloat(editPriceInput.value),
-    fileUrl: editFileUrlInput.value.trim()
+    fileUrl: convertToGoogleDriveDirectDownload(editFileUrlInput.value.trim()) // Convert URL on edit too
   };
+
+  // Simple validation for edit form
+  let errors = [];
+  if (!updated.title) errors.push("Title is required.");
+  if (!updated.description) errors.push("Description is required.");
+  if (isNaN(updated.price) || updated.price < 0) errors.push("Price must be a non-negative number.");
+  if (!updated.fileUrl || !/^https?:\/\/.+\..+/.test(updated.fileUrl)) errors.push("Valid download link is required.");
+
+  if (errors.length > 0) {
+      alert("Please fix the following errors:\n" + errors.join("\n"));
+      return;
+  }
+
   try {
     await updateDoc(doc(db, "products", id), updated);
+    alert("Product updated successfully!");
     closeEditProductModal();
     if (auth.currentUser) {
       await loadMyProducts(auth.currentUser.uid);
     }
   } catch (err) {
-    alert("Failed to update product.");
+    console.error("Failed to update product:", err);
+    alert("Failed to update product. Please try again. (Check Firestore rules!)");
   }
 };
 cancelEditBtn.onclick = closeEditProductModal;
@@ -719,11 +927,15 @@ async function incrementSellerBalance(sellerId, amount) {
   });
 }
 async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) return;
+  if (!product || !product.sellerId || typeof product.price !== 'number') {
+    console.error("Invalid product data for purchase handling:", product);
+    return;
+  }
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
 // --- Initial Load ---
+loadTheme(); // Load theme preference first
 loadProducts();
 showTab('home');
-enableSubmitButton();
+enableSubmitButton(); // Ensure submit button state is correct on load
