@@ -558,8 +558,14 @@ tabs.forEach(tab => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
     showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
+    // Correct logic for handling sell form visibility when switching tabs
+    if (target === 'sell') {
+      toggleProductForm(true); // Show sell form when 'Sell' tab is clicked
+    } else {
+      // Hide sell form if open and switching to another tab
+      if (!productForm.classList.contains('hidden')) {
+        toggleProductForm(false);
+      }
     }
     productDetailsSection.classList.add('hidden');
     if (target === 'home') {
@@ -585,7 +591,7 @@ function toggleProductForm(showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
     productForm.classList.add('modal-enter-active');
-    showTab('sell');
+    showTab('sell'); // Ensure the 'sell' tab is visually active
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
