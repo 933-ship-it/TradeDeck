@@ -2,176 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://placehold.co; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
+  <!-- Favicon/logo for browser tab -->
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
   <style>
-    /* Global styles for Inter font and smooth transitions */
-    body {
-      font-family: 'Inter', sans-serif;
-      scroll-behavior: smooth;
-    }
-    main section {
-      transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-      transform: translateY(0);
-    }
-    main section.hidden {
-      opacity: 0;
-      height: 0;
-      overflow: hidden;
-      position: absolute;
-      pointer-events: none;
-      visibility: hidden;
-      transform: translateY(20px);
-    }
-    .product-card {
-      transition: all 0.3s ease-in-out;
-      border: 1px solid transparent;
-      border-radius: 16px; /* Slightly more rounded corners */
-      overflow: hidden;
-      padding: 1.5rem; /* Increased padding */
-    }
-    .product-card:hover {
-      transform: translateY(-10px) scale(1.03); /* More pronounced lift and scale */
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2); /* Stronger, more diffused shadow */
-      border-color: #4f46e5; /* Deeper indigo border on hover */
-    }
-    .input-invalid {
-      border-color: #ef4444 !important;
-      box-shadow: 0 0 0 3px #ef4444 !important; /* Thicker error border */
-    }
-    .error-summary {
-      background: #fee2e2;
-      color: #b91c1c;
-      padding: 1.25rem 1.5rem; /* More padding */
-      border-radius: 1rem; /* More rounded */
-      margin-bottom: 2rem; /* More space */
-      font-size: 1rem; /* Slightly larger text */
-      border: 1px solid #ef4444;
-      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1);
-    }
-    .interactive-card {
-      cursor: pointer;
-    }
-    .interactive-card:hover {
-      border-color: #3b82f6; /* Deeper blue on hover */
-    }
+    body { font-family: 'Inter', sans-serif; }
+    main section { transition: opacity 0.3s; }
+    main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+    .product-card { transition: all 0.2s; }
+    .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
+    .error-summary { background: #fee2e2; color: #b91c1c; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+    .interactive-card { cursor: pointer; }
+    .interactive-card:hover { border-color: #60a5fa; }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
     .loading { color: #fbbf24; }
+    #editProductModal { z-index: 1000; }
+    /* Ensure modals are on top */
+    #initialPinModal, #pinEntryModal { z-index: 2000; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
-
-    /* Custom scrollbar for main content area */
-    main::-webkit-scrollbar {
-      width: 10px; /* Thicker scrollbar */
-    }
-    main::-webkit-scrollbar-track {
-      background: #e2e8f0; /* Lighter track */
-      border-radius: 10px;
-    }
-    main::-webkit-scrollbar-thumb {
-      background: #94a3b8; /* Darker thumb */
-      border-radius: 10px;
-    }
-    main::-webkit-scrollbar-thumb:hover {
-      background: #64748b; /* Even darker on hover */
-    }
-
-    /* Enhanced sidebar navigation */
-    aside nav a {
-      display: flex;
-      align-items: center;
-      gap: 1rem; /* More space */
-      padding: 1rem 1.25rem; /* Increased padding */
-      font-weight: 700; /* Even bolder text */
-      transition: all 0.3s ease;
-      border-radius: 12px; /* Smoother corners */
-      font-size: 1.1rem; /* Slightly larger font */
-    }
-    aside nav a.bg-blue-100 {
-      background-color: #bfdbfe; /* More vibrant blue for active */
-      color: #1d4ed8; /* Darker blue text */
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); /* Stronger shadow for active */
-    }
-    aside nav a:hover:not(.bg-blue-100) {
-      background-color: #dbeafe; /* Lighter hover background */
-      color: #1e40af; /* Even darker blue on hover */
-      transform: translateX(5px); /* More pronounced slide effect */
-    }
-
-    /* Category tabs under search bar */
-    .category-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.7rem 1.4rem; /* More padding */
-      border-radius: 25px; /* More pill-like shape */
-      background-color: #eef2ff; /* Very light indigo */
-      color: #4f46e5; /* Deeper indigo */
-      font-weight: 700;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: 1px solid transparent;
-      white-space: nowrap;
-      font-size: 0.95rem; /* Slightly smaller for compactness */
-    }
-    .category-tab:hover {
-      background-color: #e0e7ff; /* Lighter indigo on hover */
-      transform: translateY(-3px); /* More lift effect */
-      box-shadow: 0 6px 15px rgba(67, 56, 202, 0.15);
-    }
-    .category-tab.active {
-      background-color: #4f46e5; /* Solid indigo for active */
-      color: white;
-      box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
-      border-color: #4f46e5;
-    }
-
-    /* Product card image aspect ratio */
-    .product-card img {
-      aspect-ratio: 4/3;
-      object-fit: cover; /* Ensures image covers area, cropping if needed */
-    }
-
-    /* Form element padding */
-    .product-form-input {
-        padding: 0.85rem 1.25rem; /* Increased padding for inputs/textareas */
-        border-radius: 0.75rem; /* More rounded inputs */
-    }
-
-    /* Smooth transition for modal */
-    .modal-enter {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    .modal-enter-active {
-      opacity: 1;
-      transform: scale(1);
-      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-    }
-    .modal-exit {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .modal-exit-active {
-      opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.2s ease-in, transform 0.2s ease-in;
-    }
-
-    /* Custom styles for Dashboard product display */
-    #myProducts {
-        min-height: 800px; /* Ensure a minimum height for the product display area */
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Flexible columns, min 280px wide */
-        gap: 24px; /* Space between product cards */
-        align-items: start; /* Align items to the start of the grid */
-    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
@@ -180,273 +36,240 @@
     })();
   </script>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
-  <div id="authOverlay" class="fixed inset-0 bg-gradient-to-br from-blue-500 to-indigo-700 flex flex-col items-center justify-center z-50 text-white p-6" style="display:none;">
-    <div class="text-5xl font-extrabold mb-6 animate-pulse">👋 Welcome to TradeDeck</div>
-    <p class="text-xl text-center mb-8 max-w-lg">Your marketplace for digital products. Please sign in to explore and create!</p>
-    <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="bg-white text-blue-700 px-8 py-4 rounded-full text-lg font-bold shadow-xl hover:bg-gray-100 transition-all duration-300 ease-in-out transform hover:scale-105">
-      Go to Sign In
-    </a>
+<body class="bg-gray-100">
+  <!-- Authentication Overlay -->
+  <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
+    <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
+    <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
   </div>
-
-  <div class="flex flex-1">
-    <aside class="w-72 bg-white shadow-xl p-8 flex flex-col rounded-r-3xl" aria-label="Sidebar navigation">
-      <h1 class="text-4xl font-extrabold text-blue-700 mb-10 tracking-tight">TradeDeck<span class="text-indigo-500"></span></h1>
-      
-      <div id="profileDropdown" class="relative mb-8 min-h-[60px]">
-        <div class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors" id="profileToggleArea">
-          <img id="userProfilePic" class="h-14 w-14 rounded-full border-3 border-blue-500 shadow-md hidden object-cover" src="" alt="Profile" />
-          <span id="userEmailDisplay" class="text-gray-800 font-medium text-lg truncate"></span>
-        </div>
-        <div id="dropdownMenu" class="hidden absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-lg py-3 z-50 border border-gray-100 animate-fade-in-down">
-          <div class="px-5 py-2 text-gray-700 text-sm border-b border-gray-100 font-semibold" id="userEmail"></div>
-          <button id="deleteAccountBtn" class="w-full text-left px-5 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm3 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm-3 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" />
-            </svg>
-            Delete Account
-          </button>
-          <button id="signOutBtn" class="w-full text-left px-5 py-2 text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
-            </svg>
-            Sign Out
-          </button>
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
+      <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
+      <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
+        <img id="userProfilePic" class="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 hidden" src="" alt="Profile" />
+        <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
+          <div class="px-4 py-2 text-gray-700 text-sm border-b border-gray-100" id="userEmail"></div>
+          <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">Delete Account</button>
+          <button id="signOutBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Sign Out</button>
         </div>
       </div>
-
-      <nav class="space-y-3 flex-grow">
-        <a href="#home" class="tab-item bg-blue-100" data-tab="home" tabindex="0" aria-current="page">
-          <span role="img" aria-label="Home icon">🏠</span> Home
-        </a>
-        <a href="#sell" class="tab-item" data-tab="sell" tabindex="0">
-          <span role="img" aria-label="Sell icon">💸</span> Sell
-        </a>
-        <a href="#dashboard" class="tab-item" data-tab="dashboard" tabindex="0">
-          <span role="img" aria-label="Dashboard icon">📊</span> Dashboard
-        </a>
+      <nav class="space-y-4 flex-grow">
+        <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">Home</a>
+        <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">Sell</a>
+        <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">Dashboard</a>
       </nav>
-
-      <div class="mt-auto pt-6 border-t border-gray-200 text-center text-sm text-gray-400">
-        &copy; 2025 TradeDeck. All rights reserved.
-      </div>
     </aside>
-
-    <main class="flex-1 overflow-y-auto p-12 bg-gray-50">
+    <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
+      <!-- Home Section -->
       <section id="home" aria-label="Home Products">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-5xl mx-auto">
           <label for="searchBar" class="sr-only">Search products</label>
-          <div class="relative mb-8">
-            <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..."
-                   class="w-full pl-12 pr-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 text-lg shadow-sm transition-all duration-200" />
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-
-          <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar mb-10">
-            <button class="category-tab active" data-category="All">✨ All</button>
-            <button class="category-tab" data-category="Tech">💻 Tech</button>
-            <button class="category-tab" data-category="EBooks">📚 EBooks</button>
-            <button class="category-tab" data-category="Design">🎨 Design</button>
-            <button class="category-tab" data-category="Software">💾 Software</button>
-            <button class="category-tab" data-category="Templates">📝 Templates</button>
-            <button class="category-tab" data-category="Audio">🎶 Audio</button>
-            <button class="category-tab" data-category="Video">🎬 Video</button>
-          </div>
-
-          <div id="productList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 text-lg py-10 hidden">Loading products...</p>
+          <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-8 px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-blue-500" />
+          <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 hidden">Loading products...</p>
           </div>
         </div>
       </section>
-
+      <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
-        <div class="max-w-5xl mx-auto bg-white p-10 rounded-3xl shadow-xl">
-          <button id="backToHomeBtn" class="mb-8 px-6 py-3 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 flex items-center gap-2 text-lg font-medium" aria-label="Back to home">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Home
-          </button>
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+          <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to home">&larr; Back</button>
           <div id="productDetailsContent">
-            <div class="flex flex-col md:flex-row gap-10">
-              <div class="md:w-1/2 flex justify-center items-center bg-gray-100 rounded-2xl p-4 shadow-inner">
-                <img id="detailProductImage" src="https://placehold.co/600x400?text=Product+Preview" alt="Product image" class="w-full h-auto rounded-xl shadow-lg object-contain max-h-[400px] sm:max-h-[500px]" />
+            <div class="flex flex-col md:flex-row gap-8">
+              <div class="md:w-1/2">
+                <img id="detailProductImage" src="" alt="Product image" class="w-full h-auto rounded-lg shadow-md object-cover max-h-96" />
               </div>
               <div class="md:w-1/2 flex flex-col justify-between">
                 <div>
-                  <h2 id="detailProductTitle" class="text-4xl font-extrabold text-gray-900 mb-3 leading-tight"></h2>
-                  <p id="detailProductDescription" class="text-gray-700 mb-6 text-justify leading-relaxed text-lg"></p>
-                  <p class="text-4xl font-extrabold text-blue-600 mb-8" id="detailProductPrice"></p>
+                  <h2 id="detailProductTitle" class="text-3xl font-bold text-gray-900 mb-2"></h2>
+                  <p id="detailProductDescription" class="text-gray-700 mb-4 text-justify"></p>
+                  <p class="text-2xl font-extrabold text-blue-600 mb-6" id="detailProductPrice"></p>
                 </div>
                 <div class="mt-auto">
-                  <button id="detailActionButton" class="w-full py-4 rounded-xl font-bold text-xl transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg"></button>
-                  <div id="paypal-button-container" class="mt-8"></div>
+                  <button id="detailActionButton" class="w-full py-3 rounded-xl font-semibold transition"></button>
+                  <div id="paypal-button-container" class="mt-6"></div>
                 </div>
               </div>
             </div>
           </div>
-          <p id="productDetailsError" class="text-red-500 text-center mt-6 text-lg hidden">Product details could not be loaded.</p>
+          <p id="productDetailsError" class="text-red-500 text-center mt-4 hidden">Product details could not be loaded.</p>
         </div>
       </section>
-
+      <!-- Sell Section -->
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <div id="sellLandingContent">
             <div class="text-center mb-16">
-              <h2 class="text-5xl font-extrabold text-gray-900 mb-6 leading-tight animate-fade-in-up">Turn Your Digital Assets Into Revenue ✨</h2>
-              <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up-delay">
+              <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Turn Your Digital Assets Into Revenue</h2>
+              <p class="text-lg text-gray-600 mb-6">
                 Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
               </p>
-              <button id="startSellingBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xl font-bold px-10 py-4 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 animate-pop-in">
-                Start Selling Now
-              </button>
+              <button id="startSellingBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300">Start Selling Now</button>
             </div>
-
             <div class="mb-20">
-    <h3 class="text-3xl font-bold text-gray-800 mb-12 text-center animate-fade-in">How It Works</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-        <div class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 animate-slide-in-left">
-            <div class="text-blue-600 text-5xl mb-5">📁</div>
-            <h4 class="text-xl font-bold mb-3 text-gray-800">Upload Your Product</h4>
-            <p class="text-gray-600 text-md leading-relaxed">PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop your digital creations.</p>
-        </div>
-        <div class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up">
-            <div class="text-green-500 text-5xl mb-5"⚙️</div> <h4 class="text-xl font-bold mb-3 text-gray-800">Customize & Price</h4>
-            <p class="text-gray-600 text-md leading-relaxed">Set your price, craft compelling descriptions, add captivating preview images, and define license terms.</p>
-        </div>
-        <div class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 animate-slide-in-right">
-            <div class="text-purple-500 text-5xl mb-5">💸</div>
-            <h4 class="text-xl font-bold mb-3 text-gray-800">Get Paid Securely</h4>
-            <p class="text-gray-600 text-md leading-relaxed">Your sales are paid directly and securely to your connected PayPal account, ensuring smooth transactions.</p>
-        </div>
-    </div>
-</div>
-
-          <div id="productForm" class="bg-white p-10 rounded-3xl shadow-2xl max-w-3xl mx-auto hidden border-t-4 border-blue-600">
+              <h3 class="text-2xl font-semibold text-gray-800 mb-8 text-center">How It Works</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-blue-600 text-4xl mb-4">📁</div>
+                  <h4 class="text-lg font-semibold mb-2">Upload Your Product</h4>
+                  <p class="text-gray-600 text-sm">PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-green-500 text-4xl mb-4">⚙️</div>
+                  <h4 class="text-lg font-semibold mb-2">Customize & Price</h4>
+                  <p class="text-gray-600 text-sm">Set your price, description, preview images, and license terms.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow">
+                  <div class="text-purple-500 text-4xl mb-4">💸</div>
+                  <h4 class="text-lg font-semibold mb-2">Get Paid Securely</h4>
+                  <p class="text-gray-600 text-sm">Your sales are paid directly to your connected PayPal account.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Product Form -->
+          <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <div id="formErrorSummary" class="error-summary hidden"></div>
-            <h3 class="text-3xl font-bold text-gray-900 mb-8 text-center">List Your Digital Product 🚀</h3>
-            <form id="productUploadForm" class="space-y-7" autocomplete="off">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
+            <form id="productUploadForm" class="space-y-6" autocomplete="off">
               <div>
-                <label for="title" class="block text-lg font-medium text-gray-700 mb-2">Product Title</label>
-                <input type="text" id="title" name="title" required maxlength="100"
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
-                       placeholder="e.g., Ultimate eBook Template Pack" />
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
+                <input type="text" id="title" name="title" required maxlength="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Ultimate eBook Template Pack" />
               </div>
               <div>
-                <label for="description" class="block text-lg font-medium text-gray-700 mb-2">Product Description</label>
-                <textarea id="description" name="description" rows="5" required maxlength="1000"
-                          class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
-                          placeholder="Describe your product in detail (max 1000 characters)..."></textarea>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
+                <textarea id="description" name="description" rows="4" required maxlength="1000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Describe your product in detail..."></textarea>
               </div>
               <div>
-                <label for="category" class="block text-lg font-medium text-gray-700 mb-2">Product Category</label>
-                <select id="category" name="category" required
-                        class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input">
-                  <option value="">Select a category</option>
-                  <option value="Tech">Tech</option>
-                  <option value="EBooks">EBooks</option>
-                  <option value="Design">Design</option>
-                  <option value="Software">Software</option>
-                  <option value="Templates">Templates</option>
-                  <option value="Audio">Audio</option>
-                  <option value="Video">Video</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label for="price" class="block text-lg font-medium text-gray-700 mb-2">Price ($)</label>
-                <input type="number" id="price" name="price" min="0" step="0.01" required
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
-                       placeholder="e.g., 29.99 or 0 for free" />
+                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 29.99 or 0 for free" />
               </div>
               <div id="paypalEmailContainer" class="hidden">
-                <label for="paypalEmail" class="block text-lg font-medium text-gray-700 mb-2">PayPal Email</label>
-                <input type="email" id="paypalEmail" name="paypalEmail"
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
-                       placeholder="yourname@example.com" />
-                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-2"></p>
-                <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 p-4 mt-4 rounded-lg" role="alert">
-                  <p class="font-bold text-lg">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
-                  <details class="mt-3">
-                    <summary class="cursor-pointer text-base font-medium text-yellow-700 hover:text-yellow-900 transition-colors">How to get a valid PayPal email and why it's important</summary>
-                    <p class="text-sm mt-2 leading-relaxed">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, your payments may fail or be delayed.</p>
+                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 mb-1">PayPal Email</label>
+                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="yourname@example.com" />
+                <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-1"></p>
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
+                  <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
+                  <details class="mt-2">
+                    <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
+                    <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, you won't get paid.</p>
                   </details>
                 </div>
               </div>
               <div>
-                <label for="openPreviewImageWidget" class="block text-lg font-medium text-gray-700 mb-2">Product Preview Image (for home tab)</label>
-                <button type="button" id="openPreviewImageWidget"
-                        class="w-full text-blue-700 py-3 px-6 rounded-full border-2 border-blue-500 text-lg font-semibold bg-blue-50 hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Upload Image
-                </button>
+                <label for="openPreviewImageWidget" class="block text-sm font-medium text-gray-700 mb-1">Product Preview Image (for home tab)</label>
+                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100">Upload Image</button>
                 <input type="hidden" id="previewImageUrl" name="previewImageUrl">
-                <p id="previewImageStatus" class="file-upload-status text-sm mt-2 text-center"></p>
-                <div id="previewImageContainer" class="mt-4 hidden flex justify-center items-center bg-gray-100 p-4 rounded-lg shadow-inner">
-                  <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-full h-48 object-contain rounded-md border border-gray-300 shadow-md" />
+                <p id="previewImageStatus" class="file-upload-status text-sm mt-1"></p>
+                <div id="previewImageContainer" class="mt-2 hidden">
+                  <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-xs h-32 object-cover rounded-md border border-gray-300" />
                 </div>
               </div>
               <div>
-                <label for="productFileUrlInput" class="block text-lg font-medium text-gray-700 mb-2">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
-                <input type="url" id="productFileUrlInput" name="productFileUrl" required
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
-                       placeholder="Direct download link (Google Drive, Dropbox, etc.)" />
-                <p class="text-sm text-gray-500 mt-2">Make sure this link is publicly accessible for download and directly links to the file.</p>
+                <label for="productFileUrlInput" class="block text-sm font-medium text-gray-700 mb-1">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
+                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Direct download link (Google Drive, Dropbox, etc.)" />
+                <p class="text-sm text-gray-500 mt-1">Make sure this link is publicly accessible for download.</p>
               </div>
-              <button type="submit" id="submitProductBtn"
-                      class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-xl shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105">
-                List Product
-              </button>
+              <button type="submit" id="submitProductBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">List Product</button>
             </form>
           </div>
         </div>
       </section>
-
+      <!-- Dashboard Section -->
       <section id="dashboard" class="hidden">
-        <div class="w-full mx-auto mt-16 px-8"> <h2 class="text-4xl font-extrabold text-gray-900 mb-10">Your Dashboard 📈</h2>
-          
-          <div id="balanceCard" class="bg-gradient-to-br from-indigo-600 to-blue-700 text-white rounded-3xl shadow-xl p-8 mb-12 flex flex-col items-start relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 opacity-20">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-48 w-48" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-3 18v-12l9 6-9 6z"/>
-              </svg>
-            </div>
-            <div class="text-xl mb-3 font-semibold text-indigo-100">Your current balance:</div>
-            <div id="sellerBalance" class="text-5xl font-extrabold mb-2">$0.00</div>
-            <div class="text-md text-indigo-200">Balance is updated instantly after each successful sale.</div>
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <h2 class="text-4xl font-bold mb-8">DASHBOARD</h2>
+          <div id="balanceCard" class="bg-white rounded-xl shadow p-6 mb-10 flex flex-col items-start">
+            <div class="text-lg mb-2 font-semibold text-gray-700">Your current balance:</div>
+            <div id="sellerBalance" class="text-3xl font-extrabold text-green-600 mb-1">$0.00</div>
+            <div class="text-sm text-gray-400">Balance is updated after each sale.</div>
           </div>
-
-          <div class="mb-12">
-            <h3 class="text-3xl font-bold text-gray-900 mb-6">My Listed Products 📦</h3>
-            <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-            <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 text-lg py-10 hidden">You haven't listed any products yet. Start selling now!</p>
+          <div class="mb-8">
+            <h3 class="text-2xl font-semibold mb-4">My Products</h3>
+            <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
           </div>
         </div>
-        
-  <div id="customAlertModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-60 hidden modal-exit">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center transform scale-90 opacity-0 transition-all duration-200 ease-out">
-      <p id="customAlertMessage" class="text-xl font-semibold text-gray-800 mb-6"></p>
-      <button id="customAlertOkBtn" class="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 font-bold text-lg transition-colors duration-200 shadow-md">OK</button>
-    </div>
+        <!-- Edit Product Modal -->
+        <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="editProductModalTitle">
+          <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+            <h4 id="editProductModalTitle" class="text-xl font-bold mb-4">Edit Product</h4>
+            <form id="editProductForm" class="space-y-4" autocomplete="off">
+              <input type="hidden" id="editProductId" />
+              <div>
+                <label for="editTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" maxlength="80" />
+              </div>
+              <div>
+                <label for="editDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="editDescription" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" maxlength="1000"></textarea>
+              </div>
+              <div>
+                <label for="editPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+              </div>
+              <div>
+                <label for="editFileUrl" class="block text-sm font-medium text-gray-700 mb-1">Product File Link</label>
+                <input type="url" id="editFileUrl" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500" />
+              </div>
+              <div class="flex justify-end gap-2">
+                <button type="button" id="cancelEditBtn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div id="customConfirmModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-60 hidden modal-exit">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center transform scale-90 opacity-0 transition-all duration-200 ease-out">
-      <p id="customConfirmMessage" class="text-xl font-semibold text-gray-800 mb-6"></p>
-      <div class="flex justify-center gap-4">
-        <button id="customConfirmCancelBtn" class="px-8 py-3 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 font-semibold text-lg transition-colors duration-200">Cancel</button>
-        <button id="customConfirmOkBtn" class="px-8 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 font-bold text-lg transition-colors duration-200 shadow-md">Confirm</button>
+  <!-- Initial PIN Display Modal -->
+  <div id="initialPinModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
+          <button id="closeInitialPinModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+          <h2 class="text-2xl font-bold mb-4 text-center text-blue-700">Your TradeDeck PIN</h2>
+          <p class="text-gray-700 mb-4 text-center">
+              This is your unique 8-digit PIN for accessing certain features. Please keep it safe!
+              <br>
+              <strong>Write it down or save it securely. You will need it later.</strong>
+          </p>
+          <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-md" role="alert">
+              <p class="font-bold text-center text-3xl tracking-widest" id="initialPinDisplay">--------</p>
+          </div>
+          <p class="text-sm text-gray-500 text-center mb-4">
+              You will be asked for this PIN when trying to access the 'Sell' tab.
+          </p>
+          <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition-colors duration-200" id="initialPinConfirmBtn">
+              I have noted my PIN
+          </button>
       </div>
-    </div>
   </div>
 
-  <!-- Updated script references to use Vercel endpoints -->
+  <!-- PIN Entry Modal for Sell Tab -->
+  <div id="pinEntryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
+          <button id="closePinEntryModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+          <h2 class="text-2xl font-bold mb-4 text-center text-purple-700">Enter Your TradeDeck PIN</h2>
+          <p class="text-gray-700 mb-4 text-center">
+              Please enter your 8-digit PIN to access the selling features.
+          </p>
+          <form id="pinEntryForm" class="space-y-4">
+              <div>
+                  <label for="pinInput" class="block text-sm font-medium text-gray-700">Your 8-Digit PIN</label>
+                  <input type="password" id="pinInput" name="pin" maxlength="8" pattern="\d{8}" inputmode="numeric"
+                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-center tracking-widest"
+                         placeholder="Enter your PIN" required>
+                  <p id="pinErrorMessage" class="text-red-600 text-sm mt-1 text-center"></p>
+              </div>
+              <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors duration-200">
+                  Verify PIN
+              </button>
+          </form>
+      </div>
+  </div>
+
+  <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
   <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
 </body>
 </html>
