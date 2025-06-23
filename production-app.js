@@ -1,5 +1,3 @@
-// production-app.js
-
 // --- Firebase Modular SDK Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
@@ -7,11 +5,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc,
-  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
+  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction, deleteDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Import the deleteProduct function
-import { deleteProduct } from "./delete-product.js";
 
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
@@ -104,17 +99,17 @@ const customConfirmCancelBtn = document.getElementById('customConfirmCancelBtn')
 window.allProducts = [];
 let currentCategoryFilter = 'All';
 
-// --- CUSTOM ALERT/CONFIRM FUNCTIONS (MOVED TO TOP) ---
+// --- Custom Alert/Confirm Functions ---
 function showAlert(message) {
   customAlertMessage.innerHTML = message;
   customAlertModal.classList.remove('hidden');
   customAlertModal.classList.add('modal-enter-active');
   return new Promise(resolve => {
     customAlertOkBtn.onclick = () => {
-      customAlertModal.classList.add('hidden'); // Ensures modal hides immediately
       customAlertModal.classList.remove('modal-enter-active');
       customAlertModal.classList.add('modal-exit-active');
       setTimeout(() => {
+        customAlertModal.classList.add('hidden');
         customAlertModal.classList.remove('modal-exit-active');
         resolve(true);
       }, 200);
@@ -128,20 +123,20 @@ function showConfirm(message) {
   customConfirmModal.classList.add('modal-enter-active');
   return new Promise(resolve => {
     const handleConfirm = () => {
-      customConfirmModal.classList.add('hidden'); // Ensures modal hides immediately
       customConfirmModal.classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
       setTimeout(() => {
+        customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
         resolve(true);
       }, 200);
     };
 
     const handleCancel = () => {
-      customConfirmModal.classList.add('hidden'); // Ensures modal hides immediately
       customConfirmModal.classList.remove('modal-enter-active');
       customConfirmModal.classList.add('modal-exit-active');
       setTimeout(() => {
+        customConfirmModal.classList.add('hidden');
         customConfirmModal.classList.remove('modal-exit-active');
         resolve(false);
       }, 200);
@@ -152,324 +147,18 @@ function showConfirm(message) {
   });
 }
 
-// --- UTILITIES (MOVED TO TOP) ---
-function setFileInputStatus(statusElement, message, type = 'default') {
-  statusElement.textContent = message;
-  statusElement.classList.remove('success', 'error', 'loading');
-  if (type === 'success') statusElement.classList.add('success');
-  else if (type === 'error') statusElement.classList.add('error');
-  else if (type === 'loading') statusElement.classList.add('loading');
-}
-
-function convertToGoogleDriveDirectDownload(url) {
-  if (!url) return url;
-  let convertedUrl = url;
-  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
-  const match = url.match(driveViewPattern);
-  if (match && match[1]) {
-    const fileId = match[1];
-    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-  } else if (url.includes('drive.google.com/open?id=')) {
-    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (idMatch && idMatch[1]) {
-      const fileId = idMatch[1];
-      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    }
-  }
-  return convertedUrl;
-}
-
-// --- PRODUCT CARD HTML GENERATION (MOVED TO TOP) ---
-function createProductCardHtml(product, isDashboard = false) {
-  const priceDisplay = product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free';
-  const actionButton = isDashboard ?
-    `<button class="delete-product-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200" data-product-id="${product.id}">Delete</button>` :
-    `<button class="view-product-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200" data-product-id="${product.id}">View Details</button>`;
-
-  return `
-    <div class="product-card bg-white rounded-xl shadow-md overflow-hidden interactive-card p-4 flex flex-col" data-product-id="${product.id}">
-      <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-lg mb-4">
-      <div class="flex-grow">
-        <h3 class="font-bold text-lg mb-1 truncate">${product.title}</h3>
-        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description}</p>
-        <div class="flex justify-between items-center mb-4">
-          <span class="text-blue-700 font-extrabold text-xl">${priceDisplay}</span>
-          <span class="text-gray-500 text-xs">${product.category}</span>
-        </div>
-      </div>
-      <div class="mt-auto">
-        ${actionButton}
-      </div>
-    </div>
-  `;
-}
-
-// --- PRODUCT LISTING (HOME) FUNCTIONS (MOVED TO TOP) ---
-async function filterAndRenderProducts(searchTerm = '', categoryFilter = 'All') {
-  productListContainer.innerHTML = '';
-  noProductsMessage.textContent = 'Loading products...';
-  noProductsMessage.classList.remove('hidden');
-
-  let filteredProducts = window.allProducts;
-
-  if (categoryFilter !== 'All') {
-    filteredProducts = filteredProducts.filter(product => product.category === categoryFilter);
-  }
-
-  if (searchTerm) {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    filteredProducts = filteredProducts.filter(product =>
-      product.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-      product.description.toLowerCase().includes(lowerCaseSearchTerm) ||
-      product.category.toLowerCase().includes(lowerCaseSearchTerm)
-    );
-  }
-
-  if (filteredProducts.length === 0) {
-    noProductsMessage.textContent = 'No products found matching your criteria.';
-    noProductsMessage.classList.remove('hidden');
-    return;
-  }
-  noProductsMessage.classList.add('hidden');
-
-  filteredProducts.forEach(product => {
-    productListContainer.insertAdjacentHTML('beforeend', createProductCardHtml(product));
-  });
-
-  // Re-attach view product button listeners for dynamically loaded products
-  productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const productId = e.target.dataset.productId;
-      showProductDetails(productId);
-    });
-  });
-}
-
-// Function to load all products (MOVED TO TOP)
-async function loadProducts() {
-  productListContainer.innerHTML = '';
-  noProductsMessage.textContent = 'Loading products...';
-  noProductsMessage.classList.remove('hidden');
-  try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      noProductsMessage.textContent = 'No products available yet.';
-      noProductsMessage.classList.remove('hidden');
-      window.allProducts = []; // Ensure allProducts is empty if no products
-      return;
-    }
-
-    window.allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-
-  } catch (error) {
-    console.error("Error loading all products:", error);
-    noProductsMessage.textContent = 'Failed to load products. Please try again later.';
-    noProductsMessage.classList.remove('hidden');
-  }
-}
-
-// --- DASHBOARD FUNCTIONS (MOVED TO TOP) ---
-async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = ''; // Clear previous products
-  noMyProductsMessage.textContent = 'Loading your products...';
-  noMyProductsMessage.classList.remove('hidden');
-
-  try {
-    const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      noMyProductsMessage.textContent = 'You have not listed any products yet.';
-      noMyProductsMessage.classList.remove('hidden');
-      return;
-    }
-
-    noMyProductsMessage.classList.add('hidden');
-    querySnapshot.forEach(doc => {
-      const product = { id: doc.id, ...doc.data() };
-      const productCardHtml = createProductCardHtml(product, true); // true for dashboard view
-      myProductsContainer.insertAdjacentHTML('beforeend', productCardHtml);
-    });
-
-    // Attach event listeners for view and delete buttons
-    myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
-      button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const productId = e.target.dataset.productId;
-        showProductDetails(productId);
-      });
-    });
-
-    myProductsContainer.querySelectorAll('.delete-product-btn').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const productId = e.target.dataset.productId;
-        // loadProducts is now defined globally before this call
-        await deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts);
-      });
-    });
-
-  } catch (error) {
-    console.error("Error loading user's products:", error);
-    noMyProductsMessage.textContent = 'Failed to load your products. Please try again later.';
-    noMyProductsMessage.classList.remove('hidden');
-  }
-}
-
-async function loadSellerBalance(userId) {
-  try {
-    const userDocRef = doc(db, "users", userId);
-    const userDocSnap = await getDoc(userDocRef);
-    if (userDocSnap.exists() && userDocSnap.data().balance !== undefined) {
-      sellerBalance.textContent = userDocSnap.data().balance.toFixed(2);
-    } else {
-      sellerBalance.textContent = '0.00';
-    }
-  } catch (error) {
-    console.error("Error loading seller balance:", error);
-    sellerBalance.textContent = 'Error';
-  }
-}
-
-async function showDashboard() {
-  if (!auth.currentUser) {
-    noMyProductsMessage.textContent = 'Please sign in to view your dashboard.';
-    noMyProductsMessage.classList.remove('hidden');
-    myProductsContainer.innerHTML = ''; // Clear products if not signed in
-    sellerBalance.textContent = '0.00';
-    return;
-  }
-
-  await loadMyProducts(auth.currentUser.uid);
-  loadSellerBalance(auth.currentUser.uid);
-}
-
-
-// --- PRODUCT DETAILS FUNCTIONS (MOVED TO TOP) ---
-// --- PayPal Integration ---
-function renderPayPalButton(product) {
-  paypalButtonContainer.innerHTML = ''; // Clear existing buttons
-  paypalButtonContainer.classList.remove('hidden');
-
-  paypal.Buttons({
-    createOrder: function(data, actions) {
-      return actions.order.create({
-        purchase_units: [{
-          amount: {
-            value: product.price.toFixed(2)
-          }
-        }]
-      });
-    },
-    onApprove: function(data, actions) {
-      return actions.order.capture().then(function(details) {
-        // Show success message and provide download link
-        showAlert(`Payment successful for "${product.title}"! You can download your product now.`);
-        window.open(product.fileUrl, '_blank'); // Open download link
-        // Optionally, record the purchase in Firestore
-        if (auth.currentUser) {
-          addDoc(collection(db, "purchases"), {
-            productId: product.id,
-            productTitle: product.title,
-            buyerId: auth.currentUser.uid,
-            sellerId: product.sellerId,
-            amount: product.price,
-            purchaseTime: serverTimestamp()
-          }).catch(e => console.error("Error recording purchase:", e));
-
-          // Increment seller balance
-          const sellerRef = doc(db, "users", product.sellerId);
-          runTransaction(db, async (transaction) => {
-            const sellerDoc = await transaction.get(sellerRef);
-            if (!sellerDoc.exists()) {
-              transaction.set(sellerRef, { balance: product.price, productsSold: 1 });
-            } else {
-              const newBalance = (sellerDoc.data().balance || 0) + product.price;
-              const newProductsSold = (sellerDoc.data().productsSold || 0) + 1;
-              transaction.update(sellerRef, { balance: newBalance, productsSold: newProductsSold });
-            }
-          }).catch(e => console.error("Error updating seller balance:", e));
-        }
-      });
-    },
-    onError: function(err) {
-      console.error('PayPal Checkout Error', err);
-      showAlert('Payment failed. Please try again.');
-    },
-    onCancel: function (data) {
-      showAlert('Payment cancelled.');
-    }
-  }).render('#paypal-button-container');
-}
-
-async function showProductDetails(productId) {
-  productDetailsSection.classList.add('hidden'); // Hide details while loading
-  productDetailsError.classList.add('hidden');
-  paypalButtonContainer.innerHTML = ''; // Clear previous PayPal button
-
-  try {
-    const docRef = doc(db, "products", productId);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const product = { id: docSnap.id, ...docSnap.data() };
-      detailProductImage.src = product.previewImageUrl;
-      detailProductImage.alt = product.title;
-      detailProductTitle.textContent = product.title;
-      detailProductDescription.textContent = product.description;
-      detailProductPrice.textContent = product.price > 0 ? `$${product.price.toFixed(2)}` : 'Free';
-
-      // Dynamically set action button (Buy/Download)
-      detailActionButton.innerHTML = ''; // Clear previous button
-
-      if (product.price > 0) {
-        // Render PayPal button
-        renderPayPalButton(product);
-        detailActionButton.classList.add('hidden'); // Hide generic action button for paid products
-      } else {
-        // Show generic "Download" button for free products
-        detailActionButton.classList.remove('hidden');
-        detailActionButton.onclick = () => {
-          window.open(product.fileUrl, '_blank');
-          showAlert(`Downloading "${product.title}"...`);
-        };
-        detailActionButton.textContent = 'Download Product';
-        detailActionButton.className = 'px-8 py-4 bg-green-600 text-white rounded-full font-bold text-lg hover:bg-green-700 transition-colors duration-200 shadow-lg';
-      }
-
-      showTab('productDetails'); // Switch to product details section
-      productDetailsSection.classList.remove('hidden'); // Show details after content is loaded
-    } else {
-      productDetailsError.textContent = 'Product not found.';
-      productDetailsError.classList.remove('hidden');
-      showTab('home'); // Go back to home if product not found
-    }
-  } catch (error) {
-    console.error("Error fetching product details:", error);
-    productDetailsError.textContent = 'Failed to load product details. Please try again later.';
-    productDetailsError.classList.remove('hidden');
-    showTab('home'); // Go back to home on error
-  }
-}
-
-
-// --- AUTH AND PROFILE ---
+// --- Auth and Profile ---
 document.body.style.visibility = "hidden";
 onAuthStateChanged(auth, user => {
   document.body.style.visibility = "";
   if (!user) {
     authOverlay.style.display = "flex";
     userGlobal = null;
-    loadProducts(); // Call loadProducts here for unauthenticated users
   } else {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
-    loadProducts(); // Call loadProducts here for authenticated users
+    loadProducts();
     if (document.querySelector('aside nav a[data-tab="dashboard"]').classList.contains('bg-blue-100')) {
       showDashboard();
     }
@@ -530,7 +219,7 @@ function showProfileUI(user) {
   };
 }
 
-// --- TAB NAVIGATION ---
+// --- Tab Navigation ---
 function showTab(targetTabId) {
   tabs.forEach(t => {
     t.classList.remove('bg-blue-100');
@@ -558,14 +247,8 @@ tabs.forEach(tab => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
     showTab(target);
-    // Correct logic for handling sell form visibility when switching tabs
-    if (target === 'sell') {
-      toggleProductForm(true); // Show sell form when 'Sell' tab is clicked
-    } else {
-      // Hide sell form if open and switching to another tab
-      if (!productForm.classList.contains('hidden')) {
-        toggleProductForm(false);
-      }
+    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+      toggleProductForm(false);
     }
     productDetailsSection.classList.add('hidden');
     if (target === 'home') {
@@ -591,7 +274,7 @@ function toggleProductForm(showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
     productForm.classList.add('modal-enter-active');
-    showTab('sell'); // Ensure the 'sell' tab is visually active
+    showTab('sell');
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
@@ -655,6 +338,7 @@ function restoreSellForm() {
   input.addEventListener('input', saveSellForm);
 });
 
+document.addEventListener("DOMContentLoaded", restoreSellForm);
 
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
@@ -706,6 +390,32 @@ openPreviewImageWidgetBtn.addEventListener('click', () => {
   previewImageWidget.open();
 });
 
+// --- UTILITIES ---
+function setFileInputStatus(statusElement, message, type = 'default') {
+  statusElement.textContent = message;
+  statusElement.classList.remove('success', 'error', 'loading');
+  if (type === 'success') statusElement.classList.add('success');
+  else if (type === 'error') statusElement.classList.add('error');
+  else if (type === 'loading') statusElement.classList.add('loading');
+}
+
+function convertToGoogleDriveDirectDownload(url) {
+  if (!url) return url;
+  let convertedUrl = url;
+  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
+  const match = url.match(driveViewPattern);
+  if (match && match[1]) {
+    const fileId = match[1];
+    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  } else if (url.includes('drive.google.com/open?id=')) {
+    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (idMatch && idMatch[1]) {
+      const fileId = idMatch[1];
+      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+  return convertedUrl;
+}
 
 // --- SELL FORM VALIDATION ---
 function validateSellForm() {
@@ -780,6 +490,7 @@ productUploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   disableSubmitButton();
   submitProductBtn.textContent = 'Listing...';
+  
   const errors = validateSellForm();
   if (errors.length) {
     showFormErrors(errors);
@@ -787,12 +498,14 @@ productUploadForm.addEventListener('submit', async (e) => {
     enableSubmitButton();
     return;
   }
+
   try {
     if (!auth.currentUser) {
       await showAlert("You must be signed in to list a product.");
       window.location.reload();
       return;
     }
+
     const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
     const newProduct = {
       title: titleInput.value.trim(),
@@ -805,6 +518,7 @@ productUploadForm.addEventListener('submit', async (e) => {
       paypalEmail: paypalEmailInput.value.trim(),
       category: categorySelect.value || 'Other'
     };
+
     await addDoc(collection(db, "products"), newProduct);
     await showAlert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
@@ -813,27 +527,393 @@ productUploadForm.addEventListener('submit', async (e) => {
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
     console.error("Error adding document:", error);
-    await showAlert('Failed to list product: ' + error.message);
+    await showAlert('Failed to list product. Please try again.');
   } finally {
     submitProductBtn.textContent = 'List Product';
     enableSubmitButton();
   }
 });
 
+// --- PRODUCT LISTING & SEARCH ---
+async function loadProducts() {
+  productListContainer.innerHTML = '';
+  noProductsMessage.textContent = 'Loading products...';
+  noProductsMessage.classList.remove('hidden');
 
-// --- INITIAL LOAD AND EVENT LISTENERS ---
-document.addEventListener("DOMContentLoaded", () => {
-  restoreSellForm();
-  // loadProducts() is now called within onAuthStateChanged for both authenticated/unauthenticated users.
-  // This line might be redundant or could be kept if you want products to load immediately,
-  // before the auth state is even determined.
-  // Keeping it here for now as a fallback, but onAuthStateChanged will likely trigger it too.
-  if (!auth.currentUser) {
-    loadProducts(); // Ensures products load for visitors even before auth resolves if user is not logged in
+  try {
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    window.allProducts = [];
+    if (querySnapshot.empty) {
+      noProductsMessage.textContent = 'No products listed yet.';
+      return;
+    }
+
+    noProductsMessage.classList.add('hidden');
+    querySnapshot.forEach((doc) => {
+      const product = { id: doc.id, ...doc.data() };
+      window.allProducts.push(product);
+    });
+
+    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
+  } catch (error) {
+    console.error("Error loading products:", error);
+    noProductsMessage.textContent = 'Failed to load products. Please try again later.';
+    noProductsMessage.classList.remove('hidden');
   }
+}
+
+async function filterAndRenderProducts(searchTerm = '', category = 'All') {
+  productListContainer.innerHTML = '';
+  let filteredProducts = window.allProducts;
+
+  if (category !== 'All') {
+    filteredProducts = filteredProducts.filter(p => p.category === category);
+  }
+
+  if (searchTerm) {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    filteredProducts = filteredProducts.filter(p =>
+      p.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+      p.description.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }
+
+  if (filteredProducts.length === 0) {
+    noProductsMessage.textContent = 'No products found matching your criteria.';
+    noProductsMessage.classList.remove('hidden');
+    return;
+  }
+
+  noProductsMessage.classList.add('hidden');
+  filteredProducts.forEach(product => {
+    const productCard = `
+      <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
+        <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
+        <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
+        <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
+        <div class="flex items-center justify-between mt-auto">
+          <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
+        </div>
+      </div>
+    `;
+    productListContainer.innerHTML += productCard;
+  });
+
+  // Add event listeners
+  productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const productId = e.target.dataset.productId;
+      showProductDetails(productId);
+    });
+  });
+
+  productListContainer.querySelectorAll('.product-card.interactive-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (!e.target.closest('.view-product-btn')) {
+        const productId = card.dataset.productId;
+        showProductDetails(productId);
+      }
+    });
+  });
+}
+
+searchBar.addEventListener('input', () => {
+  filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
 });
 
-// Event listener for general product list (for view button, as delete is specific to dashboard)
+categoryTabs.forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    categoryTabs.forEach(t => t.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    currentCategoryFilter = e.currentTarget.dataset.category || 'All';
+    filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
+  });
+});
+
+async function showProductDetails(productId) {
+  productDetailsSection.classList.remove('hidden');
+  showTab('productDetails');
+  productDetailsError.textContent = '';
+  detailActionButton.innerHTML = 'Loading...';
+  detailActionButton.disabled = true;
+
+  try {
+    const productRef = doc(db, "products", productId);
+    const productSnap = await getDoc(productRef);
+    
+    if (!productSnap.exists()) {
+      throw new Error("Product not found");
+    }
+
+    const product = { id: productSnap.id, ...productSnap.data() };
+    detailProductImage.src = product.previewImageUrl;
+    detailProductTitle.textContent = product.title;
+    detailProductDescription.textContent = product.description;
+    detailProductPrice.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+    paypalButtonContainer.innerHTML = '';
+
+    if (product.price > 0) {
+      if (auth.currentUser && auth.currentUser.uid === product.sellerId) {
+        detailActionButton.innerHTML = '<span class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 font-bold">Your Product</span>';
+        detailActionButton.disabled = true;
+      } else {
+        detailActionButton.innerHTML = '';
+        detailActionButton.disabled = false;
+        
+        paypal.Buttons({
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: product.price.toFixed(2)
+                }
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+            return actions.order.capture().then(async function(details) {
+              await showAlert('Transaction completed by ' + details.payer.name.given_name + '!');
+
+              await addDoc(collection(db, "sales"), {
+                productId: product.id,
+                productTitle: product.title,
+                price: product.price,
+                buyerId: auth.currentUser ? auth.currentUser.uid : 'guest',
+                buyerEmail: auth.currentUser ? auth.currentUser.email : details.payer.email_address,
+                sellerId: product.sellerId,
+                sellerPaypalEmail: product.paypalEmail,
+                saleDate: serverTimestamp(),
+                paypalOrderId: data.orderID
+              });
+
+              sendSaleEmail({
+                buyerName: details.payer.name.given_name + ' ' + details.payer.name.surname,
+                buyerEmail: details.payer.email_address,
+                sellerPaypalEmail: product.paypalEmail,
+                productTitle: product.title,
+                amount: product.price.toFixed(2)
+              });
+
+              await handleProductPurchase(product);
+              await showAlert(`Purchase successful! Your download link is: <a href="${product.fileUrl}" target="_blank" class="text-blue-500 underline">Download Now</a>`);
+            });
+          },
+          onError: function(err) {
+            console.error('PayPal button error:', err);
+            showAlert('An error occurred during payment. Please try again.');
+          }
+        }).render('#paypal-button-container');
+      }
+    } else {
+      detailActionButton.innerHTML = `
+        <button class="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 font-bold text-lg transition-colors duration-200"
+                onclick="window.open('${product.fileUrl}', '_blank')">Download Free</button>
+      `;
+      detailActionButton.disabled = false;
+    }
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+    productDetailsError.textContent = 'Failed to load product details.';
+    detailProductTitle.textContent = '';
+    detailProductDescription.textContent = '';
+    detailProductPrice.textContent = '';
+    detailProductImage.src = '';
+    detailActionButton.innerHTML = '';
+    paypalButtonContainer.innerHTML = '';
+  } finally {
+    detailActionButton.disabled = false;
+  }
+}
+
+// Watch seller balance in real-time
+function watchSellerBalance(sellerId) {
+  const balRef = doc(db, "balances", sellerId);
+  onSnapshot(balRef, (docSnap) => {
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+      sellerBalance.textContent = `$${docSnap.data().balance.toFixed(2)}`;
+    } else {
+      sellerBalance.textContent = `$0.00`;
+    }
+  }, (error) => {
+    console.error("Error watching balance:", error);
+  });
+}
+
+// Function to update seller balance (one-off fetch)
+async function updateSellerBalance(sellerId) {
+  const balRef = doc(db, "balances", sellerId);
+  try {
+    const docSnap = await getDoc(balRef);
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+      sellerBalance.textContent = `$${docSnap.data().balance.toFixed(2)}`;
+    } else {
+      sellerBalance.textContent = `$0.00`;
+    }
+  } catch (e) {
+    console.error("Error fetching balance:", e);
+    sellerBalance.textContent = `$0.00`;
+  }
+}
+
+async function showDashboard() {
+  if (!auth.currentUser) {
+    await showAlert("Please sign in to view your dashboard.");
+    return;
+  }
+  showTab('dashboard');
+  await updateSellerBalance(auth.currentUser.uid);
+  watchSellerBalance(auth.currentUser.uid);
+  await loadMyProducts(auth.currentUser.uid);
+}
+
+async function incrementSellerBalance(sellerId, amount) {
+  const balRef = doc(db, "balances", sellerId);
+  try {
+    await runTransaction(db, async (tx) => {
+      const docSnap = await tx.get(balRef);
+      let newBalance = amount;
+      if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+        newBalance += docSnap.data().balance;
+      }
+      tx.set(balRef, { balance: newBalance }, { merge: true });
+    });
+  } catch (e) {
+    console.error("Transaction failed: ", e);
+  }
+}
+
+async function handleProductPurchase(product) {
+  if (!product || !product.sellerId || !product.price) {
+    console.error("Invalid product data for purchase handling.");
+    return;
+  }
+  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+}
+
+// --- EmailJS sale notification ---
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
+}
+
+/**
+ * Deletes a product from Firestore after user confirmation.
+ * Reloads the user's products in the dashboard and all products in the home section upon successful deletion.
+ *
+ * @param {string} productId The ID of the product to delete.
+ * @param {object} db The Firestore database instance.
+ * @param {object} auth The Firebase Auth instance.
+ * @param {function} showAlert Function to display custom alert messages.
+ * @param {function} showConfirm Function to display custom confirmation messages.
+ * @param {function} loadMyProducts Function to reload products in the user's dashboard.
+ * @param {function} loadProducts Function to reload all products in the home section.
+ */
+async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts) {
+  const confirmed = await showConfirm("Are you sure you want to delete this product? This action cannot be undone.");
+  if (confirmed) {
+    try {
+      // Delete the document from the 'products' collection in Firestore
+      await deleteDoc(doc(db, "products", productId));
+
+      // Show success message to the user
+      await showAlert("Product deleted successfully!");
+
+      // If a user is authenticated, reload their products in the dashboard
+      if (auth.currentUser) {
+        await loadMyProducts(auth.currentUser.uid);
+      }
+      // Reload all products in the home section to reflect the deletion
+      await loadProducts();
+    } catch (error) {
+      // Log and display error if deletion fails
+      console.error("Error deleting product:", error);
+      await showAlert("Failed to delete product: " + error.message);
+    }
+  }
+}
+
+// --- Load My Products for Dashboard ---
+async function loadMyProducts(userId) {
+  myProductsContainer.innerHTML = '';
+  noMyProductsMessage.textContent = 'Loading your products...';
+  noMyProductsMessage.classList.remove('hidden');
+
+  try {
+    const q = query(collection(db, "products"), 
+      where("sellerId", "==", userId), 
+      orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      noMyProductsMessage.textContent = 'You have not listed any products yet.';
+      return;
+    }
+
+    noMyProductsMessage.classList.add('hidden');
+    myProductsContainer.innerHTML = querySnapshot.docs.map(doc => {
+      const product = { id: doc.id, ...doc.data() };
+      return `
+        <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card" data-product-id="${product.id}">
+          <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
+          <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
+          <div class="flex items-center justify-between mt-auto">
+            <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+            <div class="flex space-x-2">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
+              <button class="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-colors duration-200 delete-product-btn" data-product-id="${product.id}">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Add event listeners
+    myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = e.target.dataset.productId;
+        showProductDetails(productId);
+      });
+    });
+
+    myProductsContainer.querySelectorAll('.delete-product-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const productId = e.target.dataset.productId;
+        await deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts);
+      });
+    });
+
+  } catch (error) {
+    console.error("Error loading user's products:", error);
+    noMyProductsMessage.textContent = 'Failed to load your products. Please try again later.';
+    noMyProductsMessage.classList.remove('hidden');
+  }
+}
+
+// --- Initial Load ---
+document.addEventListener("DOMContentLoaded", () => {
+  if (!auth.currentUser) {
+    loadProducts();
+  }
+  restoreSellForm();
+});
+
+// Event listener for general product list
 productListContainer.addEventListener('click', (event) => {
   const productCard = event.target.closest('.product-card.interactive-card');
   const viewButton = event.target.closest('.view-product-btn');
@@ -843,7 +923,6 @@ productListContainer.addEventListener('click', (event) => {
     const productId = viewButton.dataset.productId;
     showProductDetails(productId);
   } else if (productCard) {
-    // If a non-button part of the card is clicked, also show details
     const productId = productCard.dataset.productId;
     showProductDetails(productId);
   }
