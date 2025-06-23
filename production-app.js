@@ -12,7 +12,7 @@ import {
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
-const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -48,6 +48,7 @@ const formErrorSummary = document.getElementById('formErrorSummary');
 // Sell form fields
 const titleInput = document.getElementById('title');
 const descriptionInput = document.getElementById('description');
+const categoryInput = document.getElementById('category'); // NEW: Category input
 const priceInput = document.getElementById('price');
 const paypalEmailContainer = document.getElementById('paypalEmailContainer');
 const paypalEmailInput = document.getElementById('paypalEmail');
@@ -65,6 +66,7 @@ const submitProductBtn = document.getElementById('submitProductBtn');
 const searchBar = document.getElementById('searchBar');
 const productListContainer = document.getElementById('productList');
 const noProductsMessage = document.getElementById('noProductsMessage');
+const categoriesContainer = document.getElementById('categoriesContainer'); // NEW: Categories container
 
 // Dashboard
 const myProductsContainer = document.getElementById('myProducts');
@@ -78,6 +80,7 @@ const detailProductImage = document.getElementById('detailProductImage');
 const detailProductTitle = document.getElementById('detailProductTitle');
 const detailProductDescription = document.getElementById('detailProductDescription');
 const detailProductPrice = document.getElementById('detailProductPrice');
+const detailProductCategory = document.getElementById('detailProductCategory'); // NEW: Category display
 const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
@@ -88,6 +91,7 @@ const editProductForm = document.getElementById('editProductForm');
 const editProductIdInput = document.getElementById('editProductId');
 const editTitleInput = document.getElementById('editTitle');
 const editDescriptionInput = document.getElementById('editDescription');
+const editCategoryInput = document.getElementById('editCategory'); // NEW: Edit category
 const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
@@ -103,6 +107,7 @@ onAuthStateChanged(auth, user => {
     authOverlay.style.display = "none";
     userGlobal = user;
     showProfileUI(user);
+    // Removed PIN modal display on every login. It will show only once on first login.
   }
 });
 
@@ -136,34 +141,43 @@ function showProfileUI(user) {
     }
   });
   document.getElementById('deleteAccountBtn').onclick = async () => {
-    if (confirm("Delete your account? This cannot be undone.")) {
+    if (confirm("Are you sure you want to permanently delete your TradeDeck account? This action cannot be undone and all your listed products and balance will be lost.")) {
       try {
         await deleteUser(user);
-        alert("Account deleted.");
+        alert("Your account has been successfully deleted.");
         window.location.href = LANDING_URL;
       } catch (err) {
         if (err.code === 'auth/requires-recent-login') {
-          alert("Please sign out and sign in again, then try deleting your account.");
+          alert("To delete your account, please sign out and sign in again immediately, then retry the deletion.");
         } else {
           alert("Failed to delete account: " + err.message);
         }
       }
     }
   };
-  document.getElementById('signOutBtn').onclick = () => {
-    signOut(auth);
+  document.getElementById('signOutBtn').onclick = async () => {
+    try {
+      await signOut(auth);
+      alert("You have been signed out.");
+      window.location.href = LANDING_URL; // Redirect to landing page after sign out
+    } catch (error) {
+      console.error("Error signing out:", error);
+      alert("Failed to sign out. Please try again.");
+    }
   };
 }
 
 // --- Tab Navigation ---
 function showTab(targetTabId) {
   tabs.forEach(t => {
-    t.classList.remove('bg-blue-100');
+    t.classList.remove('bg-blue-100', 'font-semibold');
+    t.classList.add('hover:bg-gray-100', 'font-medium');
     t.removeAttribute('aria-current');
   });
   const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
   if (currentTab) {
-    currentTab.classList.add('bg-blue-100');
+    currentTab.classList.add('bg-blue-100', 'font-semibold');
+    currentTab.classList.remove('hover:bg-gray-100', 'font-medium');
     currentTab.setAttribute('aria-current', 'page');
   }
   sections.forEach(sec => {
@@ -175,18 +189,31 @@ tabs.forEach(tab => {
   tab.addEventListener('click', async (e) => {
     e.preventDefault();
     const target = tab.getAttribute('data-tab');
-    showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    } else if (target === 'sell') { // Directly show the form for sell tab
-      toggleProductForm(true);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
-      await loadProducts(searchBar.value.trim());
-      searchBar.value = '';
-    } else if (target === 'dashboard') {
-      await showDashboard();
+
+    if (target === 'sell') {
+        // PIN entry logic for 'Sell' tab
+        if (userGlobal && !localStorage.getItem(`hasUserSeenPin_${userGlobal.uid}`)) {
+            // New user or first time accessing sell tab, show initial PIN modal
+            await showInitialPinModal();
+        } else if (userGlobal) {
+            // Existing user, prompt for PIN to access sell tab
+            await promptForPinToAccessSell();
+        } else {
+            // Not signed in, auth overlay will handle
+            showTab(target); // Still show the tab to display auth overlay if not signed in
+        }
+    } else {
+        showTab(target);
+        if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+            toggleProductForm(false);
+        }
+        productDetailsSection.classList.add('hidden');
+        if (target === 'home') {
+            await loadProducts(searchBar.value.trim());
+            searchBar.value = '';
+        } else if (target === 'dashboard') {
+            await showDashboard();
+        }
     }
   });
 });
@@ -202,7 +229,7 @@ function toggleProductForm(showForm) {
   if (showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
-    showTab('sell');
+    // showTab('sell'); // This is handled by the PIN logic now
     productUploadForm.reset();
     restoreSellForm();
     enableSubmitButton();
@@ -217,6 +244,7 @@ function saveSellForm() {
   const state = {
     title: titleInput.value,
     description: descriptionInput.value,
+    category: categoryInput.value, // NEW: Save category
     price: priceInput.value,
     paypalEmail: paypalEmailInput.value,
     previewImageUrl: previewImageUrlInput.value,
@@ -228,6 +256,7 @@ function restoreSellForm() {
   const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
   titleInput.value = state.title || "";
   descriptionInput.value = state.description || "";
+  categoryInput.value = state.category || ""; // NEW: Restore category
   priceInput.value = state.price || "";
   paypalEmailInput.value = state.paypalEmail || "";
   previewImageUrlInput.value = state.previewImageUrl || "";
@@ -250,7 +279,7 @@ function restoreSellForm() {
   }
 }
 [
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
+  titleInput, descriptionInput, categoryInput, priceInput, paypalEmailInput, // NEW: Add categoryInput
   previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
   input.addEventListener('input', saveSellForm);
@@ -337,6 +366,7 @@ function validateSellForm() {
   let errors = [];
   if (!titleInput.value.trim()) errors.push("Product title is required.");
   if (!descriptionInput.value.trim()) errors.push("Product description is required.");
+  if (!categoryInput.value) errors.push("Product category is required."); // NEW: Validate category
   if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
   if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
   if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
@@ -374,7 +404,7 @@ function disableSubmitButton() {
   submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }
 [
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
+  titleInput, descriptionInput, categoryInput, priceInput, paypalEmailInput, // NEW: Add categoryInput
   previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
   input.addEventListener('input', enableSubmitButton);
@@ -392,6 +422,11 @@ priceInput.addEventListener('input', () => {
   enableSubmitButton();
   saveSellForm();
 });
+categoryInput.addEventListener('change', () => { // NEW: Validate on category change
+    saveSellForm();
+    enableSubmitButton();
+});
+
 
 // --- SELL FORM SUBMIT ---
 productUploadForm.addEventListener('submit', async (e) => {
@@ -415,6 +450,7 @@ productUploadForm.addEventListener('submit', async (e) => {
     const newProduct = {
       title: titleInput.value.trim(),
       description: descriptionInput.value.trim(),
+      category: categoryInput.value, // NEW: Save category
       price: parseFloat(priceInput.value),
       fileUrl: finalProductFileUrl,
       previewImageUrl: previewImageUrlInput.value,
@@ -429,9 +465,8 @@ productUploadForm.addEventListener('submit', async (e) => {
     await loadProducts('');
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
-    showFormErrors(["Failed to list product. Please try again."]);
+    showFormErrors(["Failed to list product. Please try again. Ensure your Firestore rules allow 'products' collection write operations."]);
     console.error("Error adding document to Firestore:", error);
-    alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
   } finally {
     enableSubmitButton();
     submitProductBtn.textContent = 'List Product';
@@ -439,20 +474,39 @@ productUploadForm.addEventListener('submit', async (e) => {
 });
 
 // --- PRODUCT LISTING & SEARCH ---
-async function loadProducts(filterQuery = '') {
+async function loadProducts(filterQuery = '', categoryFilter = '') { // NEW: Add categoryFilter
   productListContainer.innerHTML = '';
   noProductsMessage.textContent = 'Loading products...';
   noProductsMessage.classList.remove('hidden');
   try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const snapshot = await getDocs(q);
     const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    window.allProducts = fetchedProducts;
+    window.allProducts = fetchedProducts; // Store all products for client-side filtering
+
+    let filteredProducts = fetchedProducts;
+
+    // Apply category filter first if present
+    if (categoryFilter) {
+        filteredProducts = filteredProducts.filter(product =>
+            (product.category || '').toLowerCase() === categoryFilter.toLowerCase()
+        );
+    }
+
+    // Then apply text search filter
     const lowerCaseQuery = filterQuery.toLowerCase();
-    const filteredProducts = fetchedProducts.filter(product =>
-      (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
-      (product.description || '').toLowerCase().includes(lowerCaseQuery)
-    );
+    if (lowerCaseQuery) {
+        const keywords = lowerCaseQuery.split(/\s+/).filter(Boolean);
+        filteredProducts = filteredProducts.filter(product => {
+            const haystack = [
+                product.title || '',
+                product.description || '',
+                product.category || '' // NEW: Include category in search
+            ].join(' ').toLowerCase();
+            return keywords.some(kw => haystack.includes(kw));
+        });
+    }
+
     renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
   } catch (error) {
     console.error("Error loading products:", error);
@@ -460,19 +514,18 @@ async function loadProducts(filterQuery = '') {
     noProductsMessage.classList.remove('hidden');
   }
 }
+
 searchBar.addEventListener('input', () => {
   if (!document.getElementById('home').classList.contains('hidden')) {
     const query = searchBar.value.trim().toLowerCase();
-    if (!window.allProducts) return;
-    if (!query) {
-      renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
-      return;
-    }
+    if (!window.allProducts) return; // Should already be loaded by loadProducts()
+
     const keywords = query.split(/\s+/).filter(Boolean);
     const filteredProducts = window.allProducts.filter(product => {
       const haystack = [
         product.title || '',
-        product.description || ''
+        product.description || '',
+        product.category || '' // NEW: Include category in search
       ].join(' ').toLowerCase();
       return keywords.some(kw => haystack.includes(kw));
     });
@@ -481,11 +534,22 @@ searchBar.addEventListener('input', () => {
       noProductsMessage.classList.add('hidden');
     } else {
       productListContainer.innerHTML = '';
-      noProductsMessage.textContent = "No products found for your search. Try different keywords!";
+      noProductsMessage.textContent = "No products found for your search. Try different keywords or categories!";
       noProductsMessage.classList.remove('hidden');
     }
   }
 });
+
+// NEW: Category filtering via clicks
+categoriesContainer.addEventListener('click', (e) => {
+    const clickedCard = e.target.closest('.category-card');
+    if (clickedCard) {
+        const categoryName = clickedCard.querySelector('h4').textContent.trim();
+        searchBar.value = categoryName; // Populate search bar with category
+        loadProducts('', categoryName); // Filter by category, clear text search
+    }
+});
+
 
 // --- PRODUCT CARD RENDERING ---
 function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
@@ -493,7 +557,7 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
   noResultsMsgElement.classList.add('hidden');
   if (!Array.isArray(productArray) || productArray.length === 0) {
     noResultsMsgElement.classList.remove('hidden');
-    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
+    noResultsMsgElement.textContent = isDashboardView ? 'You haven\'t listed any products yet. Start selling today!' : 'No products found matching your search or category. Try different filters!';
     return;
   }
   productArray.forEach(product => {
@@ -505,21 +569,36 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
     if (isDashboardView) {
       cardButtonsHtml = `
         <div class="mt-auto flex justify-end items-center pt-2">
-          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Download</a>
-          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
+          <a href="${product.fileUrl}" target="_blank" download="${(product.title || 'product').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-200 text-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0V18z"></path></svg>
+            Download
+          </a>
+          <button data-product-id="${product.id}" class="edit-product-btn px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200 ml-2 text-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.279 7.279-2.828 2.828L7.07 14.93l7.279-7.279zM15 6l2-2m-2 2L10.957 2.957A1 1 0 0111.667 2h.666a1 1 0 01.707.293L15 4l2 2-1 1-1.414-1.414L15 6z"></path></svg>
+            Edit
+          </button>
+          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition duration-200 ml-2 text-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path></svg>
+            Delist
+          </button>
         </div>
       `;
     }
     productCard.innerHTML = `
       <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-      <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-      <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+      <div class="flex items-center text-sm font-medium text-gray-500 mb-1">
+        <svg class="w-4 h-4 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8z" clip-rule="evenodd"></path></svg>
+        <span class="text-purple-600">${product.category || 'Uncategorized'}</span>
+      </div>
+      <h3 class="font-bold text-xl mb-1 truncate">${product.title}</h3>
+      <p class="text-gray-600 text-sm flex-grow mb-2 line-clamp-2">${product.description}</p>
       <div class="mt-auto flex justify-between items-center pt-2">
-        <span class="font-bold text-blue-600">${displayPrice}</span>
+        <span class="font-extrabold text-blue-700 text-lg">${displayPrice}</span>
         ${cardButtonsHtml}
       </div>
     `;
     container.appendChild(productCard);
+
     if (isDashboardView) {
       const delistButton = productCard.querySelector('.delist-product-btn');
       if (delistButton) {
@@ -528,6 +607,15 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
           const productId = delistButton.getAttribute('data-product-id');
           if (productId) deleteProduct(productId);
         });
+      }
+      const editButton = productCard.querySelector('.edit-product-btn');
+      if (editButton) {
+          editButton.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const productId = editButton.getAttribute('data-product-id');
+              const productToEdit = productArray.find(p => p.id === productId);
+              if (productToEdit) openEditProductModal(productToEdit);
+          });
       }
     } else {
       productCard.addEventListener('click', () => {
@@ -548,7 +636,7 @@ async function deleteProduct(productId) {
     await showDashboard();
   } catch (error) {
     console.error("Error removing document: ", error);
-    alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
+    alert('Error delisting product. Please try again. Ensure your Firestore rules allow deletion.');
   }
 }
 
@@ -567,9 +655,10 @@ async function showProductDetails(productId) {
     detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
     detailProductTitle.textContent = product.title;
     detailProductDescription.textContent = product.description;
+    detailProductCategory.textContent = product.category || 'Uncategorized'; // NEW: Display category
     const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
     detailProductPrice.textContent = displayPrice;
-    detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
+    detailActionButton.className = 'w-full py-4 rounded-xl font-bold text-lg transition duration-300'; // Updated styling
     detailActionButton.disabled = false;
 
     if (parseFloat(product.price) > 0) {
@@ -588,7 +677,7 @@ async function showProductDetails(productId) {
           onApprove: async function(data, actions) {
             return actions.order.capture().then(async function(details) {
               alert('Payment completed by ' + details.payer.name.given_name + '!');
-              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
+              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-4 rounded-xl mt-4 font-bold text-lg transition duration-300 transform hover:scale-[1.01]">Download Product Now</a>`;
               await handleProductPurchase(product);
               // --- Send EmailJS sale notification ---
               sendSaleEmail({
@@ -603,15 +692,16 @@ async function showProductDetails(productId) {
           onError: function(err) {
             alert('Payment could not be completed. Please try again.');
             console.error(err);
+            paypalButtonContainer.innerHTML = '<p class="text-red-600 text-center mt-4">Payment failed. Please try again or contact support.</p>';
           }
         }).render('#paypal-button-container');
       } else {
-        paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
+        paypalButtonContainer.innerHTML = '<p class="text-red-600 text-center">PayPal buttons could not be loaded. Please refresh the page.</p>';
       }
     } else {
       detailActionButton.style.display = '';
       paypalButtonContainer.innerHTML = '';
-      detailActionButton.textContent = 'Download';
+      detailActionButton.textContent = 'Download Free Product';
       detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
       detailActionButton.onclick = () => {
         window.open(product.fileUrl, '_blank');
@@ -645,6 +735,9 @@ function watchSellerBalance(userId) {
     let value = 0;
     if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
     sellerBalance.textContent = `$${value.toFixed(2)}`;
+  }, (error) => {
+      console.error("Error watching balance:", error);
+      sellerBalance.textContent = "$0.00 (Error)";
   });
 }
 async function loadMyProducts(userId) {
@@ -653,9 +746,8 @@ async function loadMyProducts(userId) {
   try {
     const q = query(
       collection(db, "products"),
-      where("sellerId", "==", userId)
-      // Add back orderBy if data/index is ready:
-      // , orderBy("createdAt", "desc")
+      where("sellerId", "==", userId),
+      orderBy("createdAt", "desc") // Ordering added for consistency
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -674,6 +766,7 @@ function openEditProductModal(product) {
   editProductIdInput.value = product.id;
   editTitleInput.value = product.title;
   editDescriptionInput.value = product.description;
+  editCategoryInput.value = product.category || ''; // NEW: Populate category
   editPriceInput.value = product.price;
   editFileUrlInput.value = product.fileUrl;
   editProductModal.classList.remove('hidden');
@@ -687,17 +780,25 @@ editProductForm.onsubmit = async function (e) {
   const updated = {
     title: editTitleInput.value.trim(),
     description: editDescriptionInput.value.trim(),
+    category: editCategoryInput.value, // NEW: Save updated category
     price: parseFloat(editPriceInput.value),
     fileUrl: editFileUrlInput.value.trim()
   };
+  // Basic validation for edit form
+  if (!updated.title || !updated.description || !updated.category || isNaN(updated.price) || updated.price < 0 || !updated.fileUrl) {
+      alert("Please fill in all required fields and ensure price is valid.");
+      return;
+  }
   try {
     await updateDoc(doc(db, "products", id), updated);
     closeEditProductModal();
     if (auth.currentUser) {
       await loadMyProducts(auth.currentUser.uid);
     }
+    alert('Product updated successfully!');
   } catch (err) {
-    alert("Failed to update product.");
+    console.error("Error updating product:", err);
+    alert("Failed to update product. Please try again. (Check Firestore rules)");
   }
 };
 cancelEditBtn.onclick = closeEditProductModal;
@@ -721,11 +822,129 @@ async function incrementSellerBalance(sellerId, amount) {
   });
 }
 async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) return;
-  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+  if (!product || !product.sellerId || typeof product.price === 'undefined' || parseFloat(product.price) < 0) return;
+  // Only increment balance for paid products
+  if (parseFloat(product.price) > 0) {
+    await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+  }
 }
+
+// --- PIN Management Modals ---
+const initialPinModal = document.getElementById('initialPinModal');
+const initialPinDisplay = document.getElementById('initialPinDisplay');
+const initialPinConfirmBtn = document.getElementById('initialPinConfirmBtn');
+const closeInitialPinModalBtn = document.getElementById('closeInitialPinModalBtn');
+
+const pinEntryModal = document.getElementById('pinEntryModal');
+const pinInput = document.getElementById('pinInput');
+const pinErrorMessage = document.getElementById('pinErrorMessage');
+const pinEntryForm = document.getElementById('pinEntryForm');
+const closePinEntryModalBtn = document.getElementById('closePinEntryModalBtn');
+
+async function generateAndStorePin(userId) {
+    const pin = Math.floor(10000000 + Math.random() * 90000000).toString(); // 8-digit PIN
+    const userDocRef = doc(db, "users", userId);
+    await setDoc(userDocRef, { pin: pin }, { merge: true });
+    return pin;
+}
+
+async function getUserPin(userId) {
+    const userDocRef = doc(db, "users", userId);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists() && docSnap.data().pin) {
+        return docSnap.data().pin;
+    }
+    return null;
+}
+
+async function showInitialPinModal() {
+    if (!userGlobal) return;
+    try {
+        const userPin = await generateAndStorePin(userGlobal.uid);
+        initialPinDisplay.textContent = userPin;
+        initialPinModal.classList.remove('hidden');
+        initialPinModal.querySelector('.animate-modal-in').classList.add('scale-100', 'opacity-100');
+        localStorage.setItem(`hasUserSeenPin_${userGlobal.uid}`, 'true'); // Mark as seen
+    } catch (error) {
+        console.error("Error generating/storing PIN:", error);
+        alert("Failed to generate PIN. Please try again.");
+    }
+}
+
+initialPinConfirmBtn.addEventListener('click', () => {
+    initialPinModal.querySelector('.animate-modal-in').classList.remove('scale-100', 'opacity-100');
+    initialPinModal.querySelector('.animate-modal-in').classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        initialPinModal.classList.add('hidden');
+        showTab('sell'); // Proceed to sell tab after acknowledging PIN
+    }, 300); // Match animation duration
+});
+
+closeInitialPinModalBtn.addEventListener('click', () => {
+    initialPinModal.querySelector('.animate-modal-in').classList.remove('scale-100', 'opacity-100');
+    initialPinModal.querySelector('.animate-modal-in').classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        initialPinModal.classList.add('hidden');
+        showTab('home'); // Go back to home if user closes it
+    }, 300); // Match animation duration
+});
+
+async function promptForPinToAccessSell() {
+    pinInput.value = '';
+    pinErrorMessage.textContent = '';
+    pinEntryModal.classList.remove('hidden');
+    pinEntryModal.querySelector('.animate-modal-in').classList.add('scale-100', 'opacity-100');
+    pinInput.focus();
+}
+
+pinEntryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const enteredPin = pinInput.value.trim();
+    if (enteredPin.length !== 8 || !/^\d{8}$/.test(enteredPin)) {
+        pinErrorMessage.textContent = 'PIN must be an 8-digit number.';
+        return;
+    }
+
+    if (!userGlobal) {
+        pinErrorMessage.textContent = 'User not authenticated.';
+        return;
+    }
+
+    try {
+        const storedPin = await getUserPin(userGlobal.uid);
+        if (storedPin === enteredPin) {
+            pinErrorMessage.textContent = '';
+            pinEntryModal.querySelector('.animate-modal-in').classList.remove('scale-100', 'opacity-100');
+            pinEntryModal.querySelector('.animate-modal-in').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                pinEntryModal.classList.add('hidden');
+                showTab('sell'); // Access granted
+            }, 300); // Match animation duration
+        } else {
+            pinErrorMessage.textContent = 'Incorrect PIN. Please try again.';
+            pinInput.classList.add('input-invalid');
+        }
+    } catch (error) {
+        console.error("Error verifying PIN:", error);
+        pinErrorMessage.textContent = 'Error verifying PIN. Please try again.';
+    }
+});
+
+pinInput.addEventListener('input', () => {
+    pinInput.classList.remove('input-invalid');
+    pinErrorMessage.textContent = '';
+});
+
+closePinEntryModalBtn.addEventListener('click', () => {
+    pinEntryModal.querySelector('.animate-modal-in').classList.remove('scale-100', 'opacity-100');
+    pinEntryModal.querySelector('.animate-modal-in').classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        pinEntryModal.classList.add('hidden');
+        showTab('home'); // Go back to home if user closes
+    }, 300); // Match animation duration
+});
 
 // --- Initial Load ---
 loadProducts();
 showTab('home');
-enableSubmitButton();
+enableSubmitButton(); // Ensure initial state of sell button is correct
