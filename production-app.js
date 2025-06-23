@@ -7,7 +7,6 @@ import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
@@ -24,21 +23,19 @@ const firebaseConfig = {
   appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
   measurementId: "G-4RXR7V9NCW"
 };
-
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
 // --- DOM Elements ---
 const profileToggleArea = document.getElementById('profileToggleArea'); // Changed from profilePic for larger click area
 const profilePic = document.getElementById('userProfilePic');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const userEmail = document.getElementById('userEmail');
-const userEmailDisplay = document.getElementById('userEmailDisplay'); // For email display next to profile pic
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+// For email display next to profile pic
 const authOverlay = document.getElementById('authOverlay');
 let userGlobal = null;
-
 // Navigation
 const tabs = document.querySelectorAll('aside nav a[data-tab]');
 const sections = document.querySelectorAll('main section');
@@ -65,7 +62,8 @@ const submitProductBtn = document.getElementById('submitProductBtn');
 
 // Home/Product listing
 const searchBar = document.getElementById('searchBar');
-const categoryTabs = document.querySelectorAll('.category-tab'); // New: Category tabs
+const categoryTabs = document.querySelectorAll('.category-tab');
+// New: Category tabs
 const productListContainer = document.getElementById('productList');
 const noProductsMessage = document.getElementById('noProductsMessage');
 
@@ -85,7 +83,7 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-// Edit modal - Keeping it here but will ensure it's not used/visible
+// Edit modal
 const editProductModal = document.getElementById('editProductModal');
 const editProductForm = document.getElementById('editProductForm');
 const editProductIdInput = document.getElementById('editProductId');
@@ -103,10 +101,10 @@ const customConfirmModal = document.getElementById('customConfirmModal');
 const customConfirmMessage = document.getElementById('customConfirmMessage');
 const customConfirmOkBtn = document.getElementById('customConfirmOkBtn');
 const customConfirmCancelBtn = document.getElementById('customConfirmCancelBtn');
-
 // Global variable for all fetched products to enable client-side filtering by category/search
 window.allProducts = [];
-let currentCategoryFilter = 'All'; // New: Track current category filter
+let currentCategoryFilter = 'All';
+// New: Track current category filter
 
 // --- Custom Alert/Confirm Functions ---
 function showAlert(message) {
@@ -114,7 +112,6 @@ function showAlert(message) {
   customAlertModal.classList.remove('hidden');
   customAlertModal.classList.add('modal-enter-active');
   customAlertModal.querySelector('div').classList.add('modal-enter-active');
-
   return new Promise(resolve => {
     customAlertOkBtn.onclick = () => {
       customAlertModal.classList.remove('modal-enter-active');
@@ -133,41 +130,23 @@ function showAlert(message) {
 }
 
 function showConfirm(message) {
-  customConfirmMessage.textContent = message; [cite: 24]
-  customConfirmModal.classList.remove('hidden'); [cite: 24]
-  customConfirmModal.classList.add('modal-enter-active'); [cite: 24]
-  customConfirmModal.querySelector('div').classList.add('modal-enter-active'); [cite: 24]
-  return new Promise(resolve => { [cite: 25]
-    const handleConfirm = () => { [cite: 25]
-      customConfirmModal.classList.remove('modal-enter-active'); [cite: 25]
-      customConfirmModal.querySelector('div').classList.remove('modal-enter-active'); [cite: 25]
-      customConfirmModal.classList.add('modal-exit-active'); [cite: 25]
-      customConfirmModal.querySelector('div').classList.add('modal-exit-active'); [cite: 25]
-      setTimeout(() => { [cite: 25]
-        customConfirmModal.classList.add('hidden'); [cite: 25]
-        customConfirmModal.classList.remove('modal-exit-active'); [cite: 25]
-        customConfirmModal.querySelector('div').classList.remove('modal-exit-active'); [cite: 25]
-        resolve(true); [cite: 25]
-      }, 200); [cite: 25]
+  customConfirmMessage.textContent = message;
+  customConfirmModal.classList.remove('hidden');
+  customConfirmModal.classList.add('modal-enter-active');
+  customConfirmModal.querySelector('div').classList.add('modal-enter-active');
+  return new Promise(resolve => {
+    const handleConfirm = () => {
+      customConfirmModal.classList.remove('modal-enter-active');
+      customConfirmModal.querySelector('div').classList.remove('modal-enter-active');
+      customConfirmModal.classList.add('modal-exit-active');
+      customConfirmModal.querySelector('div').classList.add('modal-exit-active');
+      setTimeout(() => {
+        customConfirmModal.classList.add('hidden');
+        customConfirmModal.classList.remove('modal-exit-active');
+        customConfirmModal.querySelector('div').classList.remove('modal-exit-active');
+        resolve(true);
+      }, 200);
     };
-
-    const handleCancel = () => {
-      customConfirmModal.classList.remove('modal-enter-active'); [cite: 26]
-      customConfirmModal.querySelector('div').classList.remove('modal-enter-active'); [cite: 26]
-      customConfirmModal.classList.add('modal-exit-active'); [cite: 26]
-      customConfirmModal.querySelector('div').classList.add('modal-exit-active'); [cite: 26]
-      setTimeout(() => { [cite: 26]
-        customConfirmModal.classList.add('hidden'); [cite: 26, 27]
-        customConfirmModal.classList.remove('modal-exit-active'); [cite: 27]
-        customConfirmModal.querySelector('div').classList.remove('modal-exit-active'); [cite: 27]
-        resolve(false); [cite: 27]
-      }, 200); [cite: 27]
-    };
-
-    customConfirmOkBtn.onclick = handleConfirm; [cite: 27]
-    customConfirmCancelBtn.onclick = handleCancel; [cite: 27]
-  }); [cite: 28]
-}
 
     const handleCancel = () => {
       customConfirmModal.classList.remove('modal-enter-active');
@@ -206,7 +185,6 @@ onAuthStateChanged(auth, user => {
     }
   }
 });
-
 // --- EmailJS sale notification ---
 function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
   emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
@@ -253,7 +231,6 @@ function showProfileUI(user) {
       }
     }
   });
-
   document.getElementById('deleteAccountBtn').onclick = async () => {
     const confirmed = await showConfirm("Delete your account? This action cannot be undone and all your products will be delisted.");
     if (confirmed) {
@@ -310,13 +287,12 @@ tabs.forEach(tab => {
     if (target === 'home') {
       // Re-apply current category filter and search after switching to home
       await filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-      searchBar.value = ''; // Clear search bar on tab change
+      searchBar.value = ''; // Clear search bar on tab
     } else if (target === 'dashboard') {
       await showDashboard();
     }
   });
 });
-
 backToHomeBtn.addEventListener('click', () => {
   showTab('home');
   filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
@@ -325,12 +301,12 @@ backToHomeBtn.addEventListener('click', () => {
 startSellingBtn.addEventListener('click', () => {
   toggleProductForm(true);
 });
-
 function toggleProductForm(showForm) {
   if (showForm) {
     sellLandingContent.classList.add('hidden');
     productForm.classList.remove('hidden');
-    productForm.classList.add('modal-enter-active'); // Animate form in
+    productForm.classList.add('modal-enter-active');
+    // Animate form in
     showTab('sell');
     productUploadForm.reset();
     restoreSellForm();
@@ -342,7 +318,8 @@ function toggleProductForm(showForm) {
       sellLandingContent.classList.remove('hidden');
       productForm.classList.add('hidden');
       productForm.classList.remove('modal-exit-active');
-    }, 200); // Match exit animation duration
+    }, 200);
+    // Match exit animation duration
   }
 }
 
@@ -390,7 +367,6 @@ function restoreSellForm() {
   input.addEventListener('input', saveSellForm);
 });
 document.addEventListener("DOMContentLoaded", restoreSellForm);
-
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
 const previewImageWidget = window.cloudinary.createUploadWidget(
@@ -408,6 +384,7 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
     if (!error && result && result.event === "success") {
       previewImageUrlInput.value = result.info.secure_url;
       setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+
       openPreviewImageWidgetBtn.classList.remove('input-invalid');
       currentPreviewImage.src = result.info.secure_url;
       previewImageContainer.classList.remove('hidden');
@@ -439,7 +416,6 @@ const previewImageWidget = window.cloudinary.createUploadWidget(
 openPreviewImageWidgetBtn.addEventListener('click', () => {
   previewImageWidget.open();
 });
-
 // --- UTILITIES ---
 function setFileInputStatus(statusElement, message, type = 'default') {
   statusElement.textContent = message;
@@ -543,6 +519,7 @@ productUploadForm.addEventListener('submit', async (e) => {
     }
     const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
     const newProduct = {
+
       title: titleInput.value.trim(),
       description: descriptionInput.value.trim(),
       price: parseFloat(priceInput.value),
@@ -557,7 +534,8 @@ productUploadForm.addEventListener('submit', async (e) => {
     await showAlert('Product listed successfully!');
     localStorage.removeItem(SELL_FORM_KEY);
     toggleProductForm(false);
-    await loadProducts(); // Reload all products after successful listing
+    await loadProducts();
+    // Reload all products after successful listing
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
     showFormErrors(["Failed to list product. Please try again."]);
@@ -579,7 +557,8 @@ async function loadProducts() {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
-    window.allProducts = []; // Clear previous products
+    window.allProducts = [];
+    // Clear previous products
     if (querySnapshot.empty) {
       noProductsMessage.textContent = 'No products listed yet.';
       return;
@@ -592,7 +571,6 @@ async function loadProducts() {
     });
     // Now filter and render based on current search and category
     filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
-
   } catch (error) {
     console.error("Error loading products:", error);
     noProductsMessage.textContent = 'Failed to load products. Please try again later.';
@@ -631,13 +609,13 @@ async function filterAndRenderProducts(searchTerm = '', category = 'All') {
         <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
         <div class="flex items-center justify-between mt-auto">
           <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+
           <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
         </div>
       </div>
     `;
     productListContainer.innerHTML += productCard;
   });
-
   // Add event listeners for view buttons after rendering for home section
   productListContainer.querySelectorAll('.view-product-btn').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -670,18 +648,16 @@ categoryTabs.forEach(tab => {
     filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
   });
 });
-
 async function showProductDetails(productId) {
   productDetailsSection.classList.remove('hidden');
   showTab('productDetails'); // Make sure the product details section is visible
-  productDetailsError.textContent = ''; // Clear previous errors
+  productDetailsError.textContent = '';
+  // Clear previous errors
   detailActionButton.innerHTML = 'Loading...';
   detailActionButton.disabled = true;
-
   try {
     const productRef = doc(db, "products", productId);
     const productSnap = await getDoc(productRef);
-
     if (!productSnap.exists()) {
       productDetailsError.textContent = 'Product not found.';
       detailProductTitle.textContent = '';
@@ -709,14 +685,17 @@ async function showProductDetails(productId) {
         detailActionButton.disabled = true;
         detailActionButton.style.cursor = 'default';
       } else {
-        detailActionButton.innerHTML = ''; // Clear the "Loading..."
-        detailActionButton.disabled = false; // Enable for purchase
+        detailActionButton.innerHTML = '';
+        // Clear the "Loading..."
+        detailActionButton.disabled = false;
+        // Enable for purchase
         paypal.Buttons({
           createOrder: function(data, actions) {
             return actions.order.create({
               purchase_units: [{
                 amount: {
                   value: product.price.toFixed(2)
+
                 }
               }]
             });
@@ -725,17 +704,20 @@ async function showProductDetails(productId) {
             return actions.order.capture().then(async function(details) {
               await showAlert('Transaction completed by ' + details.payer.name.given_name + '!');
 
+
               // Record sale in Firestore
               await addDoc(collection(db, "sales"), {
                 productId: product.id,
                 productTitle: product.title,
                 price: product.price,
                 buyerId: auth.currentUser ? auth.currentUser.uid : 'guest',
+
                 buyerEmail: auth.currentUser ? auth.currentUser.email : details.payer.email_address,
                 sellerId: product.sellerId,
                 sellerPaypalEmail: product.paypalEmail,
                 saleDate: serverTimestamp(),
                 paypalOrderId: data.orderID
+
               });
 
               // Send sale notification email
@@ -744,12 +726,11 @@ async function showProductDetails(productId) {
                 buyerEmail: details.payer.email_address,
                 sellerPaypalEmail: product.paypalEmail,
                 productTitle: product.title,
+
                 amount: product.price.toFixed(2)
               });
-
               // Increment seller's balance
               await handleProductPurchase(product);
-
               // Provide download link
               await showAlert(`Purchase successful! Your download link is: <a href="${product.fileUrl}" target="_blank" class="text-blue-500 underline">Download Now</a>`);
             });
@@ -758,7 +739,8 @@ async function showProductDetails(productId) {
             console.error('PayPal button error:', err);
             showAlert('An error occurred during payment. Please try again.');
           }
-        }).render('#paypal-button-container'); // Render the PayPal button
+        }).render('#paypal-button-container');
+        // Render the PayPal button
       }
     } else { // Free product
       detailActionButton.innerHTML = `
@@ -778,7 +760,8 @@ async function showProductDetails(productId) {
     detailActionButton.innerHTML = '';
     paypalButtonContainer.innerHTML = '';
   } finally {
-    detailActionButton.disabled = false; // Re-enable if it was disabled by 'loading'
+    detailActionButton.disabled = false;
+    // Re-enable if it was disabled by 'loading'
   }
 }
 
@@ -821,7 +804,8 @@ async function showDashboard() {
   showTab('dashboard');
   await updateSellerBalance(auth.currentUser.uid);
   watchSellerBalance(auth.currentUser.uid); // Start real-time updates for balance
-  await loadMyProducts(auth.currentUser.uid); // Load user's products
+  await loadMyProducts(auth.currentUser.uid);
+  // Load user's products
 }
 async function incrementSellerBalance(sellerId, amount) {
   const balRef = doc(db, "balances", sellerId);
@@ -846,6 +830,137 @@ async function handleProductPurchase(product) {
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
+
+// --- New: Load My Products for Dashboard ---
+async function loadMyProducts(userId) {
+  myProductsContainer.innerHTML = ''; // Clear previous products
+  noMyProductsMessage.textContent = 'Loading your products...';
+  noMyProductsMessage.classList.remove('hidden');
+
+  try {
+    // Query products where sellerId matches the current user's ID
+    const q = query(collection(db, "products"), where("sellerId", "==", userId), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      noMyProductsMessage.textContent = 'You have not listed any products yet.';
+      return;
+    }
+    noMyProductsMessage.classList.add('hidden'); // Hide if products are found
+
+    querySnapshot.forEach((doc) => {
+      const product = { id: doc.id, ...doc.data() };
+      const productCard = `
+        <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col product-card interactive-card" data-product-id="${product.id}">
+          <img src="${product.previewImageUrl}" alt="${product.title}" class="w-full h-48 object-cover rounded-xl mb-4">
+          <h4 class="text-xl font-bold text-gray-900 mb-2 truncate">${product.title}</h4>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description}</p>
+          <div class="flex items-center justify-between mt-auto">
+            <span class="text-2xl font-extrabold text-blue-600">$${parseFloat(product.price).toFixed(2)}</span>
+            <div class="flex space-x-2">
+              <button class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors duration-200 view-product-btn" data-product-id="${product.id}">Details</button>
+              <button class="bg-yellow-500 text-white px-4 py-2 rounded-full hover:bg-yellow-600 transition-colors duration-200 edit-product-btn" data-product-id="${product.id}">Edit</button>
+              <button class="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-colors duration-200 delete-product-btn" data-product-id="${product.id}">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+      myProductsContainer.innerHTML += productCard;
+    });
+
+    // Add event listeners for buttons in "My Products" section
+    myProductsContainer.querySelectorAll('.view-product-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = e.target.dataset.productId;
+        showProductDetails(productId);
+      });
+    });
+
+    myProductsContainer.querySelectorAll('.edit-product-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = e.target.dataset.productId;
+        editProduct(productId);
+      });
+    });
+
+    myProductsContainer.querySelectorAll('.delete-product-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const productId = e.target.dataset.productId;
+        await deleteProduct(productId);
+      });
+    });
+
+  } catch (error) {
+    console.error("Error loading user's products:", error);
+    noMyProductsMessage.textContent = 'Failed to load your products. Please try again later.';
+    noMyProductsMessage.classList.remove('hidden');
+  }
+}
+
+// --- New: Edit Product Functionality ---
+async function editProduct(productId) {
+  const productRef = doc(db, "products", productId);
+  const productSnap = await getDoc(productRef);
+
+  if (productSnap.exists()) {
+    const product = productSnap.data();
+    editProductIdInput.value = productId;
+    editTitleInput.value = product.title;
+    editDescriptionInput.value = product.description;
+    editPriceInput.value = product.price;
+    editFileUrlInput.value = product.fileUrl; // Populate the file URL
+    editProductModal.classList.remove('hidden'); // Show the edit modal
+  } else {
+    showAlert("Product not found for editing.");
+  }
+}
+
+editProductForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const productId = editProductIdInput.value;
+  const productRef = doc(db, "products", productId);
+
+  try {
+    await updateDoc(productRef, {
+      title: editTitleInput.value.trim(),
+      description: editDescriptionInput.value.trim(),
+      price: parseFloat(editPriceInput.value),
+      fileUrl: editFileUrlInput.value.trim() // Update the file URL
+    });
+    showAlert("Product updated successfully!");
+    editProductModal.classList.add('hidden'); // Hide modal
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Reload products in dashboard
+    await loadProducts(); // Reload all products in home section in case any details changed
+  } catch (error) {
+    console.error("Error updating product:", error);
+    showAlert("Failed to update product: " + error.message);
+  }
+});
+
+cancelEditBtn.addEventListener('click', () => {
+  editProductModal.classList.add('hidden'); // Hide modal
+});
+
+// --- New: Delete Product Functionality ---
+async function deleteProduct(productId) {
+  const confirmed = await showConfirm("Are you sure you want to delete this product? This action cannot be undone.");
+  if (confirmed) {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+      showAlert("Product deleted successfully!");
+      if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Reload products in dashboard
+      await loadProducts(); // Reload all products in home section after deletion
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      showAlert("Failed to delete product: " + error.message);
+    }
+  }
+}
+
+
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
     // Only load products if not already authenticated, onAuthStateChanged will handle it
@@ -854,7 +969,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     restoreSellForm();
 });
-
 // Event listener for general product list (home page)
 productListContainer.addEventListener('click', (event) => {
     const productCard = event.target.closest('.product-card.interactive-card');
@@ -866,6 +980,7 @@ productListContainer.addEventListener('click', (event) => {
         const productId = viewButton.dataset.productId;
         showProductDetails(productId);
     } else if (productCard) {
+
         // If any other part of the card was clicked
         const productId = productCard.dataset.productId;
         showProductDetails(productId);
