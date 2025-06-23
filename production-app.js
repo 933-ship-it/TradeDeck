@@ -133,24 +133,41 @@ function showAlert(message) {
 }
 
 function showConfirm(message) {
-  customConfirmMessage.textContent = message;
-  customConfirmModal.classList.remove('hidden');
-  customConfirmModal.classList.add('modal-enter-active');
-  customConfirmModal.querySelector('div').classList.add('modal-enter-active');
-
-  return new Promise(resolve => {
-    const handleConfirm = () => {
-      customConfirmModal.classList.remove('modal-enter-active');
-      customConfirmModal.querySelector('div').classList.remove('modal-enter-active');
-      customConfirmModal.classList.add('modal-exit-active');
-      customConfirmModal.querySelector('div').classList.add('modal-exit-active');
-      setTimeout(() => {
-        customConfirmModal.classList.add('hidden');
-        customConfirmModal.classList.remove('modal-exit-active');
-        customConfirmModal.querySelector('div').classList.remove('modal-exit-active');
-        resolve(true);
-      }, 200);
+  customConfirmMessage.textContent = message; [cite: 24]
+  customConfirmModal.classList.remove('hidden'); [cite: 24]
+  customConfirmModal.classList.add('modal-enter-active'); [cite: 24]
+  customConfirmModal.querySelector('div').classList.add('modal-enter-active'); [cite: 24]
+  return new Promise(resolve => { [cite: 25]
+    const handleConfirm = () => { [cite: 25]
+      customConfirmModal.classList.remove('modal-enter-active'); [cite: 25]
+      customConfirmModal.querySelector('div').classList.remove('modal-enter-active'); [cite: 25]
+      customConfirmModal.classList.add('modal-exit-active'); [cite: 25]
+      customConfirmModal.querySelector('div').classList.add('modal-exit-active'); [cite: 25]
+      setTimeout(() => { [cite: 25]
+        customConfirmModal.classList.add('hidden'); [cite: 25]
+        customConfirmModal.classList.remove('modal-exit-active'); [cite: 25]
+        customConfirmModal.querySelector('div').classList.remove('modal-exit-active'); [cite: 25]
+        resolve(true); [cite: 25]
+      }, 200); [cite: 25]
     };
+
+    const handleCancel = () => {
+      customConfirmModal.classList.remove('modal-enter-active'); [cite: 26]
+      customConfirmModal.querySelector('div').classList.remove('modal-enter-active'); [cite: 26]
+      customConfirmModal.classList.add('modal-exit-active'); [cite: 26]
+      customConfirmModal.querySelector('div').classList.add('modal-exit-active'); [cite: 26]
+      setTimeout(() => { [cite: 26]
+        customConfirmModal.classList.add('hidden'); [cite: 26, 27]
+        customConfirmModal.classList.remove('modal-exit-active'); [cite: 27]
+        customConfirmModal.querySelector('div').classList.remove('modal-exit-active'); [cite: 27]
+        resolve(false); [cite: 27]
+      }, 200); [cite: 27]
+    };
+
+    customConfirmOkBtn.onclick = handleConfirm; [cite: 27]
+    customConfirmCancelBtn.onclick = handleCancel; [cite: 27]
+  }); [cite: 28]
+}
 
     const handleCancel = () => {
       customConfirmModal.classList.remove('modal-enter-active');
