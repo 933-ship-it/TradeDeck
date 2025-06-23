@@ -1,18 +1,18 @@
 // --- Firebase Modular SDK Imports ---
-import { initializeApp } from "[https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js](https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js)";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut, deleteUser
-} from "[https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js](https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js)";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
-} from "[https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js](https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js)";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
-const LANDING_URL = "[https://933-ship-it.github.io/TradeDeck-landing-page/](https://933-ship-it.github.io/TradeDeck-landing-page/)";
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
 
 // --- Firebase Config (ensure this matches your project config) ---
 const firebaseConfig = {
@@ -207,7 +207,7 @@ function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle,
 
 function showProfileUI(user) {
   if (!user) return;
-  profilePic.src = user.photoURL || "[https://ui-avatars.com/api/?name=](https://ui-avatars.com/api/?name=)" + encodeURIComponent(user.email || "U") + "&background=random";
+  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U") + "&background=random";
   profilePic.classList.remove("hidden");
   userEmail.textContent = user.email || "(no email)";
   userEmailDisplay.textContent = user.email || "(no email)";
@@ -439,7 +439,7 @@ function convertToGoogleDriveDirectDownload(url) {
   if (match && match[1]) {
     const fileId = match[1];
     convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-  } else if (url.includes('[drive.google.com/open?id=](https://drive.google.com/open?id=)')) {
+  } else if (url.includes('drive.google.com/open?id=')) {
     const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
     if (idMatch && idMatch[1]) {
       const fileId = idMatch[1];
@@ -649,19 +649,19 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
         <div class="mt-auto flex justify-between items-center pt-4 border-t border-gray-100 w-full">
           <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}.zip"
              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-sm font-semibold flex items-center gap-1 shadow-md">
-            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download
           </a>
           <button data-product-id="${product.id}" class="edit-product-btn px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 text-sm font-semibold flex items-center gap-1 shadow-md">
-            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             Edit
           </button>
           <button data-product-id="${product.id}" class="delist-product-btn px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-semibold flex items-center gap-1 shadow-md ml-2">
-            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Delist
@@ -671,7 +671,7 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
     }
 
     productCard.innerHTML = `
-      <img src="${product.previewImageUrl || '[https://via.placeholder.com/400x300?text=Product+Preview](https://via.placeholder.com/400x300?text=Product+Preview)'}"
+      <img src="${product.previewImageUrl || 'https://placehold.co/400x300?text=Product+Preview'}"
            alt="${product.title} preview"
            class="rounded-lg mb-4 h-48 object-cover w-full shadow-sm"/>
       <h3 class="font-bold text-xl mb-2 text-gray-900 truncate">${product.title}</h3>
@@ -743,7 +743,7 @@ async function showProductDetails(productId) {
     const product = { id: productDoc.id, ...productDoc.data() };
 
     // Update product details UI
-    detailProductImage.src = product.previewImageUrl || '[https://via.placeholder.com/600x400?text=Product+Preview](https://via.placeholder.com/600x400?text=Product+Preview)';
+    detailProductImage.src = product.previewImageUrl || 'https://placehold.co/600x400?text=Product+Preview';
     detailProductTitle.textContent = product.title;
     detailProductDescription.textContent = product.description;
     const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
