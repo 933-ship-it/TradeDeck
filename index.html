@@ -164,6 +164,15 @@
       transform: scale(0.9);
       transition: opacity 0.2s ease-in, transform 0.2s ease-in;
     }
+
+    /* Custom styles for Dashboard product display */
+    #myProducts {
+        min-height: 600px; /* Ensure a minimum height for the product display area */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Flexible columns, min 280px wide */
+        gap: 24px; /* Space between product cards */
+        align-items: start; /* Align items to the start of the grid */
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
@@ -173,7 +182,6 @@
   </script>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
-  <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-gradient-to-br from-blue-500 to-indigo-700 flex flex-col items-center justify-center z-50 text-white p-6" style="display:none;">
     <div class="text-5xl font-extrabold mb-6 animate-pulse">👋 Welcome to TradeDeck</div>
     <p class="text-xl text-center mb-8 max-w-lg">Your marketplace for digital products. Please sign in to explore and create!</p>
@@ -183,11 +191,9 @@
   </div>
 
   <div class="flex flex-1">
-    <!-- Sidebar Navigation -->
     <aside class="w-72 bg-white shadow-xl p-8 flex flex-col rounded-r-3xl" aria-label="Sidebar navigation">
       <h1 class="text-4xl font-extrabold text-blue-700 mb-10 tracking-tight">TradeDeck<span class="text-indigo-500"></span></h1>
       
-      <!-- User Profile and Dropdown -->
       <div id="profileDropdown" class="relative mb-8 min-h-[60px]">
         <div class="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors" id="profileToggleArea">
           <img id="userProfilePic" class="h-14 w-14 rounded-full border-3 border-blue-500 shadow-md hidden object-cover" src="" alt="Profile" />
@@ -210,7 +216,6 @@
         </div>
       </div>
 
-      <!-- Main Navigation Tabs -->
       <nav class="space-y-3 flex-grow">
         <a href="#home" class="tab-item bg-blue-100" data-tab="home" tabindex="0" aria-current="page">
           <span role="img" aria-label="Home icon">🏠</span> Home
@@ -223,18 +228,14 @@
         </a>
       </nav>
 
-      <!-- Footer for Sidebar -->
       <div class="mt-auto pt-6 border-t border-gray-200 text-center text-sm text-gray-400">
         &copy; 2025 TradeDeck. All rights reserved.
       </div>
     </aside>
 
-    <!-- Main Content Area -->
     <main class="flex-1 overflow-y-auto p-12 bg-gray-50">
-      <!-- Home Section -->
       <section id="home" aria-label="Home Products">
         <div class="max-w-6xl mx-auto">
-          <!-- Search Bar -->
           <label for="searchBar" class="sr-only">Search products</label>
           <div class="relative mb-8">
             <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..."
@@ -246,7 +247,6 @@
             </div>
           </div>
 
-          <!-- Category Tabs -->
           <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar mb-10">
             <button class="category-tab active" data-category="All">✨ All</button>
             <button class="category-tab" data-category="Tech">💻 Tech</button>
@@ -258,14 +258,12 @@
             <button class="category-tab" data-category="Video">🎬 Video</button>
           </div>
 
-          <!-- Product Listing Grid -->
           <div id="productList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             <p id="noProductsMessage" class="col-span-full text-center text-gray-500 text-lg py-10 hidden">Loading products...</p>
           </div>
         </div>
       </section>
 
-      <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
         <div class="max-w-5xl mx-auto bg-white p-10 rounded-3xl shadow-xl">
           <button id="backToHomeBtn" class="mb-8 px-6 py-3 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 flex items-center gap-2 text-lg font-medium" aria-label="Back to home">
@@ -296,7 +294,6 @@
         </div>
       </section>
 
-      <!-- Sell Section -->
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <div id="sellLandingContent">
@@ -319,7 +316,7 @@
                   <p class="text-gray-600 text-md leading-relaxed">PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop your digital creations.</p>
                 </div>
                 <div class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-shadow duration-300 animate-slide-in-up">
-                  <div class="text-green-500 text-5xl mb-5">⚙️</div>
+                  <div class="text-green-500 text-5xl mb-5"⚙️</div>
                   <h4 class="text-xl font-bold mb-3 text-gray-800">Customize & Price</h4>
                   <p class="text-gray-600 text-md leading-relaxed">Set your price, craft compelling descriptions, add captivating preview images, and define license terms.</p>
                 </div>
@@ -332,7 +329,6 @@
             </div>
           </div>
 
-          <!-- Product Upload Form -->
           <div id="productForm" class="bg-white p-10 rounded-3xl shadow-2xl max-w-3xl mx-auto hidden border-t-4 border-blue-600">
             <div id="formErrorSummary" class="error-summary hidden"></div>
             <h3 class="text-3xl font-bold text-gray-900 mb-8 text-center">List Your Digital Product 🚀</h3>
@@ -415,12 +411,9 @@
         </div>
       </section>
 
-      <!-- Dashboard Section -->
       <section id="dashboard" class="hidden">
-        <div class="max-w-6xl mx-auto mt-16 px-4">
-          <h2 class="text-4xl font-extrabold text-gray-900 mb-10">Your Dashboard 📈</h2>
+        <div class="max-w-7xl mx-auto mt-16 px-4"> <h2 class="text-4xl font-extrabold text-gray-900 mb-10">Your Dashboard 📈</h2>
           
-          <!-- Balance Card -->
           <div id="balanceCard" class="bg-gradient-to-br from-indigo-600 to-blue-700 text-white rounded-3xl shadow-xl p-8 mb-12 flex flex-col items-start relative overflow-hidden">
             <div class="absolute -top-10 -right-10 opacity-20">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-48 w-48" fill="currentColor" viewBox="0 0 24 24">
@@ -432,7 +425,6 @@
             <div class="text-md text-indigo-200">Balance is updated instantly after each successful sale.</div>
           </div>
 
-          <!-- My Products Section -->
           <div class="mb-12">
             <h3 class="text-3xl font-bold text-gray-900 mb-6">My Listed Products 📦</h3>
             <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
@@ -440,7 +432,6 @@
           </div>
         </div>
 
-        <!-- Edit Product Modal -->
         <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden modal-exit" role="dialog" aria-modal="true" aria-labelledby="editProductModalTitle">
           <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full transform scale-90 opacity-0 transition-all duration-200 ease-out">
             <h4 id="editProductModalTitle" class="text-3xl font-bold mb-6 text-gray-900 text-center">Edit Product Details ✍️</h4>
@@ -473,7 +464,6 @@
     </main>
   </div>
 
-  <!-- Confirmation/Alert Modal (instead of alert()) -->
   <div id="customAlertModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-60 hidden modal-exit">
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center transform scale-90 opacity-0 transition-all duration-200 ease-out">
       <p id="customAlertMessage" class="text-xl font-semibold text-gray-800 mb-6"></p>
@@ -481,7 +471,6 @@
     </div>
   </div>
 
-  <!-- Confirmation Modal (instead of confirm()) -->
   <div id="customConfirmModal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-60 hidden modal-exit">
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center transform scale-90 opacity-0 transition-all duration-200 ease-out">
       <p id="customConfirmMessage" class="text-xl font-semibold text-gray-800 mb-6"></p>
