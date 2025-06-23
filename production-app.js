@@ -4,9 +4,13 @@ import {
   getAuth, onAuthStateChanged, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, // Removed deleteDoc from here
   query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Import the new deleteProduct function
+import { deleteProduct } from "./delete-product.js";
+
 // --- Constants ---
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
@@ -871,7 +875,8 @@ async function loadMyProducts(userId) {
       button.addEventListener('click', async (e) => {
         e.stopPropagation();
         const productId = e.target.dataset.productId;
-        await deleteProduct(productId);
+        // Pass necessary dependencies to the imported deleteProduct function
+        await deleteProduct(productId, db, auth, showAlert, showConfirm, loadMyProducts, loadProducts);
       });
     });
 
@@ -881,23 +886,6 @@ async function loadMyProducts(userId) {
     noMyProductsMessage.classList.remove('hidden');
   }
 }
-
-// --- New: Delete Product Functionality ---
-async function deleteProduct(productId) {
-  const confirmed = await showConfirm("Are you sure you want to delete this product? This action cannot be undone.");
-  if (confirmed) {
-    try {
-      await deleteDoc(doc(db, "products", productId));
-      showAlert("Product deleted successfully!");
-      if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Reload products in dashboard
-      await loadProducts(); // Reload all products in home section after deletion
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      showAlert("Failed to delete product: " + error.message);
-    }
-  }
-}
-
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
