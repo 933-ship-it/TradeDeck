@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Corrected Content-Security-Policy -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:
@@ -24,8 +25,8 @@
       https://lh3.googleusercontent.com
       https://www.google.com
       https://www.paypalobjects.com
-      https://placehold.co; /* Updated placeholder domain */
-    font-src 'self' https://fonts.gstatic.com;
+      https://placehold.co;
+    font-src 'self' https://fonts.gstatic.com; /* Explicitly allow fonts */
     connect-src 'self'
       https://*.paypal.com
       https://*.paypalobjects.com
@@ -74,32 +75,34 @@
     .product-card {
       transition: all 0.3s ease-in-out;
       border: 1px solid transparent;
-      border-radius: 12px; /* Smoother corners */
-      overflow: hidden; /* Ensures image corners are rounded with card */
+      border-radius: 16px; /* Slightly more rounded corners */
+      overflow: hidden;
+      padding: 1.5rem; /* Increased padding */
     }
     .product-card:hover {
-      transform: translateY(-8px) scale(1.02); /* More pronounced lift and slight scale */
-      box-shadow: 0 15px 30px rgba(0,0,0,0.15); /* Stronger shadow */
-      border-color: #6366f1; /* Indigo border on hover */
+      transform: translateY(-10px) scale(1.03); /* More pronounced lift and scale */
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); /* Stronger, more diffused shadow */
+      border-color: #4f46e5; /* Deeper indigo border on hover */
     }
     .input-invalid {
       border-color: #ef4444 !important;
-      box-shadow: 0 0 0 2px #ef4444 !important; /* Thicker error border */
+      box-shadow: 0 0 0 3px #ef4444 !important; /* Thicker error border */
     }
     .error-summary {
       background: #fee2e2;
       color: #b91c1c;
-      padding: 1rem 1.25rem; /* More padding */
-      border-radius: 0.75rem; /* More rounded */
-      margin-bottom: 1.5rem; /* More space */
-      font-size: 0.95rem; /* Slightly larger text */
-      border: 1px solid #ef4444; /* Added border for clarity */
+      padding: 1.25rem 1.5rem; /* More padding */
+      border-radius: 1rem; /* More rounded */
+      margin-bottom: 2rem; /* More space */
+      font-size: 1rem; /* Slightly larger text */
+      border: 1px solid #ef4444;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.1);
     }
     .interactive-card {
       cursor: pointer;
     }
     .interactive-card:hover {
-      border-color: #60a5fa;
+      border-color: #3b82f6; /* Deeper blue on hover */
     }
     .success { color: #16a34a; }
     .error { color: #dc2626; }
@@ -109,71 +112,80 @@
 
     /* Custom scrollbar for main content area */
     main::-webkit-scrollbar {
-      width: 8px;
+      width: 10px; /* Thicker scrollbar */
     }
     main::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: #e2e8f0; /* Lighter track */
       border-radius: 10px;
     }
     main::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #94a3b8; /* Darker thumb */
       border-radius: 10px;
     }
     main::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
+      background: #64748b; /* Even darker on hover */
     }
 
     /* Enhanced sidebar navigation */
     aside nav a {
       display: flex;
       align-items: center;
-      gap: 0.75rem; /* Space between icon and text */
-      padding: 0.75rem 1rem; /* More vertical padding */
-      font-weight: 600; /* Bolder text */
-      transition: all 0.2s ease;
-      border-radius: 10px; /* Slightly more rounded */
+      gap: 1rem; /* More space */
+      padding: 1rem 1.25rem; /* Increased padding */
+      font-weight: 700; /* Even bolder text */
+      transition: all 0.3s ease;
+      border-radius: 12px; /* Smoother corners */
+      font-size: 1.1rem; /* Slightly larger font */
     }
     aside nav a.bg-blue-100 {
-      background-color: #dbeafe; /* Lighter blue for active */
-      color: #2563eb; /* Darker blue text */
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1); /* Subtle shadow for active */
+      background-color: #bfdbfe; /* More vibrant blue for active */
+      color: #1d4ed8; /* Darker blue text */
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); /* Stronger shadow for active */
     }
     aside nav a:hover:not(.bg-blue-100) {
-      background-color: #eff6ff; /* Lighter hover background */
-      color: #1d4ed8; /* Darker blue on hover */
-      transform: translateX(3px); /* Slight slide effect */
+      background-color: #dbeafe; /* Lighter hover background */
+      color: #1e40af; /* Even darker blue on hover */
+      transform: translateX(5px); /* More pronounced slide effect */
     }
 
     /* Category tabs under search bar */
     .category-tab {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1.2rem;
-      border-radius: 20px; /* Pill shape */
-      background-color: #e0e7ff; /* Light indigo */
-      color: #4338ca; /* Darker indigo */
-      font-weight: 600;
+      gap: 0.6rem;
+      padding: 0.7rem 1.4rem; /* More padding */
+      border-radius: 25px; /* More pill-like shape */
+      background-color: #eef2ff; /* Very light indigo */
+      color: #4f46e5; /* Deeper indigo */
+      font-weight: 700;
       transition: all 0.2s ease;
       cursor: pointer;
       border: 1px solid transparent;
-      white-space: nowrap; /* Prevent wrapping */
+      white-space: nowrap;
+      font-size: 0.95rem; /* Slightly smaller for compactness */
     }
     .category-tab:hover {
-      background-color: #c7d2fe; /* Lighter indigo on hover */
-      transform: translateY(-2px); /* Lift effect */
-      box-shadow: 0 4px 10px rgba(67, 56, 202, 0.1);
+      background-color: #e0e7ff; /* Lighter indigo on hover */
+      transform: translateY(-3px); /* More lift effect */
+      box-shadow: 0 6px 15px rgba(67, 56, 202, 0.15);
     }
     .category-tab.active {
-      background-color: #6366f1; /* Solid indigo for active */
+      background-color: #4f46e5; /* Solid indigo for active */
       color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-      border-color: #6366f1;
+      box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
+      border-color: #4f46e5;
     }
 
     /* Product card image aspect ratio */
     .product-card img {
-      aspect-ratio: 4/3; /* Maintain aspect ratio for images */
+      aspect-ratio: 4/3;
+      object-fit: cover; /* Ensures image covers area, cropping if needed */
+    }
+
+    /* Form element padding */
+    .product-form-input {
+        padding: 0.85rem 1.25rem; /* Increased padding for inputs/textareas */
+        border-radius: 0.75rem; /* More rounded inputs */
     }
 
     /* Smooth transition for modal */
@@ -371,25 +383,40 @@
               <div>
                 <label for="title" class="block text-lg font-medium text-gray-700 mb-2">Product Title</label>
                 <input type="text" id="title" name="title" required maxlength="100"
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
                        placeholder="e.g., Ultimate eBook Template Pack" />
               </div>
               <div>
                 <label for="description" class="block text-lg font-medium text-gray-700 mb-2">Product Description</label>
                 <textarea id="description" name="description" rows="5" required maxlength="1000"
-                          class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                          class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
                           placeholder="Describe your product in detail (max 1000 characters)..."></textarea>
+              </div>
+              <div>
+                <label for="category" class="block text-lg font-medium text-gray-700 mb-2">Product Category</label>
+                <select id="category" name="category" required
+                        class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input">
+                  <option value="">Select a category</option>
+                  <option value="Tech">Tech</option>
+                  <option value="EBooks">EBooks</option>
+                  <option value="Design">Design</option>
+                  <option value="Software">Software</option>
+                  <option value="Templates">Templates</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Video">Video</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div>
                 <label for="price" class="block text-lg font-medium text-gray-700 mb-2">Price ($)</label>
                 <input type="number" id="price" name="price" min="0" step="0.01" required
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
                        placeholder="e.g., 29.99 or 0 for free" />
               </div>
               <div id="paypalEmailContainer" class="hidden">
                 <label for="paypalEmail" class="block text-lg font-medium text-gray-700 mb-2">PayPal Email</label>
                 <input type="email" id="paypalEmail" name="paypalEmail"
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
                        placeholder="yourname@example.com" />
                 <p id="paypalEmailValidationMsg" class="text-red-500 text-sm mt-2"></p>
                 <div class="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 p-4 mt-4 rounded-lg" role="alert">
@@ -418,7 +445,7 @@
               <div>
                 <label for="productFileUrlInput" class="block text-lg font-medium text-gray-700 mb-2">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
                 <input type="url" id="productFileUrlInput" name="productFileUrl" required
-                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                       class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm product-form-input"
                        placeholder="Direct download link (Google Drive, Dropbox, etc.)" />
                 <p class="text-sm text-gray-500 mt-2">Make sure this link is publicly accessible for download and directly links to the file.</p>
               </div>
@@ -464,19 +491,19 @@
               <input type="hidden" id="editProductId" />
               <div>
                 <label for="editTitle" class="block text-lg font-medium text-gray-700 mb-2">Title</label>
-                <input type="text" id="editTitle" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg" maxlength="80" />
+                <input type="text" id="editTitle" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg product-form-input" maxlength="80" />
               </div>
               <div>
                 <label for="editDescription" class="block text-lg font-medium text-gray-700 mb-2">Description</label>
-                <textarea id="editDescription" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg" maxlength="1000"></textarea>
+                <textarea id="editDescription" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg product-form-input" maxlength="1000"></textarea>
               </div>
               <div>
                 <label for="editPrice" class="block text-lg font-medium text-gray-700 mb-2">Price ($)</label>
-                <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg" />
+                <input type="number" min="0" step="0.01" id="editPrice" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg product-form-input" />
               </div>
               <div>
                 <label for="editFileUrl" class="block text-lg font-medium text-gray-700 mb-2">Product File Link</label>
-                <input type="url" id="editFileUrl" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg" />
+                <input type="url" id="editFileUrl" required class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 text-lg product-form-input" />
               </div>
               <div class="flex justify-end gap-4 mt-8">
                 <button type="button" id="cancelEditBtn" class="px-7 py-3 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 font-semibold text-lg transition-colors duration-200">Cancel</button>
@@ -508,6 +535,6 @@
     </div>
   </div>
 
-  <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
+  <script type="module" src="./production-app.js"></script>
 </body>
 </html>
