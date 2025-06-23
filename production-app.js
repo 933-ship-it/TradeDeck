@@ -44,7 +44,9 @@ const tabs = document.querySelectorAll('aside nav a[data-tab]');
 const sections = document.querySelectorAll('main section');
 const startSellingBtn = document.getElementById('startSellingBtn');
 const sellLandingContent = document.getElementById('sellLandingContent');
-const productForm = document.getElementById('productUploadForm'); // Corrected ID to productUploadForm
+// *** CRITICAL FIX HERE ***: Correctly target the outer div with id="productForm"
+const productFormContainer = document.getElementById('productForm'); // This is the div that needs to be toggled
+const productUploadForm = document.getElementById('productUploadForm'); // This is the actual <form> element inside the container
 const formErrorSummary = document.getElementById('formErrorSummary');
 
 // Sell form fields
@@ -60,7 +62,6 @@ const previewImageUrlInput = document.getElementById('previewImageUrl');
 const previewImageStatus = document.getElementById('previewImageStatus');
 const previewImageContainer = document.getElementById('previewImageContainer');
 const currentPreviewImage = document.getElementById('currentPreviewImage');
-// const productUploadForm = document.getElementById('productUploadForm'); // Already defined above
 const submitProductBtn = document.getElementById('submitProductBtn');
 const categorySelect = document.getElementById('category');
 
@@ -298,10 +299,9 @@ tabs.forEach(tab => {
 
     // Specific logic for each tab
     if (target === 'sell') {
-      // *** FIX 2: Directly show the product form when 'sell' tab is clicked ***
-      // Instead of showing sellLandingContent by default and requiring another click,
-      // directly show the product form.
-      toggleProductForm(true); // This will now show the form directly
+      // *** FIX: Correctly toggle the productFormContainer div ***
+      // This ensures the main container for the form is made visible
+      toggleProductForm(true); 
     } else if (target === 'home') {
       await filterAndRenderProducts(searchBar.value.trim(), currentCategoryFilter);
       searchBar.value = ''; // Clear search bar on tab switch
@@ -335,9 +335,9 @@ function toggleProductForm(showForm) {
     setTimeout(() => {
       sellLandingContent.classList.add('hidden');
       sellLandingContent.classList.remove('modal-exit-active');
-      // Show product form with transition after landing content is hidden
-      productForm.classList.remove('hidden', 'modal-exit-active');
-      productForm.classList.add('modal-enter-active');
+      // Show product form container with transition after landing content is hidden
+      productFormContainer.classList.remove('hidden', 'modal-exit-active'); // Use productFormContainer
+      productFormContainer.classList.add('modal-enter-active');
     }, 200); // Match CSS transition duration
     
     // Ensure the sell tab is active
@@ -348,12 +348,12 @@ function toggleProductForm(showForm) {
     enableSubmitButton();
     formErrorSummary.classList.add('hidden'); // Clear any previous errors
   } else {
-    // Hide product form with transition
-    productForm.classList.remove('modal-enter-active');
-    productForm.classList.add('modal-exit-active');
+    // Hide product form container with transition
+    productFormContainer.classList.remove('modal-enter-active'); // Use productFormContainer
+    productFormContainer.classList.add('modal-exit-active');
     setTimeout(() => {
-      productForm.classList.add('hidden');
-      productForm.classList.remove('modal-exit-active');
+      productFormContainer.classList.add('hidden'); // Use productFormContainer
+      productFormContainer.classList.remove('modal-exit-active');
       // Show landing content with transition after form is hidden
       sellLandingContent.classList.remove('hidden', 'modal-exit-active');
       sellLandingContent.classList.add('modal-enter-active');
@@ -571,7 +571,8 @@ priceInput.addEventListener('input', () => {
 // Initial validation check on page load to set button state
 document.addEventListener("DOMContentLoaded", () => {
   // Initial state check for Sell form
-  if (!productForm.classList.contains('hidden')) {
+  // Using productFormContainer here, as it's the element whose visibility is managed
+  if (!productFormContainer.classList.contains('hidden')) {
     restoreSellForm(); // Only restore if the form is somehow visible on load
     enableSubmitButton();
   }
@@ -595,8 +596,6 @@ productUploadForm.addEventListener('submit', async (e) => {
   try {
     if (!auth.currentUser) {
       await showAlert("You must be signed in to list a product.");
-      // It's generally better to redirect to login page instead of reloading the current page here.
-      // window.location.reload(); // Removed reload, better to guide user
       submitProductBtn.textContent = 'List Product'; // Reset text
       enableSubmitButton(); // Re-enable button
       return;
@@ -957,16 +956,16 @@ async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMy
   
   // Re-render my products if confirmation was cancelled, to clear loading state
   if (!confirmed) {
-    console.log("Product deletion cancelled by user."); // Added log
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+    console.log("Product deletion cancelled by user.");
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Reload to clear "Deleting..." message
     return;
   }
 
   try {
     // Delete the document from the 'products' collection in Firestore
-    console.log(`Attempting to delete product with ID: ${productId}`); // Added log
+    console.log(`Attempting to delete product with ID: ${productId}`);
     await deleteDoc(doc(db, "products", productId));
-    console.log(`Product ${productId} deleted successfully from Firestore.`); // Added log
+    console.log(`Product ${productId} deleted successfully from Firestore.`);
 
     // Show success message to the user
     await showAlert("Product deleted successfully!");
@@ -979,20 +978,23 @@ async function deleteProduct(productId, db, auth, showAlert, showConfirm, loadMy
     await loadProducts();
   } catch (error) {
     // Log and display error if deletion fails
-    // *** FIX 1: More detailed console logging for deletion errors ***
     console.error("Error deleting product:", error);
     if (error.code) { // Firebase errors usually have a 'code' property
       console.error(`Firebase error code: ${error.code}`);
       console.error(`Firebase error message: ${error.message}`);
-      if (error.code === 'permission-denied' || error.code === 'resource-exhausted' || error.code === 'unauthenticated') {
-          await showAlert(`Failed to delete product: Permission denied or authentication error. Please ensure you are logged in and have permission to delete this product. Error: ${error.message}`);
-      } else {
+      if (error.code === 'permission-denied') {
+          await showAlert(`Failed to delete product: Permission denied. This typically means your Firebase Security Rules prevent this action. Please check your Firestore rules. Error: ${error.message}`);
+      } else if (error.code === 'not-found') {
+          await showAlert(`Failed to delete product: Product not found. It may have already been deleted. Error: ${error.message}`);
+      }
+      else {
           await showAlert("Failed to delete product: " + error.message);
       }
     } else {
       await showAlert("Failed to delete product: " + error.message);
     }
-    // Ensure UI is reloaded even on error to clear loading state
+  } finally {
+    // Always ensure the UI is reloaded to clear any loading states, regardless of success or failure.
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   }
 }
@@ -1061,16 +1063,10 @@ async function loadMyProducts(userId) {
 // --- Initial Load Logic ---
 document.addEventListener("DOMContentLoaded", () => {
   // Initial setup for sell form visibility on page load.
-  // By default, the sell landing content should be visible, and the form hidden.
+  // By default, the sell landing content should be visible, and the form container hidden.
   sellLandingContent.classList.remove('hidden');
-  productForm.classList.add('hidden');
-  productForm.classList.remove('modal-enter-active'); // Ensure no lingering modal class
-
-  // This will be handled by onAuthStateChanged which fires after DOMContentLoaded
-  // if (!auth.currentUser) {
-  //   loadProducts(); // Load products if not authenticated, will be re-run by onAuthStateChanged if auth
-  // }
-  // restoreSellForm(); // This is now called within onAuthStateChanged or toggleProductForm
+  productFormContainer.classList.add('hidden'); // Use productFormContainer
+  productFormContainer.classList.remove('modal-enter-active'); // Ensure no lingering modal class
 });
 
 // Event listener for general product list (delegation)
