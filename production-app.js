@@ -425,7 +425,7 @@ function validateSellForm() {
   let errors = [];
   if (!titleInput.value.trim()) errors.push("Product title is required.");
   if (!descriptionInput.value.trim()) errors.push("Product description is required.");
-  if (isNaN(parseFloat(priceInput.value)) errors.push("Price must be a valid number.");
+  if (isNaN(parseFloat(priceInput.value))) errors.push("Price must be a valid number.");
   if (parseFloat(priceInput.value) < 0) errors.push("Price cannot be negative.");
   if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) {
     errors.push("Valid download link is required.");
