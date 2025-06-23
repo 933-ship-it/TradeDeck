@@ -83,15 +83,6 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-// Edit modal
-const editProductModal = document.getElementById('editProductModal');
-const editProductForm = document.getElementById('editProductForm');
-const editProductIdInput = document.getElementById('editProductId');
-const editTitleInput = document.getElementById('editTitle');
-const editDescriptionInput = document.getElementById('editDescription');
-const editPriceInput = document.getElementById('editPrice');
-const editFileUrlInput = document.getElementById('editFileUrl');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
 
 // Custom alert/confirm modals
 const customAlertModal = document.getElementById('customAlertModal');
@@ -877,14 +868,6 @@ async function loadMyProducts(userId) {
       });
     });
 
-    myProductsContainer.querySelectorAll('.edit-product-btn').forEach(button => {
-      button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const productId = e.target.dataset.productId;
-        editProduct(productId);
-      });
-    });
-
     myProductsContainer.querySelectorAll('.delete-product-btn').forEach(button => {
       button.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -899,50 +882,6 @@ async function loadMyProducts(userId) {
     noMyProductsMessage.classList.remove('hidden');
   }
 }
-
-// --- New: Edit Product Functionality ---
-async function editProduct(productId) {
-  const productRef = doc(db, "products", productId);
-  const productSnap = await getDoc(productRef);
-
-  if (productSnap.exists()) {
-    const product = productSnap.data();
-    editProductIdInput.value = productId;
-    editTitleInput.value = product.title;
-    editDescriptionInput.value = product.description;
-    editPriceInput.value = product.price;
-    editFileUrlInput.value = product.fileUrl; // Populate the file URL
-    editProductModal.classList.remove('hidden'); // Show the edit modal
-  } else {
-    showAlert("Product not found for editing.");
-  }
-}
-
-editProductForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const productId = editProductIdInput.value;
-  const productRef = doc(db, "products", productId);
-
-  try {
-    await updateDoc(productRef, {
-      title: editTitleInput.value.trim(),
-      description: editDescriptionInput.value.trim(),
-      price: parseFloat(editPriceInput.value),
-      fileUrl: editFileUrlInput.value.trim() // Update the file URL
-    });
-    showAlert("Product updated successfully!");
-    editProductModal.classList.add('hidden'); // Hide modal
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid); // Reload products in dashboard
-    await loadProducts(); // Reload all products in home section in case any details changed
-  } catch (error) {
-    console.error("Error updating product:", error);
-    showAlert("Failed to update product: " + error.message);
-  }
-});
-
-cancelEditBtn.addEventListener('click', () => {
-  editProductModal.classList.add('hidden'); // Hide modal
-});
 
 // --- New: Delete Product Functionality ---
 async function deleteProduct(productId) {
