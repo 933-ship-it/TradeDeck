@@ -2,18 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com https://unpkg.com https://i.postimg.cc;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com;
-    frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-  " />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeDeck</title>
   <link rel="icon" type="image/png" href="assets/logov2.png" />
@@ -21,12 +10,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function () {
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     main section { transition: opacity 0.3s; }
@@ -41,16 +24,25 @@
     .error { color: #dc2626; }
     .loading { color: #fbbf24; }
     #editProductModal { z-index: 1000; }
+    /* Ensure modals are on top */
     #initialPinModal, #pinEntryModal { z-index: 2000; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
+  </script>
 </head>
 <body class="bg-gray-100">
+  <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
     <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
     <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
   </div>
   <div class="flex h-screen">
+    <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
       <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
       <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
@@ -62,18 +54,13 @@
         </div>
       </div>
       <nav class="space-y-4 flex-grow">
-  <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">
-    <img src="https://i.postimg.cc/DfQsBrHR/Gemini-Generated-Image-9htxt39htxt39htx-removebg-preview.png" alt="Home Icon" class="w-10 h-10 inline mr-2 align-middle">Home
-  </a>
-  <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">
-    <img src="https://i.postimg.cc/YOUR-SELL-ICON.svg" alt="Sell Icon" class="w-5 h-5 inline mr-2 align-middle">Sell
-  </a>
-  <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">
-    <img src="https://i.postimg.cc/YOUR-DASHBOARD-ICON.svg" alt="Dashboard Icon" class="w-5 h-5 inline mr-2 align-middle">Dashboard
-  </a>
-</nav>
+        <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">🏠Home</a>
+        <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">💲Sell</a>
+        <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">📈Dashboard</a>
+      </nav>
     </aside>
     <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
+      <!-- Home Section -->
       <section id="home" aria-label="Home Products">
         <div class="max-w-5xl mx-auto">
           <label for="searchBar" class="sr-only">Search products</label>
@@ -83,6 +70,7 @@
           </div>
         </div>
       </section>
+      <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
           <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to home">&larr; Back</button>
@@ -107,6 +95,7 @@
           <p id="productDetailsError" class="text-red-500 text-center mt-4 hidden">Product details could not be loaded.</p>
         </div>
       </section>
+      <!-- Sell Section -->
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <div id="sellLandingContent">
@@ -138,6 +127,7 @@
               </div>
             </div>
           </div>
+          <!-- Product Form -->
           <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <div id="formErrorSummary" class="error-summary hidden"></div>
             <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
@@ -185,6 +175,7 @@
           </div>
         </div>
       </section>
+      <!-- Dashboard Section -->
       <section id="dashboard" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <h2 class="text-4xl font-bold mb-8">DASHBOARD</h2>
@@ -199,6 +190,7 @@
             <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
           </div>
         </div>
+        <!-- Edit Product Modal -->
         <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="editProductModalTitle">
           <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
             <h4 id="editProductModalTitle" class="text-xl font-bold mb-4">Edit Product</h4>
@@ -231,6 +223,7 @@
     </main>
   </div>
 
+  <!-- Initial PIN Display Modal -->
   <div id="initialPinModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
           <button id="closeInitialPinModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
@@ -252,6 +245,7 @@
       </div>
   </div>
 
+  <!-- PIN Entry Modal for Sell Tab -->
   <div id="pinEntryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
           <button id="closePinEntryModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
@@ -274,6 +268,7 @@
       </div>
   </div>
 
+  <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
   <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
 </body>
 </html>
