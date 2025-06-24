@@ -1,24 +1,70 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
-<head>
+<html lang="en" class="light"> <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app https://kit.fontawesome.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com; object-src 'none';">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeDeck - Buy and Sell Digital Products</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./style.css" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app https://kit.fontawesome.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeDeck</title>
+  <link rel="icon" type="image/png" href="assets/logov2.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlalDLuLwW1zH0+LwzQO/YlFpW4lS8x1pI/6+A4m4I4y6E5c6A1aV/j+G3p5+pM5y5+v+S5/A5+Q5+w5+Z5+x5+C5+z5+v5+Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* Base styles, overridden by dark mode classes on <html> */
+    body { font-family: 'Inter', sans-serif; }
+    main section { transition: opacity 0.3s; }
+    main section.hidden { opacity: 0; height: 0; overflow: hidden; position: absolute; pointer-events: none; visibility: hidden; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+    .product-card { transition: all 0.2s; }
+    .input-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 1px #ef4444 !important; }
+    /* Adjustments for dark mode specific errors/warnings */
+    html.dark .error-summary { background: #7f1d1d; color: #fecaca; } /* Dark mode background for error summary */
+    html.dark .bg-yellow-100 { background: #92400e; } /* Dark mode background for yellow alert */
+    html.dark .text-yellow-700 { color: #fcd34d; } /* Dark mode text for yellow alert */
+    .interactive-card { cursor: pointer; }
+    .interactive-card:hover { border-color: #60a5fa; }
+    .success { color: #16a34a; }
+    .error { color: #dc2626; }
+    .loading { color: #fbbf24; }
+    #editProductModal { z-index: 1000; }
+    /* Ensure modals are on top */
+    #initialPinModal, #pinEntryModal { z-index: 2000; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
+    /* Category filter bar styling */
+    .category-filter-bar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    .category-filter-bar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
 
+    /* --- Theme Transition Styles --- */
+    /* Apply transitions to all relevant elements that change color/background */
+    html, body, aside, main, .bg-white, .bg-gray-100, .bg-gray-200, .bg-gray-700, .bg-gray-800, .bg-gray-900,
+    .text-gray-900, .text-gray-100, .text-gray-700, .text-gray-200,
+    .border-gray-300, .border-gray-600,
+    .product-card, .input-field, .modal-content,
+    .category-filter-btn,
+    #themeToggle {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+    /* Specific for the toggle switch itself */
+    #themeToggle .transition {
+        transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    }
+
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
+  </script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const themeToggle = document.getElementById('themeToggle');
-      // Ensure themeToggle exists before proceeding
-      if (!themeToggle) {
-        console.error('Theme toggle button not found!');
-        return;
-      }
-
       const toggleSpan = themeToggle.querySelector('span'); // The actual 'thumb' of the toggle
       const htmlElement = document.documentElement; // The <html> tag
 
@@ -41,11 +87,11 @@
           themeToggle.classList.remove('bg-blue-600');
           themeToggle.setAttribute('aria-checked', 'false');
         }
-        localStorage.setItem('theme', theme); // Save preference using 'theme' key
+        localStorage.setItem('theme', theme); // Save preference
       }
 
       // Initial theme setup on page load
-      const savedTheme = localStorage.getItem('theme'); // Use 'theme' key
+      const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
         applyTheme(savedTheme);
       } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -64,241 +110,224 @@
       });
     });
   </script>
-
 </head>
-<body class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-sans leading-normal tracking-normal flex flex-col min-h-screen">
-  <header class="bg-white dark:bg-gray-900 shadow-md">
-    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">TradeDeck</h1>
-      <nav class="space-x-4">
-        <a href="#products" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Products</a>
-        <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">About</a>
-        <a href="#contact" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Contact</a>
-      </nav>
-      <div class="flex items-center space-x-4">
-        <div class="relative group">
-          <button id="userDropdownBtn" class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none">
-            <i class="fas fa-user-circle text-2xl"></i>
-            <span id="userDisplayName" class="font-medium">Guest</span>
-            <i class="fas fa-chevron-down text-sm"></i>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <div id="authOverlay" class="fixed inset-0 bg-white dark:bg-gray-900 flex flex-col items-center justify-center z-50" style="display:none;">
+    <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
+    <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
+  </div>
+  <div class="flex h-screen">
+    <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
+      <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
+      <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
+        <img id="userProfilePic" class="h-12 w-12 rounded-full cursor-pointer border-2 border-blue-500 hidden" src="" alt="Profile" />
+        <div id="dropdownMenu" class="hidden absolute left-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg py-2 z-50 border border-gray-100 dark:border-gray-600">
+          <div class="px-4 py-2 text-gray-700 dark:text-gray-200 text-sm border-b border-gray-100 dark:border-gray-600" id="userEmail"></div>
+          <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-700 dark:text-red-400">Delete Account</button>
+          <button id="signOutBtn" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600">Sign Out</button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-6 px-2">
+          <span class="text-gray-700 dark:text-gray-200 text-sm font-semibold">Dark Mode</span>
+          <button id="themeToggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" role="switch" aria-checked="false">
+              <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"></span>
           </button>
-          <div id="userDropdownMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform scale-95 group-hover:scale-100 origin-top-right">
-            <a href="#" id="loginRegisterBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Login / Register</a>
-            <a href="#" id="sellProductsBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 hidden">Sell Products</a>
-            <a href="#" id="myProductsBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 hidden">My Products</a>
-            <a href="#" id="dashboardBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 hidden">Dashboard</a>
-            <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100 hidden">Logout</a>
-            <a href="#" id="deleteAccountBtn" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-100 hidden">Delete Account</a>
+      </div>
+      
+      <nav class="space-y-4 flex-grow">
+        <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 dark:text-gray-200 bg-blue-100 dark:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page"><i class="fas fa-home mr-2"></i>Home</a>
+        <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0"><i class="fas fa-hand-holding-usd mr-2"></i>Sell</a>
+        <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0"><i class="fas fa-chart-line mr-2"></i>Dashboard</a>
+      </nav>
+    </aside>
+    <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
+      <section id="home" aria-label="Home Products">
+        <div class="max-w-5xl mx-auto">
+          <label for="searchBar" class="sr-only">Search products</label>
+          <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-4 px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+          
+          <div class="category-filter-bar flex overflow-x-auto whitespace-nowrap pb-4 mb-8 -mx-2 px-2">
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-blue-600 text-white shadow-md transition-all duration-200 ease-in-out hover:bg-blue-700" data-category="All">All</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="eBooks">eBooks</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Software">Software</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Templates">Templates</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Graphics">Graphics</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Audio">Audio</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Video">Video</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Courses">Courses</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Photography">Photography</button>
+            <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="Other">Other</button>
+          </div>
+
+          <div id="productList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <p id="noProductsMessage" class="col-span-full text-center text-gray-500 dark:text-gray-400 hidden">Loading products...</p>
           </div>
         </div>
-
-        <button id="themeToggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" role="switch" aria-checked="false">
-          <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"></span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="flex-grow">
-    <section id="hero" class="bg-blue-600 dark:bg-blue-800 text-white py-20 text-center">
-      <div class="container mx-auto px-6">
-        <h2 class="text-5xl font-extrabold mb-4 animate-fade-in">Discover and Sell Digital Products</h2>
-        <p class="text-xl mb-8 animate-slide-up">
-          Your one-stop marketplace for eBooks, software, templates, and more.
-        </p>
-        <button id="browseProductsBtn" class="bg-white text-blue-600 dark:text-blue-800 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-200 transition duration-300 transform hover:scale-105 shadow-lg animate-bounce-slow">
-          Browse Products
-        </button>
-      </div>
-    </section>
-
-    <section id="products" class="container mx-auto px-6 py-12">
-      <h2 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100">Our Products</h2>
-
-      <div class="flex flex-col md:flex-row items-center justify-between mb-8 space-y-4 md:space-y-0">
-        <div class="relative w-full md:w-1/3">
-          <input type="text" id="productSearch" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 pl-10" />
-          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+      </section>
+      <section id="productDetails" class="hidden">
+        <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+          <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500" aria-label="Back to home">&larr; Back</button>
+          <div id="productDetailsContent">
+            <div class="flex flex-col md:flex-row gap-8">
+              <div class="md:w-1/2">
+                <img id="detailProductImage" src="" alt="Product image" class="w-full h-auto rounded-lg shadow-md object-cover max-h-96" />
+              </div>
+              <div class="md:w-1/2 flex flex-col justify-between">
+                <div>
+                  <h2 id="detailProductTitle" class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2"></h2>
+                  <p id="detailProductDescription" class="text-gray-700 dark:text-gray-300 mb-4 text-justify"></p>
+                  <p class="text-2xl font-extrabold text-blue-600 mb-6" id="detailProductPrice"></p>
+                </div>
+                <div class="mt-auto">
+                  <button id="detailActionButton" class="w-full py-3 rounded-xl font-semibold transition"></button>
+                  <div id="paypal-button-container" class="mt-6"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p id="productDetailsError" class="text-red-500 dark:text-red-400 text-center mt-4 hidden">Product details could not be loaded.</p>
         </div>
-        <div class="flex flex-wrap gap-2 justify-center md:justify-end">
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="All">All</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="eBooks">eBooks</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Software">Software</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Templates">Templates</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Graphics">Graphics</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Audio">Audio</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Video">Video</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Courses">Courses</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Photography">Photography</button>
-          <button class="category-filter-btn px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-category="Other">Other</button>
+      </section>
+      <section id="sell" class="hidden">
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <div id="sellLandingContent">
+            <div class="text-center mb-16">
+              <h2 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">Turn Your Digital Assets Into Revenue</h2>
+              <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
+                Whether it's eBooks, guides, software, templates, or creative packs—TradeDeck gives you the tools to sell to a global audience instantly.
+              </p>
+              <button id="startSellingBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-8 py-3 rounded-xl shadow-md transition duration-300">Start Selling Now</button>
+            </div>
+            <div class="mb-20">
+              <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-8 text-center">How It Works</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+                  <div class="text-blue-600 text-4xl mb-4"><i class="fas fa-upload"></i></div>
+                  <h4 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Upload Your Product</h4>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm">PDFs, images, ZIPs, templates, code bundles, and more—just drag and drop.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+                  <div class="text-green-500 text-4xl mb-4"><i class="fas fa-cogs"></i></div>
+                  <h4 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Customize & Price</h4>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm">Set your price, description, preview images, and license terms.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+                  <div class="text-purple-500 text-4xl mb-4"><i class="fas fa-dollar-sign"></i></div>
+                  <h4 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Get Paid Securely</h4>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm">Your sales are paid directly to your connected PayPal account.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="productForm" class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
+            <div id="formErrorSummary" class="error-summary hidden"></div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">List Your Digital Product</h3>
+            <form id="productUploadForm" class="space-y-6" autocomplete="off">
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Title</label>
+                <input type="text" id="title" name="title" required maxlength="100" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="e.g., Ultimate eBook Template Pack" />
+              </div>
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Description</label>
+                <textarea id="description" name="description" rows="4" required maxlength="1000" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Describe your product in detail..."></textarea>
+              </div>
+              <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Category</label>
+                <select id="category" name="category" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                  <option value="">Select a category</option>
+                  <option value="eBooks">eBooks</option>
+                  <option value="Software">Software</option>
+                  <option value="Templates">Templates</option>
+                  <option value="Graphics">Graphics</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Video">Video</option>
+                  <option value="Courses">Courses</option>
+                  <option value="Photography">Photography</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price ($)</label>
+                <input type="number" id="price" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="e.g., 29.99 or 0 for free" />
+              </div>
+              <div id="paypalEmailContainer" class="hidden">
+                <label for="paypalEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">PayPal Email</label>
+                <input type="email" id="paypalEmail" name="paypalEmail" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="yourname@example.com" />
+                <p id="paypalEmailValidationMsg" class="text-red-500 dark:text-red-400 text-sm mt-1"></p>
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2" role="alert">
+                  <p class="font-bold">⚠️ ENSURE YOUR PAYPAL EMAIL IS VALID</p>
+                  <details class="mt-2">
+                    <summary class="cursor-pointer text-sm">How to get a valid PayPal email and why it's important</summary>
+                    <p class="text-xs mt-1">To ensure you receive your funds, use the primary email associated with your verified PayPal account. If the email is invalid or not associated with a PayPal account, you won't get paid.</p>
+                  </details>
+                </div>
+              </div>
+              <div>
+                <label for="openPreviewImageWidget" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Preview Image (for home tab)</label>
+                <button type="button" id="openPreviewImageWidget" class="cloudinary-file-input w-full text-gray-700 dark:text-gray-200 py-2 px-4 rounded-full border-0 text-sm font-semibold bg-blue-50 dark:bg-gray-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-gray-600">Upload Image</button>
+                <input type="hidden" id="previewImageUrl" name="previewImageUrl">
+                <p id="previewImageStatus" class="file-upload-status text-sm mt-1"></p>
+                <div id="previewImageContainer" class="mt-2 hidden">
+                  <img id="currentPreviewImage" src="" alt="Product preview" class="max-w-xs h-32 object-cover rounded-md border border-gray-300 dark:border-gray-600" />
+                </div>
+              </div>
+              <div>
+                <label for="productFileUrlInput" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Digital Product File Link (Google Drive, Dropbox, etc.)</label>
+                <input type="url" id="productFileUrlInput" name="productFileUrl" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="Direct download link (Google Drive, Dropbox, etc.)" />
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Make sure this link is publicly accessible for download.</p>
+              </div>
+              <button type="submit" id="submitProductBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition">List Product</button>
+            </form>
+          </div>
+        </div>
+      </section>
+      <section id="dashboard" class="hidden">
+        <div class="max-w-6xl mx-auto mt-16 px-4">
+          <h2 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8">DASHBOARD</h2>
+          <div id="balanceCard" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-10 flex flex-col items-start">
+            <div class="text-lg mb-2 font-semibold text-gray-700 dark:text-gray-200">Your current balance:</div>
+            <div id="sellerBalance" class="text-3xl font-extrabold text-green-600 mb-1">$0.00</div>
+            <div class="text-sm text-gray-400 dark:text-gray-500">Balance is updated after each sale.</div>
+          </div>
+          <div class="mb-8">
+            <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">My Products</h3>
+            <div id="myProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 dark:text-gray-400 hidden">No products listed yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <div id="editProductModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-lg w-full mx-4">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Edit Product</h3>
+          <form id="editProductForm" class="space-y-6">
+            <input type="hidden" id="editProductId">
+            <div>
+              <label for="editTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Title</label>
+              <input type="text" id="editTitle" name="title" required maxlength="100" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+            </div>
+            <div>
+              <label for="editDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Description</label>
+              <textarea id="editDescription" name="description" rows="4" required maxlength="1000" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
+            </div>
+            <div>
+              <label for="editPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price ($)</label>
+              <input type="number" id="editPrice" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+            </div>
+            <div>
+              <label for="editFileUrl" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Digital Product File Link</label>
+              <input type="url" id="editFileUrl" name="fileUrl" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+            </div>
+            <div class="flex justify-end space-x-4">
+              <button type="button" id="cancelEditBtn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
+              <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Update Product</button>
+            </div>
+          </form>
         </div>
       </div>
-
-      <div id="productGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        </div>
-    </section>
-
-    <div id="sellProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 hidden">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg mx-4">
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Sell Your Digital Product</h3>
-        <form id="sellProductForm" class="space-y-4">
-          <div>
-            <label for="productName" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Name</label>
-            <input type="text" id="productName" name="productName" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="productDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Description</label>
-            <textarea id="productDescription" name="productDescription" rows="4" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
-          </div>
-          <div>
-            <label for="productPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price ($)</label>
-            <input type="number" id="productPrice" name="productPrice" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="productCategory" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Category</label>
-            <select id="productCategory" name="productCategory" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-              <option value="">Select a category</option>
-              <option value="eBooks">eBooks</option>
-              <option value="Software">Software</option>
-              <option value="Templates">Templates</option>
-              <option value="Graphics">Graphics</option>
-              <option value="Audio">Audio</option>
-              <option value="Video">Video</option>
-              <option value="Courses">Courses</option>
-              <option value="Photography">Photography</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label for="productImage" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Image</label>
-            <input type="file" id="productImage" name="productImage" accept="image/*" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-            <img id="imagePreview" src="#" alt="Image Preview" class="mt-2 h-32 w-auto object-cover rounded-lg hidden" />
-          </div>
-          <div>
-            <label for="productFile" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Digital Product File</label>
-            <input type="file" id="productFile" name="productFile" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div class="flex justify-end space-x-4">
-            <button type="button" id="cancelSellBtn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">List Product</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="editProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 hidden">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg mx-4">
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Edit Product</h3>
-        <form id="editProductForm" class="space-y-4">
-          <input type="hidden" id="editProductId" />
-          <input type="hidden" id="editCurrentImageUrl" />
-          <input type="hidden" id="editCurrentFileUrl" />
-          <div>
-            <label for="editName" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Name</label>
-            <input type="text" id="editName" name="name" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="editDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Description</label>
-            <textarea id="editDescription" name="description" rows="4" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
-          </div>
-          <div>
-            <label for="editCategory" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Category</label>
-            <select id="editCategory" name="category" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-              <option value="eBooks">eBooks</option>
-              <option value="Software">Software</option>
-              <option value="Templates">Templates</option>
-              <option value="Graphics">Graphics</option>
-              <option value="Audio">Audio</option>
-              <option value="Video">Video</option>
-              <option value="Courses">Courses</option>
-              <option value="Photography">Photography</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label for="editPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Price ($)</label>
-            <input type="number" id="editPrice" name="price" min="0" step="0.01" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="editFileUrl" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Digital Product File Link</label>
-            <input type="url" id="editFileUrl" name="fileUrl" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div class="flex justify-end space-x-4">
-            <button type="button" id="cancelEditBtn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="productDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 hidden">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4">
-        <h3 id="detailProductName" class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4"></h3>
-        <img id="detailProductImage" src="" alt="Product Image" class="w-full h-64 object-cover rounded-lg mb-6" />
-        <p id="detailProductDescription" class="text-gray-700 dark:text-gray-300 mb-4"></p>
-        <p class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Price: <span id="detailProductPrice"></span></p>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">Category: <span id="detailProductCategory"></span></p>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">Seller: <span id="detailProductSeller"></span></p>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Published: <span id="detailProductDate"></span></p>
-
-        <div class="flex justify-end space-x-4">
-          <button type="button" id="closeDetailModalBtn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Close</button>
-          <button type="button" id="buyProductBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition hidden">Buy Now</button>
-          <button type="button" id="downloadProductBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition hidden">Download</button>
-          <button type="button" id="editProductBtn" class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition hidden">Edit</button>
-          <button type="button" id="deleteProductBtn" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition hidden">Delete</button>
-        </div>
-      </div>
-    </div>
-
-    <section id="about" class="bg-gray-200 dark:bg-gray-700 py-12 text-center">
-      <div class="container mx-auto px-6">
-        <h2 class="text-4xl font-bold mb-4 text-gray-800 dark:text-gray-100">About TradeDeck</h2>
-        <p class="text-lg text-gray-700 dark:text-gray-300">
-          TradeDeck is a vibrant marketplace designed for creators and consumers of digital products. Our mission is to provide a seamless platform for individuals to buy and sell a wide range of digital goods, fostering innovation and accessibility in the digital economy.
-        </p>
-      </div>
-    </section>
-
-    <section id="contact" class="py-12">
-      <div class="container mx-auto px-6">
-        <h2 class="text-4xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100">Contact Us</h2>
-        <form id="contactForm" class="max-w-lg mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md space-y-4">
-          <div>
-            <label for="contactName" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Name</label>
-            <input type="text" id="contactName" name="name" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="contactEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Email</label>
-            <input type="email" id="contactEmail" name="email" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-          </div>
-          <div>
-            <label for="contactMessage" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Message</label>
-            <textarea id="contactMessage" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
-          </div>
-          <div class="flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Send Message</button>
-          </div>
-        </form>
-      </div>
-    </section>
-  </main>
-
-  <footer class="bg-gray-800 dark:bg-gray-900 text-white py-6 text-center mt-auto">
-    <div class="container mx-auto px-6">
-      <p>&copy; 2024 TradeDeck. All rights reserved.</p>
-      <div class="flex justify-center space-x-6 mt-4">
-        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f"></i></a>
-        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter"></i></a>
-        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-instagram"></i></a>
-        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in"></i></a>
-      </div>
-    </div>
-  </footer>
-
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID"></script>
-  <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="production-app.js" type="module"></script>
+    </main>
+  </div>
+  <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
 </body>
 </html>
