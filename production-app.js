@@ -14,6 +14,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
 const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
 const PRODUCT_CATEGORIES = ["All", "eBooks", "Software", "Templates", "Graphics", "Audio", "Video", "Courses", "Photography", "Other"];
+const THEME_STORAGE_KEY = 'tradeDeckTheme'; // Key for storing theme preference
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -87,8 +88,7 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-// Edit modal (assuming this is handled in a separate modal or within the dashboard for simplicity)
-// If there's an edit product modal, ensure its elements are also defined here if needed by JS.
+// Edit modal
 const editProductModal = document.getElementById('editProductModal');
 const editProductForm = document.getElementById('editProductForm');
 const editProductIdInput = document.getElementById('editProductId');
@@ -97,6 +97,9 @@ const editDescriptionInput = document.getElementById('editDescription');
 const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+// Dark Mode Toggle
+const themeToggle = document.getElementById('themeToggle'); // New theme toggle button
 
 
 // --- Auth and Profile ---
@@ -168,8 +171,8 @@ function showCustomAlert(message) {
   const modal = document.createElement('div');
   modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
   modal.innerHTML = `
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
-      <p class="text-lg font-semibold mb-4">${message}</p>
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
       <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
     </div>
   `;
@@ -183,11 +186,11 @@ function showCustomConfirm(message, onConfirm) {
   const modal = document.createElement('div');
   modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
   modal.innerHTML = `
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
-      <p class="text-lg font-semibold mb-4">${message}</p>
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
       <div class="flex justify-center space-x-4">
         <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
-        <button id="customConfirmNo" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-400 transition">No</button>
+        <button id="customConfirmNo" class="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition">No</button>
       </div>
     </div>
   `;
@@ -205,17 +208,17 @@ function showCustomConfirm(message, onConfirm) {
 // --- Tab Navigation ---
 function showTab(targetTabId) {
   tabs.forEach(t => {
-    t.classList.remove('bg-blue-100');
+    t.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
     t.removeAttribute('aria-current');
-    // Remove active styling from icon too if applied
     const icon = t.querySelector('.fas');
     if (icon) icon.classList.remove('text-blue-600');
   });
   const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
   if (currentTab) {
-    currentTab.classList.add('bg-blue-100');
+    currentTab.classList.add('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
     currentTab.setAttribute('aria-current', 'page');
-    // Add active styling to icon
     const icon = currentTab.querySelector('.fas');
     if (icon) icon.classList.add('text-blue-600');
   }
@@ -505,10 +508,10 @@ async function loadProducts(filterQuery = '', categoryFilter = 'All') {
   categoryFilterButtons.forEach(btn => {
     if (btn.dataset.category === categoryFilter) {
       btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-      btn.classList.remove('bg-gray-200', 'text-gray-700', 'shadow-sm');
+      btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
     } else {
       btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-      btn.classList.add('bg-gray-200', 'text-gray-700', 'shadow-sm');
+      btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
     }
   });
 
@@ -517,6 +520,9 @@ async function loadProducts(filterQuery = '', categoryFilter = 'All') {
     
     // Apply category filter if not "All"
     if (categoryFilter !== 'All') {
+      // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+      // Firebase will provide a direct link in the console error message (like the one you saw).
+      // Example: Index on 'category' (ascending) and 'createdAt' (descending)
       q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
     }
 
@@ -527,7 +533,8 @@ async function loadProducts(filterQuery = '', categoryFilter = 'All') {
     const lowerCaseQuery = filterQuery.toLowerCase();
     const filteredProducts = fetchedProducts.filter(product =>
       (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
-      (product.description || '').toLowerCase().includes(lowerCaseQuery)
+      (product.description || '').toLowerCase().includes(lowerCaseQuery) ||
+      (product.category || '').toLowerCase().includes(lowerCaseQuery) // Include category in search
     );
 
     renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
@@ -568,7 +575,8 @@ searchBar.addEventListener('input', () => {
     const filteredProducts = productsToSearch.filter(product => {
       const haystack = [
         product.title || '',
-        product.description || ''
+        product.description || '',
+        product.category || '' // Include category in search haystack
       ].join(' ').toLowerCase();
       return keywords.some(kw => haystack.includes(kw));
     });
@@ -596,23 +604,24 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
   }
   productArray.forEach(product => {
     const productCard = document.createElement('div');
-    productCard.className = `bg-white rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent'}`;
+    // Adjusted product-card classes for dark mode
+    productCard.className = `bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent dark:border-gray-700'}`;
     productCard.setAttribute('data-product-id', product.id);
     const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
     let cardButtonsHtml = '';
     if (isDashboardView) {
       cardButtonsHtml = `
         <div class="mt-auto flex justify-end items-center pt-2">
-          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Download</a>
+          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition">Download</a>
           <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
         </div>
       `;
     }
     productCard.innerHTML = `
       <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-      <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
-      <p class="text-gray-600 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
-      <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+      <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
+      <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
       <div class="mt-auto flex justify-between items-center pt-2">
         <span class="font-bold text-blue-600">${displayPrice}</span>
         ${cardButtonsHtml}
@@ -706,7 +715,7 @@ async function showProductDetails(productId) {
           }
         }).render('#paypal-button-container');
       } else {
-        paypalButtonContainer.innerHTML = '<p class="text-red-600">PayPal buttons could not be loaded. Please refresh.</p>';
+        paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
       }
     } else {
       detailActionButton.style.display = '';
@@ -751,11 +760,12 @@ async function loadMyProducts(userId) {
   myProductsContainer.innerHTML = '';
   noMyProductsMessage.classList.add('hidden');
   try {
+    // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+    // Example: Index on 'sellerId' (ascending) and 'createdAt' (descending)
     const q = query(
       collection(db, "products"),
-      where("sellerId", "==", userId)
-      // Add back orderBy if data/index is ready:
-      // , orderBy("createdAt", "desc") // Re-enable if you have an index on createdAt for sellerId
+      where("sellerId", "==", userId),
+      orderBy("createdAt", "desc") 
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -767,7 +777,7 @@ async function loadMyProducts(userId) {
     renderProducts(products, myProductsContainer, noMyProductsMessage, true);
   } catch (e) {
     console.error("Error loading user's products:", e);
-    myProductsContainer.innerHTML = '<p class="text-center text-red-600">Error loading your products.<br>' + e.message + '</p>';
+    myProductsContainer.innerHTML = '<p class="text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
   }
 }
 function openEditProductModal(product) {
@@ -825,13 +835,56 @@ async function handleProductPurchase(product) {
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
+// --- Dark Mode Logic ---
+function applyTheme(isDark) {
+    const htmlElement = document.documentElement;
+    const toggleHandle = themeToggle.querySelector('span');
+
+    if (isDark) {
+        htmlElement.classList.add('dark');
+        htmlElement.classList.remove('light');
+        toggleHandle.classList.remove('translate-x-0');
+        toggleHandle.classList.add('translate-x-5');
+        themeToggle.setAttribute('aria-checked', 'true');
+    } else {
+        htmlElement.classList.remove('dark');
+        htmlElement.classList.add('light');
+        toggleHandle.classList.remove('translate-x-5');
+        toggleHandle.classList.add('translate-x-0');
+        themeToggle.setAttribute('aria-checked', 'false');
+    }
+    localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+}
+
+function loadDarkModePreference() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'dark') {
+        applyTheme(true);
+    } else if (savedTheme === 'light') {
+        applyTheme(false);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // Default to system preference if no saved theme
+        applyTheme(true);
+    } else {
+        applyTheme(false); // Default to light if no preference and system is not dark
+    }
+}
+
+// Event listener for theme toggle
+themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyTheme(!isDark);
+});
+
+
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
+  loadDarkModePreference(); // Load theme preference first
   // Set initial category filter button state
   const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
   if (allCategoryButton) {
     allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-    allCategoryButton.classList.remove('bg-gray-200', 'text-gray-700', 'shadow-sm');
+    allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
   }
   loadProducts('', currentCategoryFilter);
   showTab('home');
