@@ -6,7 +6,7 @@
     default-src 'self'; 
     script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com https://unpkg.com;
+    img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com https://unpkg.com https://twemoji.maxcdn.com;
     font-src 'self' https://fonts.gstatic.com;
     connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com;
     frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com;
@@ -21,6 +21,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
+    })();
+  </script>
   <style>
     body { font-family: 'Inter', sans-serif; }
     main section { transition: opacity 0.3s; }
@@ -38,12 +44,6 @@
     #initialPinModal, #pinEntryModal { z-index: 2000; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
-    })();
-  </script>
 </head>
 <body class="bg-gray-100">
   <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
@@ -62,14 +62,14 @@
         </div>
       </div>
       <nav class="space-y-4 flex-grow">
-  <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">
-    <img src="https://unpkg.com/lucide-static@latest/icons/home.svg" alt="Home Icon" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">Home
+  <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center gap-3" data-tab="home" tabindex="0" aria-current="page">
+    <img src="https://twemoji.maxcdn.com/v/latest/svg/1f3e0.svg" alt="Home Icon" class="w-5 h-5"> <span>Home</span>
   </a>
-  <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">
-    <img src="https://unpkg.com/lucide-static@latest/icons/shopping-cart.svg" alt="Sell Icon" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">Sell
+  <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center gap-3" data-tab="sell" tabindex="0">
+    <img src="https://twemoji.maxcdn.com/v/latest/svg/1f4e4.svg" alt="Sell Icon" class="w-5 h-5"> <span>Sell</span>
   </a>
-  <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">
-    <img src="https://unpkg.com/lucide-static@latest/icons/bar-chart-2.svg" alt="Dashboard Icon" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">Dashboard
+  <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center gap-3" data-tab="dashboard" tabindex="0">
+    <img src="https://twemoji.maxcdn.com/v/latest/svg/1f4ca.svg" alt="Dashboard Icon" class="w-5 h-5"> <span>Dashboard</span>
   </a>
 </nav>
     </aside>
