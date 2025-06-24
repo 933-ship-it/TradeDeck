@@ -838,19 +838,27 @@ async function handleProductPurchase(product) {
 // --- Dark Mode Logic ---
 function applyTheme(isDark) {
     const htmlElement = document.documentElement;
-    const toggleHandle = themeToggle.querySelector('span');
+    const toggleHandle = themeToggle.querySelector('span'); // This is the thumb
 
     if (isDark) {
         htmlElement.classList.add('dark');
         htmlElement.classList.remove('light');
         toggleHandle.classList.remove('translate-x-0');
         toggleHandle.classList.add('translate-x-5');
+        // Add these lines to change the track background for dark mode:
+        themeToggle.classList.add('bg-blue-600');
+        themeToggle.classList.remove('bg-gray-200');
+        toggleHandle.classList.add('bg-white'); // Ensure the thumb is white
         themeToggle.setAttribute('aria-checked', 'true');
     } else {
         htmlElement.classList.remove('dark');
         htmlElement.classList.add('light');
         toggleHandle.classList.remove('translate-x-5');
         toggleHandle.classList.add('translate-x-0');
+        // Add these lines to change the track background for light mode:
+        themeToggle.classList.add('bg-gray-200');
+        themeToggle.classList.remove('bg-blue-600');
+        toggleHandle.classList.add('bg-white'); // Ensure the thumb is white
         themeToggle.setAttribute('aria-checked', 'false');
     }
     localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
