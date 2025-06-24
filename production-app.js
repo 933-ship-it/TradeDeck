@@ -98,10 +98,6 @@ const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-// Dark Mode Toggle
-const themeToggle = document.getElementById('themeToggle'); // New theme toggle button
-
-
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
 onAuthStateChanged(auth, user => {
