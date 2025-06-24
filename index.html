@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light"> <!-- Added 'light' class as initial theme, will be overridden by JS -->
-<head>
+<html lang="en" class="light"> <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://apis.google.com https://widget.cloudinary.com https://upload-widget.cloudinary.com https://cdn.jsdelivr.net/npm/@emailjs/browser@4 https://www.gstatic.com https://933-ship-it.github.io https://trade-deck-com.vercel.app https://kit.fontawesome.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://933-ship-it.github.io https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://www.paypalobjects.com https://via.placeholder.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.cloudinary.com https://api.emailjs.com https://933-ship-it.github.io https://www.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://www.paypal.com https://widget.cloudinary.com https://upload-widget.cloudinary.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
   <script src="https://www.paypal.com/sdk/js?client-id=AbAmxidRUaYCqMND4GbNaw_9KBb6xEFlH1cLXoIwObQNjJtlgvJ0lSg7rvgVKGrwIQAWgmne6oAy0wFl&currency=USD"></script>
-  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlalDLuLwW1zH0+LwzQO/YlFpW4lS8x1pI/6+A4m4I4y6E5c6A1aV/j+G3p5+pM5y5+v+S5/A5+Q5+w5+Z5+x5+C5+z5+v5+Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     /* Base styles, overridden by dark mode classes on <html> */
@@ -41,22 +39,90 @@
     .category-filter-bar::-webkit-scrollbar {
       display: none; /* Chrome, Safari, Opera */
     }
+
+    /* --- Theme Transition Styles --- */
+    html.dark, html.light {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Apply transitions to specific elements that change color/background */
+    aside, main, .bg-white, .product-card, .input-field, .modal-content {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Specific elements that require their own transition when dark mode classes are applied */
+    .text-gray-900, .text-gray-100,
+    .text-gray-700, .text-gray-200,
+    .border-gray-300, .border-gray-600,
+    .bg-gray-100, .bg-gray-900,
+    .bg-gray-800, .bg-gray-700 {
+      transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     (function(){
       emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
     })();
+
+    // --- Dark Mode Toggle Logic (Moved here for clarity and immediate access) ---
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeToggle = document.getElementById('themeToggle');
+      const htmlElement = document.documentElement; // This is the <html> tag
+
+      // Check for saved theme in localStorage or default to 'light'
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      htmlElement.classList.add(currentTheme);
+      themeToggle.setAttribute('aria-checked', currentTheme === 'dark');
+
+      // Update toggle button's visual state based on initial theme
+      const toggleSpan = themeToggle.querySelector('span');
+      if (currentTheme === 'dark') {
+        toggleSpan.classList.add('translate-x-5');
+        toggleSpan.classList.remove('translate-x-0');
+        themeToggle.classList.add('bg-blue-600');
+        themeToggle.classList.remove('bg-gray-200');
+      } else {
+        toggleSpan.classList.add('translate-x-0');
+        toggleSpan.classList.remove('translate-x-5');
+        themeToggle.classList.add('bg-gray-200');
+        themeToggle.classList.remove('bg-blue-600');
+      }
+
+      themeToggle.addEventListener('click', () => {
+        if (htmlElement.classList.contains('light')) {
+          htmlElement.classList.remove('light');
+          htmlElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+          themeToggle.setAttribute('aria-checked', 'true');
+          toggleSpan.classList.add('translate-x-5');
+          toggleSpan.classList.remove('translate-x-0');
+          themeToggle.classList.add('bg-blue-600');
+          themeToggle.classList.remove('bg-gray-200');
+        } else {
+          htmlElement.classList.remove('dark');
+          htmlElement.classList.add('light');
+          localStorage.setItem('theme', 'light');
+          themeToggle.setAttribute('aria-checked', 'false');
+          toggleSpan.classList.add('translate-x-0');
+          toggleSpan.classList.remove('translate-x-5');
+          themeToggle.classList.add('bg-gray-200');
+          themeToggle.classList.remove('bg-blue-600');
+        }
+      });
+    });
   </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-  <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-white dark:bg-gray-900 flex flex-col items-center justify-center z-50" style="display:none;">
     <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
     <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
   </div>
   <div class="flex h-screen">
-    <!-- Sidebar -->
     <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
       <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
       <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
@@ -68,11 +134,10 @@
         </div>
       </div>
 
-      <!-- Dark Mode Toggle -->
       <div class="flex items-center justify-between mb-6 px-2">
           <span class="text-gray-700 dark:text-gray-200 text-sm font-semibold">Dark Mode</span>
-          <button id="themeToggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 bg-gray-200 dark:bg-blue-600" role="switch" aria-checked="false">
-              <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 translate-x-0 dark:translate-x-5"></span>
+          <button id="themeToggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" role="switch" aria-checked="false">
+              <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"></span>
           </button>
       </div>
       
@@ -83,13 +148,11 @@
       </nav>
     </aside>
     <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
-      <!-- Home Section -->
       <section id="home" aria-label="Home Products">
         <div class="max-w-5xl mx-auto">
           <label for="searchBar" class="sr-only">Search products</label>
           <input type="search" id="searchBar" aria-label="Search products" placeholder="Search products..." class="w-full mb-4 px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
           
-          <!-- Category Filter Bar -->
           <div class="category-filter-bar flex overflow-x-auto whitespace-nowrap pb-4 mb-8 -mx-2 px-2">
             <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-blue-600 text-white shadow-md transition-all duration-200 ease-in-out hover:bg-blue-700" data-category="All">All</button>
             <button class="category-filter-btn px-4 py-2 rounded-full text-sm font-semibold mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-gray-300 dark:hover:bg-gray-600" data-category="eBooks">eBooks</button>
@@ -108,7 +171,6 @@
           </div>
         </div>
       </section>
-      <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
         <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
           <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500" aria-label="Back to home">&larr; Back</button>
@@ -133,7 +195,6 @@
           <p id="productDetailsError" class="text-red-500 dark:text-red-400 text-center mt-4 hidden">Product details could not be loaded.</p>
         </div>
       </section>
-      <!-- Sell Section -->
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <div id="sellLandingContent">
@@ -165,7 +226,6 @@
               </div>
             </div>
           </div>
-          <!-- Product Form -->
           <div id="productForm" class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <div id="formErrorSummary" class="error-summary hidden"></div>
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">List Your Digital Product</h3>
@@ -228,7 +288,6 @@
           </div>
         </div>
       </section>
-      <!-- Dashboard Section -->
       <section id="dashboard" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <h2 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8">DASHBOARD</h2>
@@ -245,7 +304,6 @@
         </div>
       </section>
 
-      <!-- Edit Product Modal -->
       <div id="editProductModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
         <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-lg w-full mx-4">
           <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Edit Product</h3>
@@ -276,7 +334,6 @@
       </div>
     </main>
   </div>
-  <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
   <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
 </body>
 </html>
