@@ -833,7 +833,6 @@ async function handleProductPurchase(product) {
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
-  loadDarkModePreference(); // Load theme preference first
   // Set initial category filter button state
   const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
   if (allCategoryButton) {
