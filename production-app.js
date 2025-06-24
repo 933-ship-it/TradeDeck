@@ -864,13 +864,6 @@ function loadDarkModePreference() {
     }
 }
 
-// Event listener for theme toggle
-themeToggle.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.contains('dark');
-    applyTheme(!isDark);
-});
-
-
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDarkModePreference(); // Load theme preference first
