@@ -36,13 +36,11 @@
   </script>
 </head>
 <body class="bg-gray-100">
-  <!-- Authentication Overlay -->
   <div id="authOverlay" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-50" style="display:none;">
     <div class="text-3xl font-bold text-blue-600 mb-4">Please sign in to use TradeDeck</div>
     <a href="https://933-ship-it.github.io/TradeDeck-landing-page/" class="text-blue-500 underline text-lg">Go to Sign In</a>
   </div>
   <div class="flex h-screen">
-    <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-lg p-6 flex flex-col" aria-label="Sidebar navigation">
       <h1 class="text-2xl font-bold text-blue-600 mb-8">TradeDeck</h1>
       <div id="profileDropdown" class="relative mb-6" style="min-height:56px;">
@@ -54,13 +52,12 @@
         </div>
       </div>
       <nav class="space-y-4 flex-grow">
-        <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page">🏠Home</a>
+        <a href="#home" class="block py-2 px-4 rounded-lg text-gray-700 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="home" tabindex="0" aria-current="page"><img src="https://i.postimg.cc/G3HzfyLK/Gemini-Generated-Image-9htxt39htxt39htx.png" alt="Home Icon" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">Home</a>
         <a href="#sell" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="sell" tabindex="0">💲Sell</a>
         <a href="#dashboard" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600" data-tab="dashboard" tabindex="0">📈Dashboard</a>
       </nav>
     </aside>
     <main class="flex-1 overflow-y-auto p-10" aria-live="polite">
-      <!-- Home Section -->
       <section id="home" aria-label="Home Products">
         <div class="max-w-5xl mx-auto">
           <label for="searchBar" class="sr-only">Search products</label>
@@ -70,7 +67,6 @@
           </div>
         </div>
       </section>
-      <!-- Product Details Section -->
       <section id="productDetails" class="hidden">
         <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
           <button id="backToHomeBtn" class="mb-6 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400" aria-label="Back to home">&larr; Back</button>
@@ -95,7 +91,6 @@
           <p id="productDetailsError" class="text-red-500 text-center mt-4 hidden">Product details could not be loaded.</p>
         </div>
       </section>
-      <!-- Sell Section -->
       <section id="sell" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <div id="sellLandingContent">
@@ -127,7 +122,6 @@
               </div>
             </div>
           </div>
-          <!-- Product Form -->
           <div id="productForm" class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto hidden">
             <div id="formErrorSummary" class="error-summary hidden"></div>
             <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">List Your Digital Product</h3>
@@ -175,7 +169,6 @@
           </div>
         </div>
       </section>
-      <!-- Dashboard Section -->
       <section id="dashboard" class="hidden">
         <div class="max-w-6xl mx-auto mt-16 px-4">
           <h2 class="text-4xl font-bold mb-8">DASHBOARD</h2>
@@ -190,7 +183,6 @@
             <p id="noMyProductsMessage" class="col-span-full text-center text-gray-500 hidden">No products listed yet.</p>
           </div>
         </div>
-        <!-- Edit Product Modal -->
         <div id="editProductModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="editProductModalTitle">
           <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
             <h4 id="editProductModalTitle" class="text-xl font-bold mb-4">Edit Product</h4>
@@ -223,7 +215,6 @@
     </main>
   </div>
 
-  <!-- Initial PIN Display Modal -->
   <div id="initialPinModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
           <button id="closeInitialPinModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
@@ -245,7 +236,6 @@
       </div>
   </div>
 
-  <!-- PIN Entry Modal for Sell Tab -->
   <div id="pinEntryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full relative">
           <button id="closePinEntryModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
@@ -268,7 +258,6 @@
       </div>
   </div>
 
-  <!-- Firebase v9+ Modular SDK, Autosave, Validation, All Flows, Modern JS -->
   <script type="module" src="https://trade-deck-com.vercel.app/production-app.js"></script>
 </body>
 </html>
