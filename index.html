@@ -41,78 +41,72 @@
     }
 
     /* --- Theme Transition Styles --- */
-    html.dark, html.light {
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    body {
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Apply transitions to specific elements that change color/background */
-    aside, main, .bg-white, .product-card, .input-field, .modal-content {
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    }
-
-    /* Specific elements that require their own transition when dark mode classes are applied */
-    .text-gray-900, .text-gray-100,
-    .text-gray-700, .text-gray-200,
+    /* Apply transitions to all relevant elements that change color/background */
+    html, body, aside, main, .bg-white, .bg-gray-100, .bg-gray-200, .bg-gray-700, .bg-gray-800, .bg-gray-900,
+    .text-gray-900, .text-gray-100, .text-gray-700, .text-gray-200,
     .border-gray-300, .border-gray-600,
-    .bg-gray-100, .bg-gray-900,
-    .bg-gray-800, .bg-gray-700 {
-      transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+    .product-card, .input-field, .modal-content,
+    .category-filter-btn,
+    #themeToggle {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
     }
+    /* Specific for the toggle switch itself */
+    #themeToggle .transition {
+        transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    }
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
     (function(){
       emailjs.init({ publicKey: 'fmwYD8DAojsvufds2' });
     })();
-
-    // --- Dark Mode Toggle Logic (Moved here for clarity and immediate access) ---
+  </script>
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       const themeToggle = document.getElementById('themeToggle');
-      const htmlElement = document.documentElement; // This is the <html> tag
+      const toggleSpan = themeToggle.querySelector('span'); // The actual 'thumb' of the toggle
+      const htmlElement = document.documentElement; // The <html> tag
 
-      // Check for saved theme in localStorage or default to 'light'
-      const currentTheme = localStorage.getItem('theme') || 'light';
-      htmlElement.classList.add(currentTheme);
-      themeToggle.setAttribute('aria-checked', currentTheme === 'dark');
-
-      // Update toggle button's visual state based on initial theme
-      const toggleSpan = themeToggle.querySelector('span');
-      if (currentTheme === 'dark') {
-        toggleSpan.classList.add('translate-x-5');
-        toggleSpan.classList.remove('translate-x-0');
-        themeToggle.classList.add('bg-blue-600');
-        themeToggle.classList.remove('bg-gray-200');
-      } else {
-        toggleSpan.classList.add('translate-x-0');
-        toggleSpan.classList.remove('translate-x-5');
-        themeToggle.classList.add('bg-gray-200');
-        themeToggle.classList.remove('bg-blue-600');
-      }
-
-      themeToggle.addEventListener('click', () => {
-        if (htmlElement.classList.contains('light')) {
-          htmlElement.classList.remove('light');
+      // Function to apply the theme
+      function applyTheme(theme) {
+        if (theme === 'dark') {
           htmlElement.classList.add('dark');
-          localStorage.setItem('theme', 'dark');
-          themeToggle.setAttribute('aria-checked', 'true');
-          toggleSpan.classList.add('translate-x-5');
+          htmlElement.classList.remove('light');
+          toggleSpan.classList.add('translate-x-5', 'bg-white'); // Move thumb and set its background
           toggleSpan.classList.remove('translate-x-0');
-          themeToggle.classList.add('bg-blue-600');
+          themeToggle.classList.add('bg-blue-600'); // Set track background for dark mode
           themeToggle.classList.remove('bg-gray-200');
+          themeToggle.setAttribute('aria-checked', 'true');
         } else {
           htmlElement.classList.remove('dark');
           htmlElement.classList.add('light');
-          localStorage.setItem('theme', 'light');
-          themeToggle.setAttribute('aria-checked', 'false');
-          toggleSpan.classList.add('translate-x-0');
+          toggleSpan.classList.add('translate-x-0', 'bg-white'); // Move thumb and set its background
           toggleSpan.classList.remove('translate-x-5');
-          themeToggle.classList.add('bg-gray-200');
+          themeToggle.classList.add('bg-gray-200'); // Set track background for light mode
           themeToggle.classList.remove('bg-blue-600');
+          themeToggle.setAttribute('aria-checked', 'false');
         }
+        localStorage.setItem('theme', theme); // Save preference
+      }
+
+      // Initial theme setup on page load
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // If no saved theme, check system preference
+        applyTheme('dark');
+      } else {
+        // Default to light if no preference or system preference is light
+        applyTheme('light');
+      }
+
+      // Event listener for toggle button click
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = htmlElement.classList.contains('dark') ? 'dark' : 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
       });
     });
   </script>
