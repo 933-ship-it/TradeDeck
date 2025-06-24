@@ -517,7 +517,7 @@ async function loadProducts(filterQuery = '', categoryFilter = 'All') {
 
   try {
     let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-    
+
     // Apply category filter if not "All"
     if (categoryFilter !== 'All') {
       // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
@@ -562,15 +562,15 @@ searchBar.addEventListener('input', () => {
     }
 
     // Filter based on currently loaded products (which are already filtered by category)
-    const productsToSearch = currentCategoryFilter === 'All' 
-                             ? window.allProducts 
+    const productsToSearch = currentCategoryFilter === 'All'
+                             ? window.allProducts
                              : window.allProducts.filter(p => p.category === currentCategoryFilter);
-    
+
     if (!query) {
       renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
       return;
     }
-    
+
     const keywords = query.split(/\s+/).filter(Boolean);
     const filteredProducts = productsToSearch.filter(product => {
       const haystack = [
@@ -580,7 +580,7 @@ searchBar.addEventListener('input', () => {
       ].join(' ').toLowerCase();
       return keywords.some(kw => haystack.includes(kw));
     });
-    
+
     if (filteredProducts.length > 0) {
       renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
       noProductsMessage.classList.add('hidden');
@@ -765,7 +765,7 @@ async function loadMyProducts(userId) {
     const q = query(
       collection(db, "products"),
       where("sellerId", "==", userId),
-      orderBy("createdAt", "desc") 
+      orderBy("createdAt", "desc")
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -838,27 +838,17 @@ async function handleProductPurchase(product) {
 // --- Dark Mode Logic ---
 function applyTheme(isDark) {
     const htmlElement = document.documentElement;
-    const toggleHandle = themeToggle.querySelector('span'); // This is the thumb
+    const toggleHandle = themeToggle.querySelector('span');
 
     if (isDark) {
         htmlElement.classList.add('dark');
         htmlElement.classList.remove('light');
-        toggleHandle.classList.remove('translate-x-0');
-        toggleHandle.classList.add('translate-x-5');
-        // Add these lines to change the track background for dark mode:
-        themeToggle.classList.add('bg-blue-600');
-        themeToggle.classList.remove('bg-gray-200');
-        toggleHandle.classList.add('bg-white'); // Ensure the thumb is white
+        toggleHandle.classList.add('toggled'); // Add a class for the "toggled" (dark) state
         themeToggle.setAttribute('aria-checked', 'true');
     } else {
         htmlElement.classList.remove('dark');
         htmlElement.classList.add('light');
-        toggleHandle.classList.remove('translate-x-5');
-        toggleHandle.classList.add('translate-x-0');
-        // Add these lines to change the track background for light mode:
-        themeToggle.classList.add('bg-gray-200');
-        themeToggle.classList.remove('bg-blue-600');
-        toggleHandle.classList.add('bg-white'); // Ensure the thumb is white
+        toggleHandle.classList.remove('toggled'); // Remove the class for the "untoggled" (light) state
         themeToggle.setAttribute('aria-checked', 'false');
     }
     localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
