@@ -14,7 +14,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
 const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
 const PRODUCT_CATEGORIES = ["All", "eBooks", "Software", "Templates", "Graphics", "Audio", "Video", "Courses", "Photography", "Other"];
-// const THEME_STORAGE_KEY = 'tradeDeckTheme'; // This constant can be removed if no other part of the app uses it for non-theme related storage.
+const THEME_STORAGE_KEY = 'tradeDeckTheme'; // Key for storing theme preference
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -22,630 +22,869 @@ const firebaseConfig = {
   authDomain: "tradedeck-82bbb.firebaseapp.com",
   projectId: "tradedeck-82bbb",
   storageBucket: "tradedeck-82bbb.appspot.com",
-  messagingSenderId: "367355172023",
-  appId: "1:367355172023:web:5312389182390234a9b6c0",
-  measurementId: "G-D1M91N7T0N"
+  messagingSenderId: "755235931546",
+  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+  measurementId: "G-4RXR7V9NCW"
 };
 
-// Initialize Firebase
+// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // --- DOM Elements ---
-const loginRegisterBtn = document.getElementById('loginRegisterBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-const userDropdownBtn = document.getElementById('userDropdownBtn');
-const userDropdownMenu = document.getElementById('userDropdownMenu');
-const userDisplayName = document.getElementById('userDisplayName');
-const sellProductsBtn = document.getElementById('sellProductsBtn');
-const myProductsBtn = document.getElementById('myProductsBtn');
-const dashboardBtn = document.getElementById('dashboardBtn');
-const sellProductModal = document.getElementById('sellProductModal');
-const cancelSellBtn = document.getElementById('cancelSellBtn');
-const sellProductForm = document.getElementById('sellProductForm');
-const productImageInput = document.getElementById('productImage');
-const imagePreview = document.getElementById('imagePreview');
-const productGrid = document.getElementById('productGrid');
-const productSearch = document.getElementById('productSearch');
-const categoryFilterButtons = document.querySelectorAll('.category-filter-btn');
-const productDetailModal = document.getElementById('productDetailModal');
-const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
-const detailProductName = document.getElementById('detailProductName');
+const profilePic = document.getElementById('userProfilePic');
+const dropdownMenu = document.getElementById('dropdownMenu');
+const userEmail = document.getElementById('userEmail');
+const authOverlay = document.getElementById('authOverlay');
+let userGlobal = null;
+
+// Navigation
+const tabs = document.querySelectorAll('aside nav a[data-tab]');
+const sections = document.querySelectorAll('main section');
+const startSellingBtn = document.getElementById('startSellingBtn');
+const sellLandingContent = document.getElementById('sellLandingContent');
+const productForm = document.getElementById('productForm');
+const formErrorSummary = document.getElementById('formErrorSummary');
+
+// Sell form fields
+const titleInput = document.getElementById('title');
+const descriptionInput = document.getElementById('description');
+const categorySelect = document.getElementById('category'); // New category select
+const priceInput = document.getElementById('price');
+const paypalEmailContainer = document.getElementById('paypalEmailContainer');
+const paypalEmailInput = document.getElementById('paypalEmail');
+const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+const productFileUrlInput = document.getElementById('productFileUrlInput');
+const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget');
+const previewImageUrlInput = document.getElementById('previewImageUrl');
+const previewImageStatus = document.getElementById('previewImageStatus');
+const previewImageContainer = document.getElementById('previewImageContainer');
+const currentPreviewImage = document.getElementById('currentPreviewImage');
+const productUploadForm = document.getElementById('productUploadForm');
+const submitProductBtn = document.getElementById('submitProductBtn');
+
+// Home/Product listing
+const searchBar = document.getElementById('searchBar');
+const productListContainer = document.getElementById('productList');
+const noProductsMessage = document.getElementById('noProductsMessage');
+const categoryFilterButtons = document.querySelectorAll('.category-filter-btn'); // New category filter buttons
+
+let currentCategoryFilter = 'All'; // Track current category filter
+
+// Dashboard
+const myProductsContainer = document.getElementById('myProducts');
+const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+const sellerBalance = document.getElementById('sellerBalance');
+
+// Product details
+const productDetailsSection = document.getElementById('productDetails');
+const backToHomeBtn = document.getElementById('backToHomeBtn');
 const detailProductImage = document.getElementById('detailProductImage');
+const detailProductTitle = document.getElementById('detailProductTitle');
 const detailProductDescription = document.getElementById('detailProductDescription');
 const detailProductPrice = document.getElementById('detailProductPrice');
-const detailProductCategory = document.getElementById('detailProductCategory');
-const detailProductSeller = document.getElementById('detailProductSeller');
-const detailProductDate = document.getElementById('detailProductDate');
-const buyProductBtn = document.getElementById('buyProductBtn');
-const downloadProductBtn = document.getElementById('downloadProductBtn');
-const editProductBtn = document.getElementById('editProductBtn');
-const deleteProductBtn = document.getElementById('deleteProductBtn');
+const detailActionButton = document.getElementById('detailActionButton');
+const productDetailsError = document.getElementById('productDetailsError');
+const paypalButtonContainer = document.getElementById('paypal-button-container');
+
+// Edit modal
 const editProductModal = document.getElementById('editProductModal');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
 const editProductForm = document.getElementById('editProductForm');
-const browseProductsBtn = document.getElementById('browseProductsBtn');
-const contactForm = document.getElementById('contactForm');
-// const themeToggle = document.getElementById('themeToggle'); // Remove this line if only used for dark mode
+const editProductIdInput = document.getElementById('editProductId');
+const editTitleInput = document.getElementById('editTitle');
+const editDescriptionInput = document.getElementById('editDescription');
+const editPriceInput = document.getElementById('editPrice');
+const editFileUrlInput = document.getElementById('editFileUrl');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-// --- Global Variables ---
-let currentProduct = null; // Stores the product currently viewed in the detail modal
-let currentUser = null; // Stores the current logged-in user
-let currentFilter = 'All'; // Stores the current product category filter
-let currentSearchQuery = ''; // Stores the current search query
+// Dark Mode Toggle
+const themeToggle = document.getElementById('themeToggle'); // New theme toggle button
 
-// --- Utility Functions ---
-function showModal(modal) {
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-}
 
-function hideModal(modal) {
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-}
-
-// Function to format price
-function formatPrice(price) {
-  return `$${parseFloat(price).toFixed(2)}`;
-}
-
-// Function to format timestamp
-function formatTimestamp(timestamp) {
-  if (!timestamp) return 'N/A';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-}
-
-// --- Firebase Authentication ---
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-  if (user) {
-    userDisplayName.textContent = user.displayName || user.email;
-    loginRegisterBtn.classList.add('hidden');
-    logoutBtn.classList.remove('hidden');
-    deleteAccountBtn.classList.remove('hidden');
-    sellProductsBtn.classList.remove('hidden');
-    myProductsBtn.classList.remove('hidden');
-    dashboardBtn.classList.remove('hidden');
+// --- Auth and Profile ---
+document.body.style.visibility = "hidden";
+onAuthStateChanged(auth, user => {
+  document.body.style.visibility = "";
+  if (!user) {
+    authOverlay.style.display = "flex";
+    userGlobal = null;
   } else {
-    userDisplayName.textContent = 'Guest';
-    loginRegisterBtn.classList.remove('hidden');
-    logoutBtn.classList.add('hidden');
-    deleteAccountBtn.classList.add('hidden');
-    sellProductsBtn.classList.add('hidden');
-    myProductsBtn.classList.add('hidden');
-    dashboardBtn.classList.add('hidden');
+    authOverlay.style.display = "none";
+    userGlobal = user;
+    showProfileUI(user);
   }
-  fetchProducts(); // Refresh products on auth state change
 });
 
-// Function to open login/registration window
-function openLoginRegistrationWindow() {
-  const loginWindow = window.open('https://933-ship-it.github.io/TradeDeck-landing-page/', '_blank', 'width=800,height=600');
-  // You might want to add a listener to check if the window is closed and then refresh auth state
-  const checkLoginInterval = setInterval(() => {
-    if (loginWindow.closed) {
-      clearInterval(checkLoginInterval);
-      // Re-check auth state after the login window is closed
-      onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-          // User is logged in, refresh UI
-          userDisplayName.textContent = user.displayName || user.email;
-          loginRegisterBtn.classList.add('hidden');
-          logoutBtn.classList.remove('hidden');
-          deleteAccountBtn.classList.remove('hidden');
-          sellProductsBtn.classList.remove('hidden');
-          myProductsBtn.classList.remove('hidden');
-          dashboardBtn.classList.remove('hidden');
-        }
-      });
-    }
-  }, 1000);
+// --- EmailJS sale notification ---
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
 }
 
-// --- Product Management ---
-// Cloudinary uploader widget
-let myUploader = cloudinary.createUploadWidget({
-  cloudName: CLOUDINARY_CLOUD_NAME,
-  uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-  folder: 'tradedeck_products'
-}, (error, result) => {
-  if (!error && result && result.event === "success") {
-    console.log('Done uploading!', result.info);
-    const inputElementId = myUploader.currentInputId;
-    if (inputElementId === 'productImage') {
-      imagePreview.src = result.info.secure_url;
-      imagePreview.classList.remove('hidden');
+function showProfileUI(user) {
+  if (!user) return;
+  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
+  profilePic.classList.remove("hidden");
+  userEmail.textContent = user.email || "(no email)";
+  profilePic.onclick = function(e) {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('hidden');
+  };
+  document.addEventListener('click', (e) => {
+    if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownMenu.classList.add('hidden');
     }
-    // Store the URL in a hidden input or directly in the form data
-    document.getElementById(inputElementId).dataset.url = result.info.secure_url;
+  });
+  document.getElementById('deleteAccountBtn').onclick = async () => {
+    // Replace alert with custom modal for better UX
+    showCustomConfirm("Delete your account? This cannot be undone.", async () => {
+      try {
+        await deleteUser(user);
+        showCustomAlert("Account deleted successfully!");
+        window.location.href = LANDING_URL;
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          showCustomAlert("Please sign out and sign in again, then try deleting your account.");
+        } else {
+          showCustomAlert("Failed to delete account: " + err.message);
+        }
+      }
+    });
+  };
+  document.getElementById('signOutBtn').onclick = () => {
+    signOut(auth);
+  };
+}
+
+// Custom Alert/Confirm Modals (instead of window.alert/confirm)
+function showCustomAlert(message) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+      <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customAlertOk').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+function showCustomConfirm(message, onConfirm) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+      <div class="flex justify-center space-x-4">
+        <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
+        <button id="customConfirmNo" class="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition">No</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customConfirmYes').onclick = () => {
+    document.body.removeChild(modal);
+    if (onConfirm) onConfirm();
+  };
+  document.getElementById('customConfirmNo').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+
+// --- Tab Navigation ---
+function showTab(targetTabId) {
+  tabs.forEach(t => {
+    t.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    t.removeAttribute('aria-current');
+    const icon = t.querySelector('.fas');
+    if (icon) icon.classList.remove('text-blue-600');
+  });
+  const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
+  if (currentTab) {
+    currentTab.classList.add('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    currentTab.setAttribute('aria-current', 'page');
+    const icon = currentTab.querySelector('.fas');
+    if (icon) icon.classList.add('text-blue-600');
   }
-});
-
-
-// Open Cloudinary widget for image upload
-productImageInput.addEventListener('click', (e) => {
-  e.preventDefault(); // Prevent default file input behavior
-  myUploader.open(e, {
-    upload_preset: CLOUDINARY_UPLOAD_PRESET,
-    folder: 'tradedeck_products',
-    resource_type: 'image',
-    clientAllowedFormats: ['png', 'gif', 'jpeg', 'webp'],
-    maxFileSize: 5000000 // 5MB
+  sections.forEach(sec => {
+    if (sec.id === targetTabId) sec.classList.remove('hidden');
+    else sec.classList.add('hidden');
   });
-  myUploader.currentInputId = 'productImage';
-});
-
-// Open Cloudinary widget for digital product file upload
-document.getElementById('productFile').addEventListener('click', (e) => {
-  e.preventDefault(); // Prevent default file input behavior
-  myUploader.open(e, {
-    upload_preset: CLOUDINARY_UPLOAD_PRESET,
-    folder: 'tradedeck_files',
-    resource_type: 'raw', // For any file type
-    clientAllowedFormats: ['pdf', 'zip', 'rar', 'tar', 'gz', 'txt', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'wav', 'mp4', 'mov', 'avi', 'exe', 'app', 'dmg', 'iso', 'img'],
-    maxFileSize: 500000000 // 500MB
+}
+tabs.forEach(tab => {
+  tab.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const target = tab.getAttribute('data-tab');
+    showTab(target);
+    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+      toggleProductForm(false);
+    }
+    productDetailsSection.classList.add('hidden');
+    if (target === 'home') {
+      await loadProducts(searchBar.value.trim(), currentCategoryFilter);
+      searchBar.value = ''; // Clear search bar on tab switch to home
+    } else if (target === 'dashboard') {
+      await showDashboard();
+    }
   });
-  myUploader.currentInputId = 'productFile';
+});
+backToHomeBtn.addEventListener('click', () => {
+  showTab('home');
+  loadProducts(searchBar.value.trim(), currentCategoryFilter);
+});
+startSellingBtn.addEventListener('click', () => {
+  toggleProductForm(true);
 });
 
-// Handle sell product form submission
-sellProductForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (!currentUser) {
-    alert('Please log in to sell products.');
-    openLoginRegistrationWindow();
+function toggleProductForm(showForm) {
+  if (showForm) {
+    sellLandingContent.classList.add('hidden');
+    productForm.classList.remove('hidden');
+    showTab('sell');
+    productUploadForm.reset();
+    restoreSellForm();
+    enableSubmitButton();
+  } else {
+    sellLandingContent.classList.remove('hidden');
+    productForm.classList.add('hidden');
+  }
+}
+
+// --- SELL FORM AUTOSAVE/RESTORE ---
+function saveSellForm() {
+  const state = {
+    title: titleInput.value,
+    description: descriptionInput.value,
+    category: categorySelect.value, // Save category
+    price: priceInput.value,
+    paypalEmail: paypalEmailInput.value,
+    previewImageUrl: previewImageUrlInput.value,
+    productFileUrl: productFileUrlInput.value
+  };
+  localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
+}
+function restoreSellForm() {
+  const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
+  titleInput.value = state.title || "";
+  descriptionInput.value = state.description || "";
+  categorySelect.value = state.category || ""; // Restore category
+  priceInput.value = state.price || "";
+  paypalEmailInput.value = state.paypalEmail || "";
+  previewImageUrlInput.value = state.previewImageUrl || "";
+  productFileUrlInput.value = state.productFileUrl || "";
+  if (state.previewImageUrl) {
+    currentPreviewImage.src = state.previewImageUrl;
+    previewImageContainer.classList.remove('hidden');
+  } else {
+    previewImageContainer.classList.add('hidden');
+    currentPreviewImage.src = "";
+  }
+  // Show/hide PayPal field based on price
+  const priceVal = parseFloat(state.price);
+  if (!isNaN(priceVal) && priceVal > 0) {
+    paypalEmailContainer.classList.remove('hidden');
+    paypalEmailInput.setAttribute('required', 'required');
+  } else {
+    paypalEmailContainer.classList.add('hidden');
+    paypalEmailInput.removeAttribute('required');
+  }
+}
+[
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+  previewImageUrlInput, productFileUrlInput
+].forEach(input => {
+  input.addEventListener('input', saveSellForm);
+  input.addEventListener('change', saveSellForm); // For select elements
+});
+document.addEventListener("DOMContentLoaded", restoreSellForm);
+
+// --- Cloudinary Widget ---
+let isPreviewImageUploading = false;
+const previewImageWidget = window.cloudinary.createUploadWidget(
+  {
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+    sources: ['local'],
+    resourceType: 'image',
+    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+    maxFileSize: 10 * 1024 * 1024,
+    multiple: false,
+    folder: 'tradedeck_product_previews',
+  },
+  (error, result) => {
+    if (!error && result && result.event === "success") {
+      previewImageUrlInput.value = result.info.secure_url;
+      setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+      openPreviewImageWidgetBtn.classList.remove('input-invalid');
+      currentPreviewImage.src = result.info.secure_url;
+      previewImageContainer.classList.remove('hidden');
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+      saveSellForm();
+    } else if (error) {
+      setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
+      previewImageUrlInput.value = '';
+      openPreviewImageWidgetBtn.classList.add('input-invalid');
+      previewImageContainer.classList.add('hidden');
+      currentPreviewImage.src = '';
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+    } else if (result && (result.event === "close" || result.event === "abort")) {
+      if (previewImageUrlInput.value === '') {
+        setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
+        openPreviewImageWidgetBtn.classList.add('input-invalid');
+      }
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+    } else if (result && result.event === "asset_selected") {
+      setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
+      isPreviewImageUploading = true;
+      disableSubmitButton();
+    }
+  }
+);
+openPreviewImageWidgetBtn.addEventListener('click', () => {
+  previewImageWidget.open();
+});
+
+// --- UTILITIES ---
+function setFileInputStatus(statusElement, message, type = 'default') {
+  statusElement.textContent = message;
+  statusElement.classList.remove('success', 'error', 'loading');
+  if (type === 'success') statusElement.classList.add('success');
+  else if (type === 'error') statusElement.classList.add('error');
+  else if (type === 'loading') statusElement.classList.add('loading');
+}
+function convertToGoogleDriveDirectDownload(url) {
+  if (!url) return url;
+  let convertedUrl = url;
+  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
+  const match = url.match(driveViewPattern);
+  if (match && match[1]) {
+    const fileId = match[1];
+    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  } else if (url.includes('drive.google.com/open?id=')) {
+    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (idMatch && idMatch[1]) {
+      const fileId = idMatch[1];
+      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+  return convertedUrl;
+}
+
+// --- SELL FORM VALIDATION ---
+function validateSellForm() {
+  let errors = [];
+  if (!titleInput.value.trim()) errors.push("Product title is required.");
+  if (!descriptionInput.value.trim()) errors.push("Product description is required.");
+  if (!categorySelect.value) errors.push("Please select a category for your product."); // Validate category
+  if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
+  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
+  if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
+  if (!paypalEmailContainer.classList.contains('hidden')) {
+    const v = paypalEmailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
+  }
+  if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
+  return errors;
+}
+
+function showFormErrors(errors) {
+  if (!errors.length) {
+    formErrorSummary.classList.add('hidden');
+    formErrorSummary.innerHTML = "";
     return;
   }
+  formErrorSummary.classList.remove('hidden');
+  formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+}
 
-  const submitBtn = sellProductForm.querySelector('button[type="submit"]');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Uploading...';
+function enableSubmitButton() {
+  const errors = validateSellForm();
+  showFormErrors(errors);
+  if (errors.length) {
+    submitProductBtn.disabled = true;
+    submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  } else {
+    submitProductBtn.disabled = false;
+    submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+}
+function disableSubmitButton() {
+  submitProductBtn.disabled = true;
+  submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+}
+[
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+  previewImageUrlInput, productFileUrlInput
+].forEach(input => {
+  input.addEventListener('input', enableSubmitButton);
+  input.addEventListener('change', enableSubmitButton); // For select elements
+});
+priceInput.addEventListener('input', () => {
+  const price = parseFloat(priceInput.value);
+  if (isNaN(price) || price === 0) {
+    paypalEmailContainer.classList.add('hidden');
+    paypalEmailInput.removeAttribute('required');
+    paypalEmailInput.value = '';
+  } else {
+    paypalEmailContainer.classList.remove('hidden');
+    paypalEmailInput.setAttribute('required', 'required');
+  }
+  enableSubmitButton();
+  saveSellForm();
+});
+
+// --- SELL FORM SUBMIT ---
+productUploadForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  disableSubmitButton();
+  submitProductBtn.textContent = 'Listing...';
+  const errors = validateSellForm();
+  showFormErrors(errors);
+  if (errors.length) {
+    submitProductBtn.textContent = 'List Product';
+    enableSubmitButton();
+    return;
+  }
+  try {
+    if (!auth.currentUser) {
+      showCustomAlert("You must be signed in to list a product."); // Use custom alert
+      window.location.reload();
+      return;
+    }
+    const finalProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
+    const newProduct = {
+      title: titleInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      category: categorySelect.value, // Save category
+      price: parseFloat(priceInput.value),
+      fileUrl: finalProductFileUrl,
+      previewImageUrl: previewImageUrlInput.value,
+      createdAt: serverTimestamp(),
+      sellerId: auth.currentUser.uid,
+      paypalEmail: paypalEmailInput.value.trim(),
+    };
+    await addDoc(collection(db, "products"), newProduct);
+    showCustomAlert('Product listed successfully!'); // Use custom alert
+    localStorage.removeItem(SELL_FORM_KEY);
+    toggleProductForm(false);
+    await loadProducts('', currentCategoryFilter); // Reload products after listing
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+  } catch (error) {
+    showFormErrors(["Failed to list product. Please try again."]);
+    console.error("Error adding document to Firestore:", error);
+    showCustomAlert('Failed to list product. Please check console for details. (Check Firestore rules!)'); // Use custom alert
+  } finally {
+    enableSubmitButton();
+    submitProductBtn.textContent = 'List Product';
+  }
+});
+
+// --- PRODUCT LISTING & SEARCH ---
+async function loadProducts(filterQuery = '', categoryFilter = 'All') {
+  productListContainer.innerHTML = '';
+  noProductsMessage.textContent = 'Loading products...';
+  noProductsMessage.classList.remove('hidden');
+
+  // Update active category button style
+  categoryFilterButtons.forEach(btn => {
+    if (btn.dataset.category === categoryFilter) {
+      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+    } else {
+      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+    }
+  });
 
   try {
-    const productName = document.getElementById('productName').value;
-    const productDescription = document.getElementById('productDescription').value;
-    const productPrice = parseFloat(document.getElementById('productPrice').value);
-    const productCategory = document.getElementById('productCategory').value;
-    const imageUrl = productImageInput.dataset.url; // Get URL from dataset
-    const fileUrl = document.getElementById('productFile').dataset.url; // Get URL from dataset
+    let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
-    if (!imageUrl || !fileUrl) {
-      alert('Please upload both an image and a digital file.');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'List Product';
+    // Apply category filter if not "All"
+    if (categoryFilter !== 'All') {
+      // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+      // Firebase will provide a direct link in the console error message (like the one you saw).
+      // Example: Index on 'category' (ascending) and 'createdAt' (descending)
+      q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
+    }
+
+    const snapshot = await getDocs(q);
+    const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window.allProducts = fetchedProducts; // Store all fetched products for client-side search
+
+    const lowerCaseQuery = filterQuery.toLowerCase();
+    const filteredProducts = fetchedProducts.filter(product =>
+      (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
+      (product.description || '').toLowerCase().includes(lowerCaseQuery) ||
+      (product.category || '').toLowerCase().includes(lowerCaseQuery) // Include category in search
+    );
+
+    renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+  } catch (error) {
+    console.error("Error loading products:", error);
+    noProductsMessage.textContent = 'Error loading products. Please try again.';
+    noProductsMessage.classList.remove('hidden');
+  }
+}
+
+// Event listeners for category filter buttons
+categoryFilterButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    currentCategoryFilter = button.dataset.category;
+    loadProducts(searchBar.value.trim(), currentCategoryFilter);
+  });
+});
+
+searchBar.addEventListener('input', () => {
+  if (!document.getElementById('home').classList.contains('hidden')) {
+    const query = searchBar.value.trim().toLowerCase();
+    if (!window.allProducts) {
+      loadProducts(query, currentCategoryFilter); // If allProducts not loaded, fetch from Firestore
       return;
     }
 
-    await addDoc(collection(db, 'products'), {
-      name: productName,
-      description: productDescription,
-      price: productPrice,
-      category: productCategory,
-      imageUrl: imageUrl,
-      fileUrl: fileUrl,
-      sellerId: currentUser.uid,
-      sellerEmail: currentUser.email,
-      sellerName: currentUser.displayName || 'Anonymous',
-      timestamp: serverTimestamp()
+    // Filter based on currently loaded products (which are already filtered by category)
+    const productsToSearch = currentCategoryFilter === 'All'
+                             ? window.allProducts
+                             : window.allProducts.filter(p => p.category === currentCategoryFilter);
+
+    if (!query) {
+      renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
+      return;
+    }
+
+    const keywords = query.split(/\s+/).filter(Boolean);
+    const filteredProducts = productsToSearch.filter(product => {
+      const haystack = [
+        product.title || '',
+        product.description || '',
+        product.category || '' // Include category in search haystack
+      ].join(' ').toLowerCase();
+      return keywords.some(kw => haystack.includes(kw));
     });
 
-    alert('Product listed successfully!');
-    sellProductForm.reset();
-    imagePreview.classList.add('hidden');
-    imagePreview.src = '#'; // Clear preview
-    delete productImageInput.dataset.url; // Clear stored URL
-    delete document.getElementById('productFile').dataset.url; // Clear stored URL
-    hideModal(sellProductModal);
-    fetchProducts(); // Refresh product list
-  } catch (error) {
-    console.error('Error adding product: ', error);
-    alert('Failed to list product: ' + error.message);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'List Product';
+    if (filteredProducts.length > 0) {
+      renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+      noProductsMessage.classList.add('hidden');
+    } else {
+      productListContainer.innerHTML = '';
+      noProductsMessage.textContent = "No products found for your search. Try different keywords!";
+      noProductsMessage.classList.remove('hidden');
+    }
   }
 });
 
 
-// Function to fetch and display products
-async function fetchProducts() {
-  productGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">Loading products...</div>';
-  let productsRef = collection(db, 'products');
-  let q = productsRef;
-
-  if (currentFilter && currentFilter !== 'All') {
-    q = query(q, where('category', '==', currentFilter));
-  }
-
-  if (currentSearchQuery) {
-    const searchTermLower = currentSearchQuery.toLowerCase();
-    // Firebase does not support full-text search directly.
-    // For simple contains, you might filter on client-side or use more advanced techniques.
-    // For now, we'll fetch all matching categories/no category and filter client-side for search.
-  }
-
-  // Add orderBy for timestamp, newest first
-  q = query(q, orderBy('timestamp', 'desc'));
-
-  try {
-    const querySnapshot = await getDocs(q);
-    let products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    // Apply client-side search filter if a query exists
-    if (currentSearchQuery) {
-      const searchTermLower = currentSearchQuery.toLowerCase();
-      products = products.filter(product =>
-        product.name.toLowerCase().includes(searchTermLower) ||
-        product.description.toLowerCase().includes(searchTermLower) ||
-        product.category.toLowerCase().includes(searchTermLower) ||
-        (product.sellerName && product.sellerName.toLowerCase().includes(searchTermLower))
-      );
-    }
-
-    displayProducts(products);
-  } catch (error) {
-    console.error('Error fetching products: ', error);
-    productGrid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load products.</div>';
-  }
-}
-
-// Function to display products in the grid
-function displayProducts(products) {
-  productGrid.innerHTML = ''; // Clear previous products
-  if (products.length === 0) {
-    productGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">No products found.</div>';
+// --- PRODUCT CARD RENDERING ---
+function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
+  container.innerHTML = '';
+  noResultsMsgElement.classList.add('hidden');
+  if (!Array.isArray(productArray) || productArray.length === 0) {
+    noResultsMsgElement.classList.remove('hidden');
+    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
     return;
   }
-
-  products.forEach(product => {
+  productArray.forEach(product => {
     const productCard = document.createElement('div');
-    productCard.className = 'bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer';
-    productCard.innerHTML = `
-      <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-48 object-cover" />
-      <div class="p-6">
-        <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">${product.name}</h3>
-        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 truncate">${product.description}</p>
-        <div class="flex items-center justify-between">
-          <span class="text-blue-600 dark:text-blue-400 font-bold text-lg">${formatPrice(product.price)}</span>
-          <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded-full">${product.category}</span>
+    // Adjusted product-card classes for dark mode
+    productCard.className = `bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent dark:border-gray-700'}`;
+    productCard.setAttribute('data-product-id', product.id);
+    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+    let cardButtonsHtml = '';
+    if (isDashboardView) {
+      cardButtonsHtml = `
+        <div class="mt-auto flex justify-end items-center pt-2">
+          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition">Download</a>
+          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
         </div>
+      `;
+    }
+    productCard.innerHTML = `
+      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
+      <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
+      <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+      <div class="mt-auto flex justify-between items-center pt-2">
+        <span class="font-bold text-blue-600">${displayPrice}</span>
+        ${cardButtonsHtml}
       </div>
     `;
-    productCard.addEventListener('click', () => showProductDetail(product.id));
-    productGrid.appendChild(productCard);
+    container.appendChild(productCard);
+    if (isDashboardView) {
+      const delistButton = productCard.querySelector('.delist-product-btn');
+      if (delistButton) {
+        delistButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const productId = delistButton.getAttribute('data-product-id');
+          if (productId) deleteProduct(productId);
+        });
+      }
+    } else {
+      productCard.addEventListener('click', () => {
+        const productId = productCard.getAttribute('data-product-id');
+        if (productId) showProductDetails(productId);
+      });
+    }
   });
 }
 
-// Function to show product detail modal
-async function showProductDetail(productId) {
+// --- PRODUCT DELISTING ---
+async function deleteProduct(productId) {
+  showCustomConfirm('Are you sure you want to permanently delist this product? This action cannot be undone.', async () => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+      showCustomAlert('Product delisted successfully!');
+      await loadProducts('', currentCategoryFilter); // Reload products globally
+      await showDashboard(); // Reload dashboard
+    } catch (error) {
+      console.error("Error removing document: ", error);
+      showCustomAlert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
+    }
+  });
+}
+
+// --- PRODUCT DETAILS & PURCHASE ---
+async function showProductDetails(productId) {
+  showTab('productDetails');
+  productDetailsError.classList.add('hidden');
   try {
-    const productDoc = await getDoc(doc(db, 'products', productId));
-    if (productDoc.exists()) {
-      currentProduct = { id: productDoc.id, ...productDoc.data() };
+    const productDoc = await getDoc(doc(db, "products", productId));
+    if (!productDoc.exists()) {
+      productDetailsError.textContent = 'Product not found.';
+      productDetailsError.classList.remove('hidden');
+      return;
+    }
+    const product = { id: productDoc.id, ...productDoc.data() };
+    detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
+    detailProductTitle.textContent = product.title;
+    detailProductDescription.textContent = product.description;
+    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+    detailProductPrice.textContent = displayPrice;
+    detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
+    detailActionButton.disabled = false;
 
-      detailProductName.textContent = currentProduct.name;
-      detailProductImage.src = currentProduct.imageUrl;
-      detailProductDescription.textContent = currentProduct.description;
-      detailProductPrice.textContent = formatPrice(currentProduct.price);
-      detailProductCategory.textContent = currentProduct.category;
-      detailProductSeller.textContent = currentProduct.sellerName || currentProduct.sellerEmail || 'N/A';
-      detailProductDate.textContent = formatTimestamp(currentProduct.timestamp);
-
-      // Show/hide buttons based on user login and product ownership
-      buyProductBtn.classList.remove('hidden');
-      downloadProductBtn.classList.add('hidden');
-      editProductBtn.classList.add('hidden');
-      deleteProductBtn.classList.add('hidden');
-
-      if (currentUser) {
-        if (currentUser.uid === currentProduct.sellerId) {
-          buyProductBtn.classList.add('hidden');
-          downloadProductBtn.classList.remove('hidden');
-          editProductBtn.classList.remove('hidden');
-          deleteProductBtn.classList.remove('hidden');
-        }
-        // Check if the user has already bought this product
-        const purchaseDoc = await getDoc(doc(db, 'users', currentUser.uid, 'purchases', currentProduct.id));
-        if (purchaseDoc.exists()) {
-          buyProductBtn.classList.add('hidden');
-          downloadProductBtn.classList.remove('hidden');
-        }
+    if (parseFloat(product.price) > 0) {
+      detailActionButton.style.display = 'none';
+      paypalButtonContainer.innerHTML = '';
+      if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
+        window.paypal.Buttons({
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              purchase_units: [{
+                amount: { value: product.price.toString() },
+                description: product.title
+              }]
+            });
+          },
+          onApprove: async function(data, actions) {
+            return actions.order.capture().then(async function(details) {
+              showCustomAlert('Payment completed by ' + details.payer.name.given_name + '!'); // Use custom alert
+              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
+              await handleProductPurchase(product);
+              // --- Send EmailJS sale notification ---
+              sendSaleEmail({
+                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
+                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
+                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
+                productTitle: product.title || 'Unknown',
+                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
+              });
+            });
+          },
+          onError: function(err) {
+            showCustomAlert('Payment could not be completed. Please try again.'); // Use custom alert
+            console.error(err);
+          }
+        }).render('#paypal-button-container');
+      } else {
+        paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
       }
-
-      showModal(productDetailModal);
     } else {
-      alert('Product not found.');
+      detailActionButton.style.display = '';
+      paypalButtonContainer.innerHTML = '';
+      detailActionButton.textContent = 'Download';
+      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+      detailActionButton.onclick = () => {
+        window.open(product.fileUrl, '_blank');
+      };
+      detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
     }
   } catch (error) {
-    console.error('Error fetching product details: ', error);
-    alert('Failed to load product details.');
+    console.error("Error loading product details:", error);
+    productDetailsError.textContent = 'Error loading product details. Please try again.';
+    productDetailsError.classList.remove('hidden');
   }
 }
 
-// Function to handle product deletion
-async function deleteProduct(productId) {
-  if (!confirm('Are you sure you want to delete this product?')) {
-    return;
-  }
+// --- DASHBOARD LOGIC ---
+async function updateSellerBalance(userId) {
   try {
-    await deleteDoc(doc(db, 'products', productId));
-    alert('Product deleted successfully!');
-    hideModal(productDetailModal);
-    fetchProducts(); // Refresh product list
-  } catch (error) {
-    console.error('Error deleting product: ', error);
-    alert('Failed to delete product: ' + error.message);
+    const balDoc = await getDoc(doc(db, "balances", userId));
+    let value = 0;
+    if (balDoc.exists() && typeof balDoc.data().balance === 'number') {
+      value = balDoc.data().balance;
+    }
+    sellerBalance.textContent = `$${value.toFixed(2)}`;
+  } catch (e) {
+    sellerBalance.textContent = "$0.00";
   }
 }
-
-// Handle edit product form submission
-editProductForm.addEventListener('submit', async (e) => {
+let balanceUnsub = null;
+function watchSellerBalance(userId) {
+  if (balanceUnsub) balanceUnsub();
+  balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
+    let value = 0;
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
+    sellerBalance.textContent = `$${value.toFixed(2)}`;
+  });
+}
+async function loadMyProducts(userId) {
+  myProductsContainer.innerHTML = '';
+  noMyProductsMessage.classList.add('hidden');
+  try {
+    // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+    // Example: Index on 'sellerId' (ascending) and 'createdAt' (descending)
+    const q = query(
+      collection(db, "products"),
+      where("sellerId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (products.length === 0) {
+      noMyProductsMessage.classList.remove('hidden');
+      return;
+    }
+    // Use your existing rendering function for consistency:
+    renderProducts(products, myProductsContainer, noMyProductsMessage, true);
+  } catch (e) {
+    console.error("Error loading user's products:", e);
+    myProductsContainer.innerHTML = '<p class="text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
+  }
+}
+function openEditProductModal(product) {
+  editProductIdInput.value = product.id;
+  editTitleInput.value = product.title;
+  editDescriptionInput.value = product.description;
+  editPriceInput.value = product.price;
+  editFileUrlInput.value = product.fileUrl;
+  editProductModal.classList.remove('hidden');
+}
+function closeEditProductModal() {
+  editProductModal.classList.add('hidden');
+}
+editProductForm.onsubmit = async function (e) {
   e.preventDefault();
-  const submitBtn = editProductForm.querySelector('button[type="submit"]');
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Saving...';
-
+  const id = editProductIdInput.value;
+  const updated = {
+    title: editTitleInput.value.trim(),
+    description: editDescriptionInput.value.trim(),
+    price: parseFloat(editPriceInput.value),
+    fileUrl: editFileUrlInput.value.trim()
+  };
   try {
-    const productId = document.getElementById('editProductId').value;
-    const updatedData = {
-      name: document.getElementById('editName').value,
-      description: document.getElementById('editDescription').value,
-      category: document.getElementById('editCategory').value,
-      price: parseFloat(document.getElementById('editPrice').value),
-      fileUrl: document.getElementById('editFileUrl').value, // Assuming file URL can be edited directly
-    };
-
-    // If a new image was uploaded, update its URL
-    // This assumes you might have another Cloudinary widget setup for editing images
-    // For simplicity, we are not adding image re-upload logic for edit here
-    // If you add it, uncomment and adapt the following:
-    // if (document.getElementById('editProductImage').dataset.url) {
-    //   updatedData.imageUrl = document.getElementById('editProductImage').dataset.url;
-    // }
-
-    await updateDoc(doc(db, 'products', productId), updatedData);
-
-    alert('Product updated successfully!');
-    hideModal(editProductModal);
-    fetchProducts(); // Refresh product list
-  } catch (error) {
-    console.error('Error updating product: ', error);
-    alert('Failed to update product: ' + error.message);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Save Changes';
+    await updateDoc(doc(db, "products", id), updated);
+    closeEditProductModal();
+    if (auth.currentUser) {
+      await loadMyProducts(auth.currentUser.uid);
+    }
+  } catch (err) {
+    showCustomAlert("Failed to update product."); // Use custom alert
   }
-});
+};
+cancelEditBtn.onclick = closeEditProductModal;
 
-
-// --- Event Listeners ---
-userDropdownBtn.addEventListener('click', () => {
-  userDropdownMenu.classList.toggle('opacity-0');
-  userDropdownMenu.classList.toggle('invisible');
-  userDropdownMenu.classList.toggle('scale-95');
-  userDropdownMenu.classList.toggle('scale-100');
-});
-
-// Close dropdown if clicked outside
-document.addEventListener('click', (event) => {
-  if (!userDropdownBtn.contains(event.target) && !userDropdownMenu.contains(event.target)) {
-    userDropdownMenu.classList.add('opacity-0', 'invisible', 'scale-95');
-    userDropdownMenu.classList.remove('scale-100');
-  }
-});
-
-loginRegisterBtn.addEventListener('click', openLoginRegistrationWindow);
-
-logoutBtn.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-    alert('Logged out successfully!');
-    // onAuthStateChanged will handle UI update
-  } catch (error) {
-    console.error('Error logging out: ', error);
-    alert('Failed to log out: ' + error.message);
-  }
-});
-
-deleteAccountBtn.addEventListener('click', async () => {
-  if (!confirm('Are you sure you want to delete your account? This action is irreversible.')) {
-    return;
-  }
-  if (!currentUser) {
-    alert('No user is logged in.');
-    return;
-  }
-  try {
-    await deleteUser(currentUser);
-    alert('Account deleted successfully!');
-    // onAuthStateChanged will handle UI update
-  } catch (error) {
-    console.error('Error deleting account: ', error);
-    alert('Failed to delete account: ' + error.message);
-  }
-});
-
-sellProductsBtn.addEventListener('click', () => {
-  if (!currentUser) {
-    alert('Please log in to sell products.');
-    openLoginRegistrationWindow();
-    return;
-  }
-  sellProductForm.reset(); // Clear previous form data
-  imagePreview.classList.add('hidden'); // Hide image preview
-  delete productImageInput.dataset.url; // Clear stored URL
-  delete document.getElementById('productFile').dataset.url; // Clear stored URL
-  showModal(sellProductModal);
-});
-
-cancelSellBtn.addEventListener('click', () => hideModal(sellProductModal));
-
-closeDetailModalBtn.addEventListener('click', () => hideModal(productDetailModal));
-
-productSearch.addEventListener('input', (e) => {
-  currentSearchQuery = e.target.value;
-  fetchProducts(); // Refetch products based on new search query
-});
-
-categoryFilterButtons.forEach(button => {
-  button.addEventListener('click', (e) => {
-    categoryFilterButtons.forEach(btn => {
-      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-      btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
-    });
-    e.target.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-    e.target.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
-    currentFilter = e.target.dataset.category;
-    fetchProducts(); // Refetch products based on new category filter
+async function showDashboard() {
+  if (!auth.currentUser) return;
+  showTab('dashboard');
+  await updateSellerBalance(auth.currentUser.uid);
+  watchSellerBalance(auth.currentUser.uid);
+  await loadMyProducts(auth.currentUser.uid);
+}
+async function incrementSellerBalance(sellerId, amount) {
+  const balRef = doc(db, "balances", sellerId);
+  await runTransaction(db, async (tx) => {
+    const docSnap = await tx.get(balRef);
+    let newBalance = amount;
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+      newBalance += docSnap.data().balance;
+    }
+    tx.set(balRef, { balance: newBalance }, { merge: true });
   });
+}
+async function handleProductPurchase(product) {
+  if (!product || !product.sellerId || !product.price) return;
+  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+}
+
+// --- Dark Mode Logic ---
+function applyTheme(isDark) {
+    const htmlElement = document.documentElement;
+    const toggleHandle = themeToggle.querySelector('span');
+
+    if (isDark) {
+        htmlElement.classList.add('dark');
+        htmlElement.classList.remove('light');
+        toggleHandle.classList.add('toggled'); // Add a class for the "toggled" (dark) state
+        themeToggle.setAttribute('aria-checked', 'true');
+    } else {
+        htmlElement.classList.remove('dark');
+        htmlElement.classList.add('light');
+        toggleHandle.classList.remove('toggled'); // Remove the class for the "untoggled" (light) state
+        themeToggle.setAttribute('aria-checked', 'false');
+    }
+    localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+}
+
+function loadDarkModePreference() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'dark') {
+        applyTheme(true);
+    } else if (savedTheme === 'light') {
+        applyTheme(false);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // Default to system preference if no saved theme
+        applyTheme(true);
+    } else {
+        applyTheme(false); // Default to light if no preference and system is not dark
+    }
+}
+
+// Event listener for theme toggle
+themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyTheme(!isDark);
 });
 
-buyProductBtn.addEventListener('click', async () => {
-  if (!currentUser) {
-    alert('Please log in to purchase this product.');
-    openLoginRegistrationWindow();
-    return;
-  }
-  if (!currentProduct) {
-    alert('No product selected.');
-    return;
-  }
-
-  // Simple PayPal integration setup (replace with actual backend processing for security)
-  // In a real application, you would send currentProduct.id and currentProduct.price to your server
-  // Your server would then interact with PayPal API to create an order
-  // After successful payment, your server would record the purchase and make the digital file available.
-
-  // For demonstration: Simulate PayPal checkout and record purchase
-  alert(`Proceeding to buy "${currentProduct.name}" for ${formatPrice(currentProduct.price)}. (This is a simulation. In a real app, you'd integrate PayPal here.)`);
-
-  try {
-    // Record purchase in Firestore
-    await setDoc(doc(db, 'users', currentUser.uid, 'purchases', currentProduct.id), {
-      productId: currentProduct.id,
-      productName: currentProduct.name,
-      price: currentProduct.price,
-      purchaseDate: serverTimestamp(),
-      fileUrl: currentProduct.fileUrl,
-      sellerId: currentProduct.sellerId
-    });
-    alert('Purchase recorded! You can now download your product.');
-    buyProductBtn.classList.add('hidden');
-    downloadProductBtn.classList.remove('hidden');
-    // Hide modal or update UI to reflect purchase
-    hideModal(productDetailModal); // Or simply update the modal buttons
-  } catch (error) {
-    console.error('Error recording purchase:', error);
-    alert('Failed to record purchase. Please try again.');
-  }
-});
-
-downloadProductBtn.addEventListener('click', () => {
-  if (currentProduct && currentProduct.fileUrl) {
-    // Ideally, this link would be a secure, time-limited download URL generated by your backend
-    // after verifying purchase. For this demo, we're using the direct URL.
-    window.open(currentProduct.fileUrl, '_blank');
-  } else {
-    alert('No download link available for this product.');
-  }
-});
-
-editProductBtn.addEventListener('click', async () => {
-  if (!currentProduct || !currentUser || currentUser.uid !== currentProduct.sellerId) {
-    alert('You are not authorized to edit this product.');
-    return;
-  }
-  // Populate the edit form
-  document.getElementById('editProductId').value = currentProduct.id;
-  document.getElementById('editName').value = currentProduct.name;
-  document.getElementById('editDescription').value = currentProduct.description;
-  document.getElementById('editCategory').value = currentProduct.category;
-  document.getElementById('editPrice').value = currentProduct.price;
-  document.getElementById('editFileUrl').value = currentProduct.fileUrl;
-  document.getElementById('editCurrentImageUrl').value = currentProduct.imageUrl; // Store current image URL
-
-  showModal(editProductModal);
-});
-
-cancelEditBtn.addEventListener('click', () => hideModal(editProductModal));
-
-deleteProductBtn.addEventListener('click', () => {
-  if (currentProduct) {
-    deleteProduct(currentProduct.id);
-  }
-});
-
-browseProductsBtn.addEventListener('click', () => {
-  document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-});
-
-// My Products section (requires a separate function to fetch user's products)
-myProductsBtn.addEventListener('click', () => {
-  if (currentUser) {
-    productGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 dark:text-gray-400">Loading your products...</div>';
-    const q = query(collection(db, 'products'), where('sellerId', '==', currentUser.uid), orderBy('timestamp', 'desc'));
-    onSnapshot(q, (snapshot) => {
-      let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      displayProducts(products); // Use existing display function
-      document.getElementById('products').scrollIntoView({ behavior: 'smooth' }); // Scroll to products section
-    }, (error) => {
-      console.error('Error fetching user products: ', error);
-      productGrid.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load your products.</div>';
-    });
-  } else {
-    alert('Please log in to view your products.');
-    openLoginRegistrationWindow();
-  }
-});
-
-// Dashboard button (placeholder - would typically link to a separate dashboard page or section)
-dashboardBtn.addEventListener('click', () => {
-  alert('Dashboard functionality coming soon!');
-});
-
-
-// EmailJS integration for contact form
-(function() {
-  emailjs.init({
-    publicKey: "1x1Jt00nE-s7f0aG_", // Replace with your Public Key
-  });
-})();
-
-contactForm.addEventListener('submit', function(event) {
-  event.preventDefault();
-
-  const serviceID = 'default_service'; // Replace with your Service ID
-  const templateID = 'template_v8fzxqg'; // Replace with your Template ID
-
-  emailjs.sendForm(serviceID, templateID, this)
-    .then(() => {
-      alert('Message sent successfully!');
-      contactForm.reset();
-    }, (error) => {
-      console.error('Failed to send message:', error);
-      alert('Failed to send the message. Please try again later.');
-    });
-});
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
-  // The loadDarkModePreference() call is now removed from here as per your request.
-  // The theme logic is fully handled in the inline script in index.html.
-
+  loadDarkModePreference(); // Load theme preference first
   // Set initial category filter button state
   const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
   if (allCategoryButton) {
     allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-    // Ensure this correctly removes light mode specific classes
-    allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
   }
+  loadProducts('', currentCategoryFilter);
+  showTab('home');
+  enableSubmitButton();
 });
