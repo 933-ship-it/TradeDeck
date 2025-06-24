@@ -12,7 +12,8 @@ import {
 const CLOUDINARY_CLOUD_NAME = 'desejdvif';
 const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
 const SELL_FORM_KEY = "TradeDeckSellForm";
-const LANDING_URL = "https://933-ship-it.github.io/TradeDeck.com/";
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
+const PRODUCT_CATEGORIES = ["All", "eBooks", "Software", "Templates", "Graphics", "Audio", "Video", "Courses", "Photography", "Other"];
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -48,6 +49,7 @@ const formErrorSummary = document.getElementById('formErrorSummary');
 // Sell form fields
 const titleInput = document.getElementById('title');
 const descriptionInput = document.getElementById('description');
+const categorySelect = document.getElementById('category'); // New category select
 const priceInput = document.getElementById('price');
 const paypalEmailContainer = document.getElementById('paypalEmailContainer');
 const paypalEmailInput = document.getElementById('paypalEmail');
@@ -65,6 +67,9 @@ const submitProductBtn = document.getElementById('submitProductBtn');
 const searchBar = document.getElementById('searchBar');
 const productListContainer = document.getElementById('productList');
 const noProductsMessage = document.getElementById('noProductsMessage');
+const categoryFilterButtons = document.querySelectorAll('.category-filter-btn'); // New category filter buttons
+
+let currentCategoryFilter = 'All'; // Track current category filter
 
 // Dashboard
 const myProductsContainer = document.getElementById('myProducts');
@@ -82,7 +87,8 @@ const detailActionButton = document.getElementById('detailActionButton');
 const productDetailsError = document.getElementById('productDetailsError');
 const paypalButtonContainer = document.getElementById('paypal-button-container');
 
-// Edit modal
+// Edit modal (assuming this is handled in a separate modal or within the dashboard for simplicity)
+// If there's an edit product modal, ensure its elements are also defined here if needed by JS.
 const editProductModal = document.getElementById('editProductModal');
 const editProductForm = document.getElementById('editProductForm');
 const editProductIdInput = document.getElementById('editProductId');
@@ -91,6 +97,7 @@ const editDescriptionInput = document.getElementById('editDescription');
 const editPriceInput = document.getElementById('editPrice');
 const editFileUrlInput = document.getElementById('editFileUrl');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
+
 
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
@@ -136,35 +143,81 @@ function showProfileUI(user) {
     }
   });
   document.getElementById('deleteAccountBtn').onclick = async () => {
-    if (confirm("Delete your account? This cannot be undone.")) {
+    // Replace alert with custom modal for better UX
+    showCustomConfirm("Delete your account? This cannot be undone.", async () => {
       try {
         await deleteUser(user);
-        alert("Account deleted.");
+        showCustomAlert("Account deleted successfully!");
         window.location.href = LANDING_URL;
       } catch (err) {
         if (err.code === 'auth/requires-recent-login') {
-          alert("Please sign out and sign in again, then try deleting your account.");
+          showCustomAlert("Please sign out and sign in again, then try deleting your account.");
         } else {
-          alert("Failed to delete account: " + err.message);
+          showCustomAlert("Failed to delete account: " + err.message);
         }
       }
-    }
+    });
   };
   document.getElementById('signOutBtn').onclick = () => {
     signOut(auth);
   };
 }
 
+// Custom Alert/Confirm Modals (instead of window.alert/confirm)
+function showCustomAlert(message) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4">${message}</p>
+      <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customAlertOk').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+function showCustomConfirm(message, onConfirm) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4">${message}</p>
+      <div class="flex justify-center space-x-4">
+        <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
+        <button id="customConfirmNo" class="bg-gray-300 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-400 transition">No</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customConfirmYes').onclick = () => {
+    document.body.removeChild(modal);
+    if (onConfirm) onConfirm();
+  };
+  document.getElementById('customConfirmNo').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+
 // --- Tab Navigation ---
 function showTab(targetTabId) {
   tabs.forEach(t => {
     t.classList.remove('bg-blue-100');
     t.removeAttribute('aria-current');
+    // Remove active styling from icon too if applied
+    const icon = t.querySelector('.fas');
+    if (icon) icon.classList.remove('text-blue-600');
   });
   const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
   if (currentTab) {
     currentTab.classList.add('bg-blue-100');
     currentTab.setAttribute('aria-current', 'page');
+    // Add active styling to icon
+    const icon = currentTab.querySelector('.fas');
+    if (icon) icon.classList.add('text-blue-600');
   }
   sections.forEach(sec => {
     if (sec.id === targetTabId) sec.classList.remove('hidden');
@@ -181,8 +234,8 @@ tabs.forEach(tab => {
     }
     productDetailsSection.classList.add('hidden');
     if (target === 'home') {
-      await loadProducts(searchBar.value.trim());
-      searchBar.value = '';
+      await loadProducts(searchBar.value.trim(), currentCategoryFilter);
+      searchBar.value = ''; // Clear search bar on tab switch to home
     } else if (target === 'dashboard') {
       await showDashboard();
     }
@@ -190,7 +243,7 @@ tabs.forEach(tab => {
 });
 backToHomeBtn.addEventListener('click', () => {
   showTab('home');
-  loadProducts(searchBar.value.trim());
+  loadProducts(searchBar.value.trim(), currentCategoryFilter);
 });
 startSellingBtn.addEventListener('click', () => {
   toggleProductForm(true);
@@ -215,6 +268,7 @@ function saveSellForm() {
   const state = {
     title: titleInput.value,
     description: descriptionInput.value,
+    category: categorySelect.value, // Save category
     price: priceInput.value,
     paypalEmail: paypalEmailInput.value,
     previewImageUrl: previewImageUrlInput.value,
@@ -226,6 +280,7 @@ function restoreSellForm() {
   const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
   titleInput.value = state.title || "";
   descriptionInput.value = state.description || "";
+  categorySelect.value = state.category || ""; // Restore category
   priceInput.value = state.price || "";
   paypalEmailInput.value = state.paypalEmail || "";
   previewImageUrlInput.value = state.previewImageUrl || "";
@@ -248,10 +303,11 @@ function restoreSellForm() {
   }
 }
 [
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
   previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
   input.addEventListener('input', saveSellForm);
+  input.addEventListener('change', saveSellForm); // For select elements
 });
 document.addEventListener("DOMContentLoaded", restoreSellForm);
 
@@ -335,6 +391,7 @@ function validateSellForm() {
   let errors = [];
   if (!titleInput.value.trim()) errors.push("Product title is required.");
   if (!descriptionInput.value.trim()) errors.push("Product description is required.");
+  if (!categorySelect.value) errors.push("Please select a category for your product."); // Validate category
   if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
   if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
   if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
@@ -372,10 +429,11 @@ function disableSubmitButton() {
   submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }
 [
-  titleInput, descriptionInput, priceInput, paypalEmailInput,
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
   previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
   input.addEventListener('input', enableSubmitButton);
+  input.addEventListener('change', enableSubmitButton); // For select elements
 });
 priceInput.addEventListener('input', () => {
   const price = parseFloat(priceInput.value);
@@ -405,7 +463,7 @@ productUploadForm.addEventListener('submit', async (e) => {
   }
   try {
     if (!auth.currentUser) {
-      alert("You must be signed in to list a product.");
+      showCustomAlert("You must be signed in to list a product."); // Use custom alert
       window.location.reload();
       return;
     }
@@ -413,6 +471,7 @@ productUploadForm.addEventListener('submit', async (e) => {
     const newProduct = {
       title: titleInput.value.trim(),
       description: descriptionInput.value.trim(),
+      category: categorySelect.value, // Save category
       price: parseFloat(priceInput.value),
       fileUrl: finalProductFileUrl,
       previewImageUrl: previewImageUrlInput.value,
@@ -421,15 +480,15 @@ productUploadForm.addEventListener('submit', async (e) => {
       paypalEmail: paypalEmailInput.value.trim(),
     };
     await addDoc(collection(db, "products"), newProduct);
-    alert('Product listed successfully!');
+    showCustomAlert('Product listed successfully!'); // Use custom alert
     localStorage.removeItem(SELL_FORM_KEY);
     toggleProductForm(false);
-    await loadProducts('');
+    await loadProducts('', currentCategoryFilter); // Reload products after listing
     if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
   } catch (error) {
     showFormErrors(["Failed to list product. Please try again."]);
     console.error("Error adding document to Firestore:", error);
-    alert('Failed to list product. Please check console for details. (Check Firestore rules!)');
+    showCustomAlert('Failed to list product. Please check console for details. (Check Firestore rules!)'); // Use custom alert
   } finally {
     enableSubmitButton();
     submitProductBtn.textContent = 'List Product';
@@ -437,20 +496,40 @@ productUploadForm.addEventListener('submit', async (e) => {
 });
 
 // --- PRODUCT LISTING & SEARCH ---
-async function loadProducts(filterQuery = '') {
+async function loadProducts(filterQuery = '', categoryFilter = 'All') {
   productListContainer.innerHTML = '';
   noProductsMessage.textContent = 'Loading products...';
   noProductsMessage.classList.remove('hidden');
+
+  // Update active category button style
+  categoryFilterButtons.forEach(btn => {
+    if (btn.dataset.category === categoryFilter) {
+      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.remove('bg-gray-200', 'text-gray-700', 'shadow-sm');
+    } else {
+      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.add('bg-gray-200', 'text-gray-700', 'shadow-sm');
+    }
+  });
+
   try {
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    
+    // Apply category filter if not "All"
+    if (categoryFilter !== 'All') {
+      q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
+    }
+
     const snapshot = await getDocs(q);
     const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    window.allProducts = fetchedProducts;
+    window.allProducts = fetchedProducts; // Store all fetched products for client-side search
+
     const lowerCaseQuery = filterQuery.toLowerCase();
     const filteredProducts = fetchedProducts.filter(product =>
       (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
       (product.description || '').toLowerCase().includes(lowerCaseQuery)
     );
+
     renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
   } catch (error) {
     console.error("Error loading products:", error);
@@ -458,22 +537,42 @@ async function loadProducts(filterQuery = '') {
     noProductsMessage.classList.remove('hidden');
   }
 }
+
+// Event listeners for category filter buttons
+categoryFilterButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    currentCategoryFilter = button.dataset.category;
+    loadProducts(searchBar.value.trim(), currentCategoryFilter);
+  });
+});
+
 searchBar.addEventListener('input', () => {
   if (!document.getElementById('home').classList.contains('hidden')) {
     const query = searchBar.value.trim().toLowerCase();
-    if (!window.allProducts) return;
-    if (!query) {
-      renderProducts(window.allProducts, productListContainer, noProductsMessage, false);
+    if (!window.allProducts) {
+      loadProducts(query, currentCategoryFilter); // If allProducts not loaded, fetch from Firestore
       return;
     }
+
+    // Filter based on currently loaded products (which are already filtered by category)
+    const productsToSearch = currentCategoryFilter === 'All' 
+                             ? window.allProducts 
+                             : window.allProducts.filter(p => p.category === currentCategoryFilter);
+    
+    if (!query) {
+      renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
+      return;
+    }
+    
     const keywords = query.split(/\s+/).filter(Boolean);
-    const filteredProducts = window.allProducts.filter(product => {
+    const filteredProducts = productsToSearch.filter(product => {
       const haystack = [
         product.title || '',
         product.description || ''
       ].join(' ').toLowerCase();
       return keywords.some(kw => haystack.includes(kw));
     });
+    
     if (filteredProducts.length > 0) {
       renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
       noProductsMessage.classList.add('hidden');
@@ -484,6 +583,7 @@ searchBar.addEventListener('input', () => {
     }
   }
 });
+
 
 // --- PRODUCT CARD RENDERING ---
 function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
@@ -511,6 +611,7 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
     productCard.innerHTML = `
       <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
       <h3 class="font-semibold text-lg mb-1">${product.title}</h3>
+      <p class="text-gray-600 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
       <p class="text-gray-600 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
       <div class="mt-auto flex justify-between items-center pt-2">
         <span class="font-bold text-blue-600">${displayPrice}</span>
@@ -538,16 +639,17 @@ function renderProducts(productArray, container, noResultsMsgElement, isDashboar
 
 // --- PRODUCT DELISTING ---
 async function deleteProduct(productId) {
-  if (!confirm('Are you sure you want to permanently delist this product? This action cannot be undone.')) return;
-  try {
-    await deleteDoc(doc(db, "products", productId));
-    alert('Product delisted successfully!');
-    await loadProducts('');
-    await showDashboard();
-  } catch (error) {
-    console.error("Error removing document: ", error);
-    alert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
-  }
+  showCustomConfirm('Are you sure you want to permanently delist this product? This action cannot be undone.', async () => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+      showCustomAlert('Product delisted successfully!');
+      await loadProducts('', currentCategoryFilter); // Reload products globally
+      await showDashboard(); // Reload dashboard
+    } catch (error) {
+      console.error("Error removing document: ", error);
+      showCustomAlert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
+    }
+  });
 }
 
 // --- PRODUCT DETAILS & PURCHASE ---
@@ -585,7 +687,7 @@ async function showProductDetails(productId) {
           },
           onApprove: async function(data, actions) {
             return actions.order.capture().then(async function(details) {
-              alert('Payment completed by ' + details.payer.name.given_name + '!');
+              showCustomAlert('Payment completed by ' + details.payer.name.given_name + '!'); // Use custom alert
               paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
               await handleProductPurchase(product);
               // --- Send EmailJS sale notification ---
@@ -599,7 +701,7 @@ async function showProductDetails(productId) {
             });
           },
           onError: function(err) {
-            alert('Payment could not be completed. Please try again.');
+            showCustomAlert('Payment could not be completed. Please try again.'); // Use custom alert
             console.error(err);
           }
         }).render('#paypal-button-container');
@@ -653,7 +755,7 @@ async function loadMyProducts(userId) {
       collection(db, "products"),
       where("sellerId", "==", userId)
       // Add back orderBy if data/index is ready:
-      // , orderBy("createdAt", "desc")
+      // , orderBy("createdAt", "desc") // Re-enable if you have an index on createdAt for sellerId
     );
     const snapshot = await getDocs(q);
     const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -695,7 +797,7 @@ editProductForm.onsubmit = async function (e) {
       await loadMyProducts(auth.currentUser.uid);
     }
   } catch (err) {
-    alert("Failed to update product.");
+    showCustomAlert("Failed to update product."); // Use custom alert
   }
 };
 cancelEditBtn.onclick = closeEditProductModal;
@@ -724,6 +826,14 @@ async function handleProductPurchase(product) {
 }
 
 // --- Initial Load ---
-loadProducts();
-showTab('home');
-enableSubmitButton();
+document.addEventListener("DOMContentLoaded", () => {
+  // Set initial category filter button state
+  const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
+  if (allCategoryButton) {
+    allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+    allCategoryButton.classList.remove('bg-gray-200', 'text-gray-700', 'shadow-sm');
+  }
+  loadProducts('', currentCategoryFilter);
+  showTab('home');
+  enableSubmitButton();
+});
