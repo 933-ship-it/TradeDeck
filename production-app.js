@@ -831,39 +831,6 @@ async function handleProductPurchase(product) {
   await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
-// --- Dark Mode Logic ---
-function applyTheme(isDark) {
-    const htmlElement = document.documentElement;
-    const toggleHandle = themeToggle.querySelector('span');
-
-    if (isDark) {
-        htmlElement.classList.add('dark');
-        htmlElement.classList.remove('light');
-        toggleHandle.classList.add('toggled'); // Add a class for the "toggled" (dark) state
-        themeToggle.setAttribute('aria-checked', 'true');
-    } else {
-        htmlElement.classList.remove('dark');
-        htmlElement.classList.add('light');
-        toggleHandle.classList.remove('toggled'); // Remove the class for the "untoggled" (light) state
-        themeToggle.setAttribute('aria-checked', 'false');
-    }
-    localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
-}
-
-function loadDarkModePreference() {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark') {
-        applyTheme(true);
-    } else if (savedTheme === 'light') {
-        applyTheme(false);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        // Default to system preference if no saved theme
-        applyTheme(true);
-    } else {
-        applyTheme(false); // Default to light if no preference and system is not dark
-    }
-}
-
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDarkModePreference(); // Load theme preference first
