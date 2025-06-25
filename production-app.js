@@ -1,1 +1,919 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;const _0x108e2b=_0x39f0;(function(_0x4b913c,_0x40095c){const _0x19d061=_0x39f0,_0x1814b9=_0x4b913c();while(!![]){try{const _0x49eda6=parseInt(_0x19d061(0x59d))/(-0x1*0x1291+0x1af1+-0x85f)*(parseInt(_0x19d061(0x2d6))/(0xace*-0x1+0x1*-0x39a+0xf6*0xf))+-parseInt(_0x19d061(0x589))/(0x40*0x63+-0x1b97+0x2da)+parseInt(_0x19d061(0x423))/(-0x1*0x11f3+0x1cbe*-0x1+-0xb*-0x43f)+parseInt(_0x19d061(0x2ba))/(-0xaa*0x23+-0xd*-0x20f+-0x80*0x7)+parseInt(_0x19d061(0x343))/(0x25db+-0x41e*-0x1+-0x29f3)*(parseInt(_0x19d061(0x509))/(-0x4*0x8fc+-0xd6*-0x1c+0x283*0x5))+parseInt(_0x19d061(0x33e))/(0x1*0x116+-0x2521+0x2413)*(parseInt(_0x19d061(0x523))/(0x1a6b*-0x1+0x32+-0x1*-0x1a42))+-parseInt(_0x19d061(0x56b))/(-0x68b+-0xb*0x1e8+0x1b8d);if(_0x49eda6===_0x40095c)break;else _0x1814b9['push'](_0x1814b9['shift']());}catch(_0xc9b740){_0x1814b9['push'](_0x1814b9['shift']());}}}(_0x293a,-0x30396+-0x53*0x18eb+0x174abb));import{initializeApp}from'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';import{getAuth,onAuthStateChanged,signOut,deleteUser}from'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';import{getFirestore,collection,doc,setDoc,getDoc,getDocs,addDoc,updateDoc,deleteDoc,query,where,orderBy,serverTimestamp,onSnapshot,runTransaction}from'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';const CLOUDINARY_CLOUD_NAME=_0x108e2b(0x1d9),CLOUDINARY_UPLOAD_PRESET=_0x108e2b(0x1b6)+_0x108e2b(0x4d8)+_0x108e2b(0x48e),SELL_FORM_KEY=_0x108e2b(0x2e5)+_0x108e2b(0x1b4),LANDING_URL=_0x108e2b(0x451)+_0x108e2b(0x493)+_0x108e2b(0x1d6)+_0x108e2b(0x429)+_0x108e2b(0x3be)+_0x108e2b(0x4e5),PRODUCT_CATEGORIES=[_0x108e2b(0x4ea),_0x108e2b(0x33f),_0x108e2b(0x47b),_0x108e2b(0x3e2),_0x108e2b(0x5a2),_0x108e2b(0x445),_0x108e2b(0x224),_0x108e2b(0x1e8),_0x108e2b(0x3bc)+'y',_0x108e2b(0x271)],THEME_STORAGE_KEY=_0x108e2b(0x3e9)+_0x108e2b(0x48a),firebaseConfig={'apiKey':_0x108e2b(0x4bb)+_0x108e2b(0x349)+_0x108e2b(0x1c7)+_0x108e2b(0x437),'authDomain':_0x108e2b(0x443)+_0x108e2b(0x1cd)+_0x108e2b(0x264)+'m','projectId':_0x108e2b(0x443)+_0x108e2b(0x598),'storageBucket':_0x108e2b(0x443)+_0x108e2b(0x525)+_0x108e2b(0x46f),'messagingSenderId':_0x108e2b(0x5a9)+'46','appId':_0x108e2b(0x2be)+_0x108e2b(0x315)+_0x108e2b(0x3a2)+_0x108e2b(0x387)+'3','measurementId':_0x108e2b(0x1ad)+'CW'},app=initializeApp(firebaseConfig),db=getFirestore(app),auth=getAuth(app),profilePic=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x4c5)+_0x108e2b(0x31f)),dropdownMenu=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x270)+'nu'),userEmail=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x20b)),authOverlay=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3ea)+'y');let userGlobal=null;const tabs=document[_0x108e2b(0x4ca)+_0x108e2b(0x237)](_0x108e2b(0x25e)+_0x108e2b(0x2e6)+']'),sections=document[_0x108e2b(0x4ca)+_0x108e2b(0x237)](_0x108e2b(0x555)+'on'),startSellingBtn=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x305)+_0x108e2b(0x3cf)),sellLandingContent=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x479)+_0x108e2b(0x425)),productForm=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x430)+'m'),formErrorSummary=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x2ef)+_0x108e2b(0x391)),titleInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1c2)),descriptionInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x405)+'n'),categorySelect=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1af)),priceInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x484)),paypalEmailContainer=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d0)+_0x108e2b(0x474)),paypalEmailInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d0)+'l'),paypalEmailValidationMsg=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d0)+_0x108e2b(0x3fd)+_0x108e2b(0x300)),productFileUrlInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x427)+_0x108e2b(0x4c4)),openPreviewImageWidgetBtn=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x56e)+_0x108e2b(0x399)+'et'),previewImageUrlInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x2ab)+_0x108e2b(0x459)),previewImageStatus=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x2ab)+_0x108e2b(0x353)),previewImageContainer=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x2ab)+_0x108e2b(0x524)+'r'),currentPreviewImage=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x4ae)+_0x108e2b(0x3d3)),productUploadForm=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x35d)+_0x108e2b(0x29f)),submitProductBtn=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x34e)+_0x108e2b(0x368)),searchBar=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x29b)),productListContainer=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3c7)+'t'),noProductsMessage=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x29e)+_0x108e2b(0x298)),categoryFilterButtons=document[_0x108e2b(0x4ca)+_0x108e2b(0x237)](_0x108e2b(0x480)+_0x108e2b(0x3b4));let currentCategoryFilter=_0x108e2b(0x4ea);const myProductsContainer=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x28e)),noMyProductsMessage=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x39f)+_0x108e2b(0x2ed)),sellerBalance=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x302)+_0x108e2b(0x1e5)),productDetailsSection=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x303)+_0x108e2b(0x36f)),backToHomeBtn=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x24c)+_0x108e2b(0x54a)),detailProductImage=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1fb)+_0x108e2b(0x338)),detailProductTitle=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1fb)+_0x108e2b(0x31c)),detailProductDescription=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1fb)+_0x108e2b(0x211)+_0x108e2b(0x31a)),detailProductPrice=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x1fb)+_0x108e2b(0x2c6)),detailActionButton=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x575)+_0x108e2b(0x498)),productDetailsError=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x303)+_0x108e2b(0x27d)),paypalButtonContainer=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x265)+_0x108e2b(0x1eb)+_0x108e2b(0x4bf)),editProductModal=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d8)+_0x108e2b(0x4da)),editProductForm=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d8)+_0x108e2b(0x24a)),editProductIdInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x3d8)+_0x108e2b(0x2d0)),editTitleInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x51c)),editDescriptionInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x373)+_0x108e2b(0x32d)),editPriceInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x36b)),editFileUrlInput=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x359)+'l'),cancelEditBtn=document[_0x108e2b(0x3e4)+_0x108e2b(0x222)](_0x108e2b(0x530)+_0x108e2b(0x54a));document[_0x108e2b(0x295)][_0x108e2b(0x26c)][_0x108e2b(0x522)]=_0x108e2b(0x3b8),onAuthStateChanged(auth,_0x368b30=>{const _0x33a2c4=_0x108e2b,_0x26171f={'ttuHE':_0x33a2c4(0x385),'EMgse':_0x33a2c4(0x381),'JJDbZ':function(_0x3f8324,_0x228b71){return _0x3f8324(_0x228b71);}};document[_0x33a2c4(0x295)][_0x33a2c4(0x26c)][_0x33a2c4(0x522)]='',!_0x368b30?(authOverlay[_0x33a2c4(0x26c)][_0x33a2c4(0x1ba)]=_0x26171f[_0x33a2c4(0x47a)],userGlobal=null):(authOverlay[_0x33a2c4(0x26c)][_0x33a2c4(0x1ba)]=_0x26171f[_0x33a2c4(0x3b6)],userGlobal=_0x368b30,_0x26171f[_0x33a2c4(0x41b)](showProfileUI,_0x368b30));});function sendSaleEmail({buyerName:_0x5bd619,buyerEmail:_0x3bdbf5,sellerPaypalEmail:_0x403046,productTitle:_0x4ab181,amount:_0x56ab56}){const _0x4e4cc3=_0x108e2b,_0x15cdb3={'vDzfg':_0x4e4cc3(0x42c)+_0x4e4cc3(0x45d),'QBaYS':_0x4e4cc3(0x546)+_0x4e4cc3(0x5a0)+_0x4e4cc3(0x52a),'HGwqH':_0x4e4cc3(0x55a)+_0x4e4cc3(0x554),'aPwQl':_0x4e4cc3(0x4e3)+_0x4e4cc3(0x4e9)};emailjs[_0x4e4cc3(0x4a8)](_0x15cdb3[_0x4e4cc3(0x34b)],_0x15cdb3[_0x4e4cc3(0x2db)],{'buyer_name':_0x5bd619,'buyer_email':_0x3bdbf5,'seller_paypal_email':_0x403046,'product_title':_0x4ab181,'amount':_0x56ab56})[_0x4e4cc3(0x57d)](function(_0x386be2){const _0x478cfc=_0x4e4cc3;console[_0x478cfc(0x3d5)](_0x15cdb3[_0x478cfc(0x362)],_0x386be2[_0x478cfc(0x23f)],_0x386be2[_0x478cfc(0x357)]);},function(_0x4538de){const _0x2ccaea=_0x4e4cc3;console[_0x2ccaea(0x25b)](_0x15cdb3[_0x2ccaea(0x226)],_0x4538de);});}function showProfileUI(_0x54b971){const _0x6b675f=_0x108e2b,_0x2c7d50={'bPijC':_0x6b675f(0x3b8),'zjedi':function(_0xa12164,_0x30442e){return _0xa12164(_0x30442e);},'EFOyB':_0x6b675f(0x48c)+_0x6b675f(0x576)+_0x6b675f(0x2dc),'qiIUQ':function(_0x230abe,_0x2299db){return _0x230abe===_0x2299db;},'fvZOH':_0x6b675f(0x304)+_0x6b675f(0x561)+_0x6b675f(0x39b),'QUJrZ':_0x6b675f(0x250)+_0x6b675f(0x290)+_0x6b675f(0x247)+_0x6b675f(0x513)+_0x6b675f(0x26f)+_0x6b675f(0x4f6)+_0x6b675f(0x335),'xTMDi':function(_0x2d3ea1,_0x421a48){return _0x2d3ea1(_0x421a48);},'dYxfS':function(_0xeb5baa,_0x422944){return _0xeb5baa+_0x422944;},'qUuYk':_0x6b675f(0x212)+_0x6b675f(0x549)+_0x6b675f(0x4c9),'IoChR':function(_0x1b3bc6,_0xd2c94f,_0x4ac8a5){return _0x1b3bc6(_0xd2c94f,_0x4ac8a5);},'XRWox':_0x6b675f(0x481)+_0x6b675f(0x5aa)+_0x6b675f(0x1d3)+_0x6b675f(0x2a8)+_0x6b675f(0x234),'SvEHk':_0x6b675f(0x1b5)+_0x6b675f(0x1b7)+_0x6b675f(0x54b)+_0x6b675f(0x344),'mbgRe':_0x6b675f(0x27a),'INHhD':_0x6b675f(0x3d2),'kQfYm':_0x6b675f(0x364)+_0x6b675f(0x363),'POQDT':_0x6b675f(0x3e6)};if(!_0x54b971)return;profilePic[_0x6b675f(0x34c)]=_0x54b971[_0x6b675f(0x4c1)]||_0x2c7d50[_0x6b675f(0x314)](_0x2c7d50[_0x6b675f(0x43a)],_0x2c7d50[_0x6b675f(0x460)](encodeURIComponent,_0x54b971[_0x6b675f(0x588)]||'U')),profilePic[_0x6b675f(0x27f)][_0x6b675f(0x312)](_0x2c7d50[_0x6b675f(0x47d)]),userEmail[_0x6b675f(0x2cc)+'t']=_0x54b971[_0x6b675f(0x588)]||_0x2c7d50[_0x6b675f(0x4e7)],profilePic[_0x6b675f(0x2ea)]=function(_0x14420b){const _0x2f2692=_0x6b675f;_0x14420b[_0x2f2692(0x41c)+_0x2f2692(0x4af)](),dropdownMenu[_0x2f2692(0x27f)][_0x2f2692(0x448)](_0x2c7d50[_0x2f2692(0x47d)]);},document[_0x6b675f(0x20d)+_0x6b675f(0x208)](_0x2c7d50[_0x6b675f(0x248)],_0x44a31f=>{const _0x18e0d5=_0x6b675f;!profilePic[_0x18e0d5(0x276)](_0x44a31f[_0x18e0d5(0x478)])&&!dropdownMenu[_0x18e0d5(0x276)](_0x44a31f[_0x18e0d5(0x478)])&&dropdownMenu[_0x18e0d5(0x27f)][_0x18e0d5(0x486)](_0x2c7d50[_0x18e0d5(0x47d)]);}),document[_0x6b675f(0x3e4)+_0x6b675f(0x222)](_0x2c7d50[_0x6b675f(0x1ce)])[_0x6b675f(0x2ea)]=async()=>{const _0x54cbcd=_0x6b675f;_0x2c7d50[_0x54cbcd(0x3de)](showCustomConfirm,_0x2c7d50[_0x54cbcd(0x3d7)],async()=>{const _0x3fb366=_0x54cbcd;try{await _0x2c7d50[_0x3fb366(0x4c0)](deleteUser,_0x54b971),_0x2c7d50[_0x3fb366(0x4c0)](showCustomAlert,_0x2c7d50[_0x3fb366(0x206)]),window[_0x3fb366(0x1d8)][_0x3fb366(0x2df)]=LANDING_URL;}catch(_0x1ab90a){_0x2c7d50[_0x3fb366(0x39e)](_0x1ab90a[_0x3fb366(0x334)],_0x2c7d50[_0x3fb366(0x285)])?_0x2c7d50[_0x3fb366(0x4c0)](showCustomAlert,_0x2c7d50[_0x3fb366(0x356)]):_0x2c7d50[_0x3fb366(0x460)](showCustomAlert,_0x2c7d50[_0x3fb366(0x314)](_0x2c7d50[_0x3fb366(0x4ef)],_0x1ab90a[_0x3fb366(0x24e)]));}});},document[_0x6b675f(0x3e4)+_0x6b675f(0x222)](_0x2c7d50[_0x6b675f(0x58f)])[_0x6b675f(0x2ea)]=()=>{const _0x182f46=_0x6b675f;_0x2c7d50[_0x182f46(0x4c0)](signOut,auth);};}function showCustomAlert(_0xc1ad52){const _0x8fa109=_0x108e2b,_0xf3f67e={'WAKOB':_0x8fa109(0x4b6),'mIoEK':_0x8fa109(0x3e0)+_0x8fa109(0x33a)+_0x8fa109(0x3ce)+_0x8fa109(0x251)+_0x8fa109(0x2a1)+_0x8fa109(0x372)+_0x8fa109(0x3ee)+_0x8fa109(0x2fe),'CvGfD':_0x8fa109(0x42e)+_0x8fa109(0x403)},_0x31f272=document[_0x8fa109(0x329)+_0x8fa109(0x217)](_0xf3f67e[_0x8fa109(0x3b2)]);_0x31f272[_0x8fa109(0x55c)]=_0xf3f67e[_0x8fa109(0x2f6)],_0x31f272[_0x8fa109(0x4de)]=_0x8fa109(0x2c8)+_0x8fa109(0x551)+_0x8fa109(0x1e9)+_0x8fa109(0x360)+_0x8fa109(0x53d)+_0x8fa109(0x456)+_0x8fa109(0x1d5)+_0x8fa109(0x396)+_0x8fa109(0x3bd)+_0x8fa109(0x236)+_0x8fa109(0x259)+_0x8fa109(0x585)+_0x8fa109(0x1e0)+_0x8fa109(0x232)+_0x8fa109(0x4b0)+_0x8fa109(0x4df)+_0x8fa109(0x20a)+_0x8fa109(0x4ba)+_0xc1ad52+(_0x8fa109(0x468)+_0x8fa109(0x2a4)+_0x8fa109(0x254)+_0x8fa109(0x22c)+_0x8fa109(0x426)+_0x8fa109(0x58e)+_0x8fa109(0x3c0)+_0x8fa109(0x1f5)+_0x8fa109(0x3b1)+_0x8fa109(0x3a4)+_0x8fa109(0x29d)+_0x8fa109(0x599)+_0x8fa109(0x306)+_0x8fa109(0x36c)+_0x8fa109(0x58b)),document[_0x8fa109(0x295)][_0x8fa109(0x3b3)+'d'](_0x31f272),document[_0x8fa109(0x3e4)+_0x8fa109(0x222)](_0xf3f67e[_0x8fa109(0x40f)])[_0x8fa109(0x2ea)]=()=>{const _0x318b5c=_0x8fa109;document[_0x318b5c(0x295)][_0x318b5c(0x386)+'d'](_0x31f272);};}function showCustomConfirm(_0x3a87d0,_0x32361a){const _0x195fdb=_0x108e2b,_0x1897fe={'FqtkC':function(_0x607177){return _0x607177();},'XBqqD':_0x195fdb(0x4b6),'EDsqD':_0x195fdb(0x3e0)+_0x195fdb(0x33a)+_0x195fdb(0x3ce)+_0x195fdb(0x251)+_0x195fdb(0x2a1)+_0x195fdb(0x372)+_0x195fdb(0x3ee)+_0x195fdb(0x2fe),'wsoNL':_0x195fdb(0x41d)+_0x195fdb(0x28f),'jFXJz':_0x195fdb(0x41d)+_0x195fdb(0x355)},_0x17397a=document[_0x195fdb(0x329)+_0x195fdb(0x217)](_0x1897fe[_0x195fdb(0x558)]);_0x17397a[_0x195fdb(0x55c)]=_0x1897fe[_0x195fdb(0x2ec)],_0x17397a[_0x195fdb(0x4de)]=_0x195fdb(0x2c8)+_0x195fdb(0x551)+_0x195fdb(0x1e9)+_0x195fdb(0x360)+_0x195fdb(0x53d)+_0x195fdb(0x456)+_0x195fdb(0x1d5)+_0x195fdb(0x396)+_0x195fdb(0x3bd)+_0x195fdb(0x236)+_0x195fdb(0x259)+_0x195fdb(0x585)+_0x195fdb(0x1e0)+_0x195fdb(0x232)+_0x195fdb(0x4b0)+_0x195fdb(0x4df)+_0x195fdb(0x20a)+_0x195fdb(0x4ba)+_0x3a87d0+(_0x195fdb(0x468)+_0x195fdb(0x20e)+_0x195fdb(0x1c3)+_0x195fdb(0x3ee)+_0x195fdb(0x382)+_0x195fdb(0x20f)+_0x195fdb(0x2e2)+_0x195fdb(0x2eb)+_0x195fdb(0x469)+_0x195fdb(0x31e)+_0x195fdb(0x21f)+_0x195fdb(0x487)+_0x195fdb(0x4fa)+_0x195fdb(0x3dd)+_0x195fdb(0x515)+_0x195fdb(0x44e)+_0x195fdb(0x419)+_0x195fdb(0x370)+_0x195fdb(0x268)+_0x195fdb(0x2e2)+_0x195fdb(0x2eb)+_0x195fdb(0x547)+_0x195fdb(0x43d)+_0x195fdb(0x408)+_0x195fdb(0x249)+_0x195fdb(0x518)+_0x195fdb(0x4a0)+_0x195fdb(0x1b3)+_0x195fdb(0x37a)+_0x195fdb(0x485)+_0x195fdb(0x4fd)+_0x195fdb(0x46a)+_0x195fdb(0x35c)+_0x195fdb(0x28d)+_0x195fdb(0x288)+_0x195fdb(0x3a3)+_0x195fdb(0x567)+_0x195fdb(0x2bb)+_0x195fdb(0x1aa)+_0x195fdb(0x361)+_0x195fdb(0x366)),document[_0x195fdb(0x295)][_0x195fdb(0x3b3)+'d'](_0x17397a),document[_0x195fdb(0x3e4)+_0x195fdb(0x222)](_0x1897fe[_0x195fdb(0x246)])[_0x195fdb(0x2ea)]=()=>{const _0x2b9fd7=_0x195fdb;document[_0x2b9fd7(0x295)][_0x2b9fd7(0x386)+'d'](_0x17397a);if(_0x32361a)_0x1897fe[_0x2b9fd7(0x4eb)](_0x32361a);},document[_0x195fdb(0x3e4)+_0x195fdb(0x222)](_0x1897fe[_0x195fdb(0x47f)])[_0x195fdb(0x2ea)]=()=>{const _0x458602=_0x195fdb;document[_0x458602(0x295)][_0x458602(0x386)+'d'](_0x17397a);};}function showTab(_0x39b6fa){const _0x3aeb66=_0x108e2b,_0x3a17b7={'bvABO':_0x3aeb66(0x449)+'0','vEcCJ':_0x3aeb66(0x56d)+_0x3aeb66(0x1fe),'oEndg':_0x3aeb66(0x20a)+_0x3aeb66(0x37c),'ASsdj':_0x3aeb66(0x322)+_0x3aeb66(0x5a3),'Psneg':_0x3aeb66(0x28d)+_0x3aeb66(0x516)+'00','srnLs':_0x3aeb66(0x508)+_0x3aeb66(0x4f1),'HSbeM':_0x3aeb66(0x20a)+_0x3aeb66(0x37b),'nMPlE':_0x3aeb66(0x22a)+'nt','HBKAz':_0x3aeb66(0x1cc),'dllUU':_0x3aeb66(0x475)+_0x3aeb66(0x23a),'NFstR':function(_0x8987dc,_0x5da910){return _0x8987dc===_0x5da910;},'sjUKO':_0x3aeb66(0x3b8),'FuEIO':_0x3aeb66(0x203)};tabs[_0x3aeb66(0x1f1)](_0x4e5b17=>{const _0x35a954=_0x3aeb66;_0x4e5b17[_0x35a954(0x27f)][_0x35a954(0x312)](_0x3a17b7[_0x35a954(0x2a9)],_0x3a17b7[_0x35a954(0x532)],_0x3a17b7[_0x35a954(0x316)]),_0x4e5b17[_0x35a954(0x27f)][_0x35a954(0x486)](_0x3a17b7[_0x35a954(0x3fc)],_0x3a17b7[_0x35a954(0x324)],_0x3a17b7[_0x35a954(0x2f4)],_0x3a17b7[_0x35a954(0x512)]),_0x4e5b17[_0x35a954(0x2fb)+_0x35a954(0x374)](_0x3a17b7[_0x35a954(0x1f8)]);const _0xe4b721=_0x4e5b17[_0x35a954(0x4ca)+_0x35a954(0x239)](_0x3a17b7[_0x35a954(0x375)]);if(_0xe4b721)_0xe4b721[_0x35a954(0x27f)][_0x35a954(0x312)](_0x3a17b7[_0x35a954(0x4be)]);});const _0x151a2c=document[_0x3aeb66(0x4ca)+_0x3aeb66(0x239)](_0x3aeb66(0x2e6)+'=\x22'+_0x39b6fa+'\x22]');if(_0x151a2c){_0x151a2c[_0x3aeb66(0x27f)][_0x3aeb66(0x486)](_0x3a17b7[_0x3aeb66(0x2a9)],_0x3a17b7[_0x3aeb66(0x532)],_0x3a17b7[_0x3aeb66(0x316)]),_0x151a2c[_0x3aeb66(0x27f)][_0x3aeb66(0x312)](_0x3a17b7[_0x3aeb66(0x3fc)],_0x3a17b7[_0x3aeb66(0x324)],_0x3a17b7[_0x3aeb66(0x2f4)],_0x3a17b7[_0x3aeb66(0x512)]),_0x151a2c[_0x3aeb66(0x21d)+'te'](_0x3a17b7[_0x3aeb66(0x1f8)],_0x3a17b7[_0x3aeb66(0x2e3)]);const _0x2d0dc1=_0x151a2c[_0x3aeb66(0x4ca)+_0x3aeb66(0x239)](_0x3a17b7[_0x3aeb66(0x375)]);if(_0x2d0dc1)_0x2d0dc1[_0x3aeb66(0x27f)][_0x3aeb66(0x486)](_0x3a17b7[_0x3aeb66(0x4be)]);}sections[_0x3aeb66(0x1f1)](_0x9c7b23=>{const _0x1b6b05=_0x3aeb66;if(_0x3a17b7[_0x1b6b05(0x411)](_0x9c7b23['id'],_0x39b6fa))_0x9c7b23[_0x1b6b05(0x27f)][_0x1b6b05(0x312)](_0x3a17b7[_0x1b6b05(0x3bf)]);else _0x9c7b23[_0x1b6b05(0x27f)][_0x1b6b05(0x486)](_0x3a17b7[_0x1b6b05(0x3bf)]);});}function _0x39f0(_0x16ce68,_0x1aaeec){const _0x4bd9a2=_0x293a();return _0x39f0=function(_0x225e06,_0xbf4b82){_0x225e06=_0x225e06-(0x195a+0x115*0x11+-0xe07*0x3);let _0x21ac73=_0x4bd9a2[_0x225e06];return _0x21ac73;},_0x39f0(_0x16ce68,_0x1aaeec);}tabs[_0x108e2b(0x1f1)](_0x48a03b=>{const _0x5b9f40=_0x108e2b,_0x3e43d9={'gYKXG':_0x5b9f40(0x420),'LqTnq':function(_0x3dc050,_0xa4553b){return _0x3dc050(_0xa4553b);},'Jwpkd':function(_0x3f7b66,_0x113b1b){return _0x3f7b66!==_0x113b1b;},'FaJuY':_0x5b9f40(0x39c),'eGtBf':_0x5b9f40(0x3b8),'PJHQa':function(_0x41061f,_0x4de78f){return _0x41061f===_0x4de78f;},'mcima':_0x5b9f40(0x3c1),'oalKz':function(_0xa73bf9,_0x2d93be,_0x37b3d9){return _0xa73bf9(_0x2d93be,_0x37b3d9);},'aejmy':function(_0x473954,_0x183cff){return _0x473954===_0x183cff;},'NLsmw':_0x5b9f40(0x2bc),'UABTl':function(_0x1e2cb0){return _0x1e2cb0();},'eLIYD':_0x5b9f40(0x3d2)};_0x48a03b[_0x5b9f40(0x20d)+_0x5b9f40(0x208)](_0x3e43d9[_0x5b9f40(0x511)],async _0x22a0a8=>{const _0x300ffa=_0x5b9f40;_0x22a0a8[_0x300ffa(0x1e1)+_0x300ffa(0x49c)]();const _0x11e429=_0x48a03b[_0x300ffa(0x409)+'te'](_0x3e43d9[_0x300ffa(0x2d3)]);_0x3e43d9[_0x300ffa(0x2f8)](showTab,_0x11e429);_0x3e43d9[_0x300ffa(0x3a0)](_0x11e429,_0x3e43d9[_0x300ffa(0x41a)])&&!productForm[_0x300ffa(0x27f)][_0x300ffa(0x276)](_0x3e43d9[_0x300ffa(0x46c)])&&_0x3e43d9[_0x300ffa(0x2f8)](toggleProductForm,![]);productDetailsSection[_0x300ffa(0x27f)][_0x300ffa(0x486)](_0x3e43d9[_0x300ffa(0x46c)]);if(_0x3e43d9[_0x300ffa(0x404)](_0x11e429,_0x3e43d9[_0x300ffa(0x317)]))await _0x3e43d9[_0x300ffa(0x2cd)](loadProducts,searchBar[_0x300ffa(0x424)][_0x300ffa(0x5a8)](),currentCategoryFilter),searchBar[_0x300ffa(0x424)]='';else _0x3e43d9[_0x300ffa(0x202)](_0x11e429,_0x3e43d9[_0x300ffa(0x4bc)])&&await _0x3e43d9[_0x300ffa(0x40b)](showDashboard);});}),backToHomeBtn[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3d2),()=>{const _0xeb13b8=_0x108e2b,_0x341e43={'pkgUe':function(_0x208b1d,_0x4237cd){return _0x208b1d(_0x4237cd);},'PqOgA':_0xeb13b8(0x3c1),'wQTtc':function(_0x829bfb,_0x743aff,_0x249c17){return _0x829bfb(_0x743aff,_0x249c17);}};_0x341e43[_0xeb13b8(0x328)](showTab,_0x341e43[_0xeb13b8(0x581)]),_0x341e43[_0xeb13b8(0x562)](loadProducts,searchBar[_0xeb13b8(0x424)][_0xeb13b8(0x5a8)](),currentCategoryFilter);}),startSellingBtn[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3d2),()=>{const _0x5b0162=_0x108e2b,_0x1a5d78={'PytRH':function(_0x34d17f,_0x4477d3){return _0x34d17f(_0x4477d3);}};_0x1a5d78[_0x5b0162(0x4ad)](toggleProductForm,!![]);});function toggleProductForm(_0x111f78){const _0x524c47=_0x108e2b,_0x45f886={'WTkJA':_0x524c47(0x2f0)+'5','jfdlY':_0x524c47(0x3b8),'OMsyq':function(_0x278f28){return _0x278f28();},'xzJwV':function(_0xd31934,_0x486757){return _0xd31934(_0x486757);},'VxHcs':_0x524c47(0x39c)};if(_0x111f78){const _0x6cf099=_0x45f886[_0x524c47(0x46d)][_0x524c47(0x348)]('|');let _0x4f903f=0x2282+-0x192f+0x953*-0x1;while(!![]){switch(_0x6cf099[_0x4f903f++]){case'0':productForm[_0x524c47(0x27f)][_0x524c47(0x312)](_0x45f886[_0x524c47(0x47e)]);continue;case'1':_0x45f886[_0x524c47(0x465)](restoreSellForm);continue;case'2':_0x45f886[_0x524c47(0x30d)](showTab,_0x45f886[_0x524c47(0x3a1)]);continue;case'3':sellLandingContent[_0x524c47(0x27f)][_0x524c47(0x486)](_0x45f886[_0x524c47(0x47e)]);continue;case'4':productUploadForm[_0x524c47(0x46e)]();continue;case'5':_0x45f886[_0x524c47(0x465)](enableSubmitButton);continue;}break;}}else sellLandingContent[_0x524c47(0x27f)][_0x524c47(0x312)](_0x45f886[_0x524c47(0x47e)]),productForm[_0x524c47(0x27f)][_0x524c47(0x486)](_0x45f886[_0x524c47(0x47e)]);}function saveSellForm(){const _0x19de60=_0x108e2b,_0x3317ba={'title':titleInput[_0x19de60(0x424)],'description':descriptionInput[_0x19de60(0x424)],'category':categorySelect[_0x19de60(0x424)],'price':priceInput[_0x19de60(0x424)],'paypalEmail':paypalEmailInput[_0x19de60(0x424)],'previewImageUrl':previewImageUrlInput[_0x19de60(0x424)],'productFileUrl':productFileUrlInput[_0x19de60(0x424)]};localStorage[_0x19de60(0x205)](SELL_FORM_KEY,JSON[_0x19de60(0x350)](_0x3317ba));}function restoreSellForm(){const _0x469049=_0x108e2b,_0x280bdb={'KRgwq':_0x469049(0x3b8),'gNLtJ':function(_0x4153af,_0x3772a1){return _0x4153af(_0x3772a1);},'ssJyc':function(_0x3a37d9,_0x35a4f0){return _0x3a37d9>_0x35a4f0;},'yWham':_0x469049(0x38c)},_0x528a46=JSON[_0x469049(0x4aa)](localStorage[_0x469049(0x1ec)](SELL_FORM_KEY)||'{}');titleInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x1c2)]||'',descriptionInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x405)+'n']||'',categorySelect[_0x469049(0x424)]=_0x528a46[_0x469049(0x1af)]||'',priceInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x484)]||'',paypalEmailInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x3d0)+'l']||'',previewImageUrlInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x2ab)+_0x469049(0x459)]||'',productFileUrlInput[_0x469049(0x424)]=_0x528a46[_0x469049(0x427)+_0x469049(0x3a8)]||'';_0x528a46[_0x469049(0x2ab)+_0x469049(0x459)]?(currentPreviewImage[_0x469049(0x34c)]=_0x528a46[_0x469049(0x2ab)+_0x469049(0x459)],previewImageContainer[_0x469049(0x27f)][_0x469049(0x312)](_0x280bdb[_0x469049(0x278)])):(previewImageContainer[_0x469049(0x27f)][_0x469049(0x486)](_0x280bdb[_0x469049(0x278)]),currentPreviewImage[_0x469049(0x34c)]='');const _0x240e11=_0x280bdb[_0x469049(0x597)](parseFloat,_0x528a46[_0x469049(0x484)]);!_0x280bdb[_0x469049(0x597)](isNaN,_0x240e11)&&_0x280bdb[_0x469049(0x3cd)](_0x240e11,-0x12e1+-0xc73*-0x1+-0x1*-0x66e)?(paypalEmailContainer[_0x469049(0x27f)][_0x469049(0x312)](_0x280bdb[_0x469049(0x278)]),paypalEmailInput[_0x469049(0x21d)+'te'](_0x280bdb[_0x469049(0x4bd)],_0x280bdb[_0x469049(0x4bd)])):(paypalEmailContainer[_0x469049(0x27f)][_0x469049(0x486)](_0x280bdb[_0x469049(0x278)]),paypalEmailInput[_0x469049(0x2fb)+_0x469049(0x374)](_0x280bdb[_0x469049(0x4bd)]));}[titleInput,descriptionInput,categorySelect,priceInput,paypalEmailInput,previewImageUrlInput,productFileUrlInput][_0x108e2b(0x1f1)](_0xcbb3a7=>{const _0x122a20=_0x108e2b,_0x40bce6={'ouEef':_0x122a20(0x3a6),'pVqqE':_0x122a20(0x354)};_0xcbb3a7[_0x122a20(0x20d)+_0x122a20(0x208)](_0x40bce6[_0x122a20(0x477)],saveSellForm),_0xcbb3a7[_0x122a20(0x20d)+_0x122a20(0x208)](_0x40bce6[_0x122a20(0x33b)],saveSellForm);}),document[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x4ce)+_0x108e2b(0x220),restoreSellForm);let isPreviewImageUploading=![];const previewImageWidget=window[_0x108e2b(0x2ce)][_0x108e2b(0x323)+_0x108e2b(0x339)]({'cloudName':CLOUDINARY_CLOUD_NAME,'uploadPreset':CLOUDINARY_UPLOAD_PRESET,'sources':[_0x108e2b(0x3af)],'resourceType':_0x108e2b(0x395),'clientAllowedFormats':[_0x108e2b(0x255),_0x108e2b(0x2c5),_0x108e2b(0x352),_0x108e2b(0x2f5),_0x108e2b(0x3f5)],'maxFileSize':(-0x32*-0x28+0x1*0x10d2+0x313*-0x8)*(-0x21d*-0x4+-0xeff+0xa8b)*(-0x1455*0x1+0x87c+0xfd9),'multiple':![],'folder':_0x108e2b(0x565)+_0x108e2b(0x510)+_0x108e2b(0x50f)},(_0x327e56,_0x2fa5a4)=>{const _0x191900=_0x108e2b,_0x4c94da={'YUluq':function(_0x426c24,_0x21206c){return _0x426c24&&_0x21206c;},'lQOkb':function(_0x2e8158,_0x59bfdc){return _0x2e8158===_0x59bfdc;},'YiBfP':_0x191900(0x1ab),'cfQFB':_0x191900(0x358)+_0x191900(0x272),'JPmzW':function(_0x4dbc1f,_0x138ba0,_0x3643da,_0x3be6c7){return _0x4dbc1f(_0x138ba0,_0x3643da,_0x3be6c7);},'FfWmC':function(_0x4940d2){return _0x4940d2();},'TerDo':_0x191900(0x3b8),'VqJCn':function(_0x30a061){return _0x30a061();},'DwheE':_0x191900(0x4e6)+_0x191900(0x564),'vsieY':_0x191900(0x32c)+_0x191900(0x441),'mYtxA':function(_0x528e33,_0x284c83,_0x1605dc,_0x4f46d1){return _0x528e33(_0x284c83,_0x1605dc,_0x4f46d1);},'FPRYc':_0x191900(0x3c9)+_0x191900(0x592)+_0x191900(0x214)+_0x191900(0x4db),'eWTUP':_0x191900(0x25b),'vZyHw':function(_0x14528f){return _0x14528f();},'zkHiu':_0x191900(0x34a),'OEXzD':function(_0x39876a,_0x366352){return _0x39876a===_0x366352;},'jdYDh':_0x191900(0x44a),'JuxXB':function(_0x5128eb,_0x5eda31){return _0x5128eb===_0x5eda31;},'ngNTQ':function(_0x13a672,_0x214ee0,_0x4bed42,_0x552b47){return _0x13a672(_0x214ee0,_0x4bed42,_0x552b47);},'AuvOg':_0x191900(0x4ab)+_0x191900(0x287)+_0x191900(0x590)+_0x191900(0x44d)+_0x191900(0x1bd),'BxcdW':function(_0x2fdbd0,_0x4d94a6){return _0x2fdbd0===_0x4d94a6;},'hKnDu':_0x191900(0x45c)+_0x191900(0x4fe),'xQtBA':_0x191900(0x395),'asbdb':_0x191900(0x577),'zVVOY':function(_0x316384){return _0x316384();}};if(_0x4c94da[_0x191900(0x345)](!_0x327e56,_0x2fa5a4)&&_0x4c94da[_0x191900(0x53a)](_0x2fa5a4[_0x191900(0x282)],_0x4c94da[_0x191900(0x2d2)])){const _0x5ac5a1=_0x4c94da[_0x191900(0x1fd)][_0x191900(0x348)]('|');let _0xb984a2=-0x101f*-0x1+0xd*-0x1e1+-0x1*-0x84e;while(!![]){switch(_0x5ac5a1[_0xb984a2++]){case'0':_0x4c94da[_0x191900(0x40a)](setFileInputStatus,previewImageStatus,_0x191900(0x3c9)+_0x191900(0x3a9)+_0x2fa5a4[_0x191900(0x39a)][_0x191900(0x3e1)+_0x191900(0x541)]+'.'+_0x2fa5a4[_0x191900(0x39a)][_0x191900(0x1dc)],_0x4c94da[_0x191900(0x2d2)]);continue;case'1':_0x4c94da[_0x191900(0x25a)](saveSellForm);continue;case'2':currentPreviewImage[_0x191900(0x34c)]=_0x2fa5a4[_0x191900(0x39a)][_0x191900(0x457)];continue;case'3':isPreviewImageUploading=![];continue;case'4':previewImageContainer[_0x191900(0x27f)][_0x191900(0x312)](_0x4c94da[_0x191900(0x579)]);continue;case'5':_0x4c94da[_0x191900(0x397)](enableSubmitButton);continue;case'6':previewImageUrlInput[_0x191900(0x424)]=_0x2fa5a4[_0x191900(0x39a)][_0x191900(0x457)];continue;case'7':openPreviewImageWidgetBtn[_0x191900(0x27f)][_0x191900(0x312)](_0x4c94da[_0x191900(0x407)]);continue;}break;}}else{if(_0x327e56){const _0x4df266=_0x4c94da[_0x191900(0x4cf)][_0x191900(0x348)]('|');let _0x18430c=0x2130+0xab*0x12+-0x2d36;while(!![]){switch(_0x4df266[_0x18430c++]){case'0':currentPreviewImage[_0x191900(0x34c)]='';continue;case'1':openPreviewImageWidgetBtn[_0x191900(0x27f)][_0x191900(0x486)](_0x4c94da[_0x191900(0x407)]);continue;case'2':previewImageUrlInput[_0x191900(0x424)]='';continue;case'3':isPreviewImageUploading=![];continue;case'4':_0x4c94da[_0x191900(0x2c0)](setFileInputStatus,previewImageStatus,_0x4c94da[_0x191900(0x20c)],_0x4c94da[_0x191900(0x3e7)]);continue;case'5':_0x4c94da[_0x191900(0x384)](enableSubmitButton);continue;case'6':previewImageContainer[_0x191900(0x27f)][_0x191900(0x486)](_0x4c94da[_0x191900(0x579)]);continue;}break;}}else{if(_0x2fa5a4&&(_0x4c94da[_0x191900(0x53a)](_0x2fa5a4[_0x191900(0x282)],_0x4c94da[_0x191900(0x53c)])||_0x4c94da[_0x191900(0x3ed)](_0x2fa5a4[_0x191900(0x282)],_0x4c94da[_0x191900(0x379)])))_0x4c94da[_0x191900(0x432)](previewImageUrlInput[_0x191900(0x424)],'')&&(_0x4c94da[_0x191900(0x27c)](setFileInputStatus,previewImageStatus,_0x4c94da[_0x191900(0x412)],_0x4c94da[_0x191900(0x3e7)]),openPreviewImageWidgetBtn[_0x191900(0x27f)][_0x191900(0x486)](_0x4c94da[_0x191900(0x407)])),isPreviewImageUploading=![],_0x4c94da[_0x191900(0x384)](enableSubmitButton);else _0x2fa5a4&&_0x4c94da[_0x191900(0x3ac)](_0x2fa5a4[_0x191900(0x282)],_0x4c94da[_0x191900(0x488)])&&(_0x4c94da[_0x191900(0x2c0)](setFileInputStatus,previewImageStatus,_0x191900(0x2ae)+(_0x2fa5a4[_0x191900(0x39a)][_0x191900(0x3e1)+_0x191900(0x541)]||_0x4c94da[_0x191900(0x32f)])+_0x191900(0x36e),_0x4c94da[_0x191900(0x1da)]),isPreviewImageUploading=!![],_0x4c94da[_0x191900(0x4a2)](disableSubmitButton));}}});openPreviewImageWidgetBtn[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3d2),()=>{const _0x3d4f35=_0x108e2b;previewImageWidget[_0x3d4f35(0x26d)]();});function setFileInputStatus(_0x486592,_0x2f63de,_0x540947=_0x108e2b(0x1f6)){const _0x1bf4bf=_0x108e2b,_0x3c45ca={'OXfpz':_0x1bf4bf(0x1ab),'vDyJs':_0x1bf4bf(0x25b),'wvcxY':_0x1bf4bf(0x577),'sCWkf':function(_0x5dd268,_0x390be1){return _0x5dd268===_0x390be1;}};_0x486592[_0x1bf4bf(0x2cc)+'t']=_0x2f63de,_0x486592[_0x1bf4bf(0x27f)][_0x1bf4bf(0x312)](_0x3c45ca[_0x1bf4bf(0x3cc)],_0x3c45ca[_0x1bf4bf(0x42f)],_0x3c45ca[_0x1bf4bf(0x504)]);if(_0x3c45ca[_0x1bf4bf(0x2b8)](_0x540947,_0x3c45ca[_0x1bf4bf(0x3cc)]))_0x486592[_0x1bf4bf(0x27f)][_0x1bf4bf(0x486)](_0x3c45ca[_0x1bf4bf(0x3cc)]);else{if(_0x3c45ca[_0x1bf4bf(0x2b8)](_0x540947,_0x3c45ca[_0x1bf4bf(0x42f)]))_0x486592[_0x1bf4bf(0x27f)][_0x1bf4bf(0x486)](_0x3c45ca[_0x1bf4bf(0x42f)]);else{if(_0x3c45ca[_0x1bf4bf(0x2b8)](_0x540947,_0x3c45ca[_0x1bf4bf(0x504)]))_0x486592[_0x1bf4bf(0x27f)][_0x1bf4bf(0x486)](_0x3c45ca[_0x1bf4bf(0x504)]);}}}function convertToGoogleDriveDirectDownload(_0x22e1a5){const _0xe303eb=_0x108e2b,_0x1e2c4c={'zQwVo':_0xe303eb(0x3dc)+_0xe303eb(0x269)+_0xe303eb(0x2a2)};if(!_0x22e1a5)return _0x22e1a5;let _0x14d03c=_0x22e1a5;const _0x18562b=/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/,_0x3370d5=_0x22e1a5[_0xe303eb(0x209)](_0x18562b);if(_0x3370d5&&_0x3370d5[-0x10c2+-0x5*-0x705+0x1256*-0x1]){const _0x3f8b0a=_0x3370d5[0xf*0xa+0x2122+-0x21b7];_0x14d03c=_0xe303eb(0x415)+_0xe303eb(0x2b1)+_0xe303eb(0x2b4)+_0xe303eb(0x3db)+_0xe303eb(0x4a5)+_0x3f8b0a;}else{if(_0x22e1a5[_0xe303eb(0x320)](_0x1e2c4c[_0xe303eb(0x283)])){const _0x24efc3=_0x22e1a5[_0xe303eb(0x209)](/id=([a-zA-Z0-9_-]+)/);if(_0x24efc3&&_0x24efc3[0x2*-0x727+-0x14e6+0x2335*0x1]){const _0x5f5f1e=_0x24efc3[-0x1f3+-0x5*-0x1da+-0x74e];_0x14d03c=_0xe303eb(0x415)+_0xe303eb(0x2b1)+_0xe303eb(0x2b4)+_0xe303eb(0x3db)+_0xe303eb(0x4a5)+_0x5f5f1e;}}}return _0x14d03c;}function validateSellForm(){const _0x57d564=_0x108e2b,_0x2ee24b={'UyywJ':_0x57d564(0x2a7)+_0x57d564(0x257)+_0x57d564(0x4d1),'cvChd':_0x57d564(0x22f)+_0x57d564(0x2b5)+_0x57d564(0x321)+'d.','JHHHI':_0x57d564(0x3b9)+_0x57d564(0x261)+_0x57d564(0x4c2)+_0x57d564(0x346)+'t.','bQCoe':function(_0x818cc7,_0x24b92c){return _0x818cc7(_0x24b92c);},'XjueX':function(_0x390a18,_0x239529){return _0x390a18(_0x239529);},'mBljo':function(_0x2e4831,_0x3837e2){return _0x2e4831<_0x3837e2;},'IPOdj':function(_0x529ec6,_0x561b24){return _0x529ec6(_0x561b24);},'USnDL':_0x57d564(0x22e)+_0x57d564(0x38d)+_0x57d564(0x521)+_0x57d564(0x410),'UlSLt':_0x57d564(0x3e8)+_0x57d564(0x376)+_0x57d564(0x321)+'d.','xCzHS':_0x57d564(0x2a0)+_0x57d564(0x37d)+_0x57d564(0x267)+_0x57d564(0x4f4),'FnCEi':_0x57d564(0x3b8),'lOjLp':_0x57d564(0x26b)+_0x57d564(0x27e)+_0x57d564(0x24b)+_0x57d564(0x402)+_0x57d564(0x3c6),'urDpt':_0x57d564(0x59a)+_0x57d564(0x1df)+_0x57d564(0x499)+_0x57d564(0x413)+_0x57d564(0x42b)};let _0x571abc=[];if(!titleInput[_0x57d564(0x424)][_0x57d564(0x5a8)]())_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x260)]);if(!descriptionInput[_0x57d564(0x424)][_0x57d564(0x5a8)]())_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x4b2)]);if(!categorySelect[_0x57d564(0x424)])_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x243)]);if(_0x2ee24b[_0x57d564(0x45e)](isNaN,_0x2ee24b[_0x57d564(0x51d)](parseFloat,priceInput[_0x57d564(0x424)]))||_0x2ee24b[_0x57d564(0x26a)](_0x2ee24b[_0x57d564(0x52e)](parseFloat,priceInput[_0x57d564(0x424)]),0x419+-0x2*-0x596+0x1*-0xf45))_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x23e)]);if(!productFileUrlInput[_0x57d564(0x424)][_0x57d564(0x5a8)]()||!/^https?:\/\/.+\..+/[_0x57d564(0x37f)](productFileUrlInput[_0x57d564(0x424)][_0x57d564(0x5a8)]()))_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x534)]);if(!previewImageUrlInput[_0x57d564(0x424)])_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x433)]);if(!paypalEmailContainer[_0x57d564(0x27f)][_0x57d564(0x276)](_0x2ee24b[_0x57d564(0x2f7)])){const _0x285f35=paypalEmailInput[_0x57d564(0x424)][_0x57d564(0x5a8)]();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/[_0x57d564(0x37f)](_0x285f35))_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x482)]);}if(isPreviewImageUploading)_0x571abc[_0x57d564(0x4f2)](_0x2ee24b[_0x57d564(0x1c4)]);return _0x571abc;}function showFormErrors(_0x2ad2ee){const _0x2edccd=_0x108e2b,_0x269a86={'ktEwD':_0x2edccd(0x3b8)};if(!_0x2ad2ee[_0x2edccd(0x552)]){formErrorSummary[_0x2edccd(0x27f)][_0x2edccd(0x486)](_0x269a86[_0x2edccd(0x570)]),formErrorSummary[_0x2edccd(0x4de)]='';return;}formErrorSummary[_0x2edccd(0x27f)][_0x2edccd(0x312)](_0x269a86[_0x2edccd(0x570)]),formErrorSummary[_0x2edccd(0x4de)]=_0x2edccd(0x527)+_0x2ad2ee[_0x2edccd(0x275)](_0x53d21a=>_0x2edccd(0x244)+_0x53d21a+_0x2edccd(0x1bf))[_0x2edccd(0x463)]('')+_0x2edccd(0x1f2);}function enableSubmitButton(){const _0x1e7077=_0x108e2b,_0x1fc8b3={'dHiSx':function(_0x53ba65){return _0x53ba65();},'EJoOd':function(_0x57636c,_0xbb6244){return _0x57636c(_0xbb6244);},'wqjhp':_0x1e7077(0x299),'nGbYP':_0x1e7077(0x418)+_0x1e7077(0x442)},_0x21294b=_0x1fc8b3[_0x1e7077(0x392)](validateSellForm);_0x1fc8b3[_0x1e7077(0x43e)](showFormErrors,_0x21294b),_0x21294b[_0x1e7077(0x552)]?(submitProductBtn[_0x1e7077(0x573)]=!![],submitProductBtn[_0x1e7077(0x27f)][_0x1e7077(0x486)](_0x1fc8b3[_0x1e7077(0x273)],_0x1fc8b3[_0x1e7077(0x4f5)])):(submitProductBtn[_0x1e7077(0x573)]=![],submitProductBtn[_0x1e7077(0x27f)][_0x1e7077(0x312)](_0x1fc8b3[_0x1e7077(0x273)],_0x1fc8b3[_0x1e7077(0x4f5)]));}function disableSubmitButton(){const _0x1113ea=_0x108e2b,_0x587662={'TFVnu':_0x1113ea(0x299),'psVlJ':_0x1113ea(0x418)+_0x1113ea(0x442)};submitProductBtn[_0x1113ea(0x573)]=!![],submitProductBtn[_0x1113ea(0x27f)][_0x1113ea(0x486)](_0x587662[_0x1113ea(0x2c1)],_0x587662[_0x1113ea(0x51e)]);}[titleInput,descriptionInput,categorySelect,priceInput,paypalEmailInput,previewImageUrlInput,productFileUrlInput][_0x108e2b(0x1f1)](_0x56db0b=>{const _0x5e064c=_0x108e2b,_0x22aad2={'ELBel':_0x5e064c(0x3a6),'YJQaO':_0x5e064c(0x354)};_0x56db0b[_0x5e064c(0x20d)+_0x5e064c(0x208)](_0x22aad2[_0x5e064c(0x279)],enableSubmitButton),_0x56db0b[_0x5e064c(0x20d)+_0x5e064c(0x208)](_0x22aad2[_0x5e064c(0x36d)],enableSubmitButton);}),priceInput[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3a6),()=>{const _0x496254=_0x108e2b,_0x57ed53={'GqNpC':function(_0x104aeb,_0x4961da){return _0x104aeb(_0x4961da);},'uDafl':function(_0x188793,_0x2a608d){return _0x188793===_0x2a608d;},'OKbrG':_0x496254(0x3b8),'mbWJp':_0x496254(0x38c),'MaLwA':function(_0x432171){return _0x432171();}},_0xffb550=_0x57ed53[_0x496254(0x2f2)](parseFloat,priceInput[_0x496254(0x424)]);_0x57ed53[_0x496254(0x2f2)](isNaN,_0xffb550)||_0x57ed53[_0x496254(0x2ad)](_0xffb550,0x1301+-0x309+-0xff8*0x1)?(paypalEmailContainer[_0x496254(0x27f)][_0x496254(0x486)](_0x57ed53[_0x496254(0x59b)]),paypalEmailInput[_0x496254(0x2fb)+_0x496254(0x374)](_0x57ed53[_0x496254(0x4a6)]),paypalEmailInput[_0x496254(0x424)]=''):(paypalEmailContainer[_0x496254(0x27f)][_0x496254(0x312)](_0x57ed53[_0x496254(0x59b)]),paypalEmailInput[_0x496254(0x21d)+'te'](_0x57ed53[_0x496254(0x4a6)],_0x57ed53[_0x496254(0x4a6)])),_0x57ed53[_0x496254(0x4d9)](enableSubmitButton),_0x57ed53[_0x496254(0x4d9)](saveSellForm);}),productUploadForm[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3ff),async _0x34929f=>{const _0x118192=_0x108e2b,_0x2eff05={'zljca':function(_0x26c905){return _0x26c905();},'BiAiT':_0x118192(0x42d),'EBpIv':function(_0x429a3e,_0x1bc81e){return _0x429a3e(_0x1bc81e);},'eCbpt':_0x118192(0x36a)+'ct','UHgJo':function(_0x448e33){return _0x448e33();},'fYQza':_0x118192(0x2d7)+_0x118192(0x59c)+_0x118192(0x3c4)+_0x118192(0x50d),'LrNzX':function(_0x4c38e6,_0x36a1ad){return _0x4c38e6(_0x36a1ad);},'NLLkB':function(_0xe6524e){return _0xe6524e();},'PUlqk':function(_0x25ec70,_0x17e0fe,_0x36e8d3){return _0x25ec70(_0x17e0fe,_0x36e8d3);},'nkNhY':_0x118192(0x3ef),'lKevf':function(_0x536c69,_0x4c8ed2){return _0x536c69(_0x4c8ed2);},'VXdfo':_0x118192(0x3ae)+_0x118192(0x54d)+_0x118192(0x438),'Kyjoi':function(_0x3d3219,_0x565f7d,_0x504dad){return _0x3d3219(_0x565f7d,_0x504dad);},'muXAn':function(_0x5f0417,_0x536ac4){return _0x5f0417(_0x536ac4);},'AXXpj':_0x118192(0x212)+_0x118192(0x568)+_0x118192(0x1ac)+_0x118192(0x21e)+'.','fySLb':_0x118192(0x507)+_0x118192(0x33d)+_0x118192(0x593)+_0x118192(0x393),'vEzKN':_0x118192(0x212)+_0x118192(0x568)+_0x118192(0x1ac)+_0x118192(0x41e)+_0x118192(0x431)+_0x118192(0x21a)+_0x118192(0x266)+_0x118192(0x1e4)+'!)'};_0x34929f[_0x118192(0x1e1)+_0x118192(0x49c)](),_0x2eff05[_0x118192(0x476)](disableSubmitButton),submitProductBtn[_0x118192(0x2cc)+'t']=_0x2eff05[_0x118192(0x1e7)];const _0x30bc33=_0x2eff05[_0x118192(0x476)](validateSellForm);_0x2eff05[_0x118192(0x591)](showFormErrors,_0x30bc33);if(_0x30bc33[_0x118192(0x552)]){submitProductBtn[_0x118192(0x2cc)+'t']=_0x2eff05[_0x118192(0x24d)],_0x2eff05[_0x118192(0x38a)](enableSubmitButton);return;}try{if(!auth[_0x118192(0x2b6)+'r']){_0x2eff05[_0x118192(0x591)](showCustomAlert,_0x2eff05[_0x118192(0x543)]),window[_0x118192(0x1d8)][_0x118192(0x539)]();return;}const _0x22f4c3=_0x2eff05[_0x118192(0x591)](convertToGoogleDriveDirectDownload,productFileUrlInput[_0x118192(0x424)][_0x118192(0x5a8)]()),_0x762137={'title':titleInput[_0x118192(0x424)][_0x118192(0x5a8)](),'description':descriptionInput[_0x118192(0x424)][_0x118192(0x5a8)](),'category':categorySelect[_0x118192(0x424)],'price':_0x2eff05[_0x118192(0x4e1)](parseFloat,priceInput[_0x118192(0x424)]),'fileUrl':_0x22f4c3,'previewImageUrl':previewImageUrlInput[_0x118192(0x424)],'createdAt':_0x2eff05[_0x118192(0x24f)](serverTimestamp),'sellerId':auth[_0x118192(0x2b6)+'r'][_0x118192(0x30a)],'paypalEmail':paypalEmailInput[_0x118192(0x424)][_0x118192(0x5a8)]()};await _0x2eff05[_0x118192(0x497)](addDoc,_0x2eff05[_0x118192(0x497)](collection,db,_0x2eff05[_0x118192(0x347)]),_0x762137),_0x2eff05[_0x118192(0x440)](showCustomAlert,_0x2eff05[_0x118192(0x3d1)]),localStorage[_0x118192(0x241)](SELL_FORM_KEY),_0x2eff05[_0x118192(0x591)](toggleProductForm,![]),await _0x2eff05[_0x118192(0x2b2)](loadProducts,'',currentCategoryFilter);if(auth[_0x118192(0x2b6)+'r'])await _0x2eff05[_0x118192(0x440)](loadMyProducts,auth[_0x118192(0x2b6)+'r'][_0x118192(0x30a)]);}catch(_0x26c32b){_0x2eff05[_0x118192(0x44c)](showFormErrors,[_0x2eff05[_0x118192(0x30f)]]),console[_0x118192(0x25b)](_0x2eff05[_0x118192(0x3d4)],_0x26c32b),_0x2eff05[_0x118192(0x4e1)](showCustomAlert,_0x2eff05[_0x118192(0x29c)]);}finally{_0x2eff05[_0x118192(0x38a)](enableSubmitButton),submitProductBtn[_0x118192(0x2cc)+'t']=_0x2eff05[_0x118192(0x24d)];}});async function loadProducts(_0x2f34a9='',_0x156e4e=_0x108e2b(0x4ea)){const _0x39fe66=_0x108e2b,_0x55cf94={'vTsGm':function(_0x288aec,_0x1a71a2){return _0x288aec===_0x1a71a2;},'fRGfK':_0x39fe66(0x21b)+'0','PtUjV':_0x39fe66(0x3e3),'SuqZZ':_0x39fe66(0x4f3),'ksfRJ':_0x39fe66(0x50a)+'0','FkBZY':_0x39fe66(0x21c)+_0x39fe66(0x566),'rTXrx':_0x39fe66(0x508)+_0x39fe66(0x4f1),'SPYTI':_0x39fe66(0x20a)+_0x39fe66(0x37b),'GYEra':_0x39fe66(0x594),'QKCtM':_0x39fe66(0x502)+_0x39fe66(0x253),'hgpRe':_0x39fe66(0x3b8),'TLUIl':function(_0x29e177,_0x213cb8,_0x185533){return _0x29e177(_0x213cb8,_0x185533);},'pCzJw':function(_0x1515ac,_0x586ae6,_0xa6aa67){return _0x1515ac(_0x586ae6,_0xa6aa67);},'pJBMJ':_0x39fe66(0x3ef),'OIajm':_0x39fe66(0x35f),'rWyhF':_0x39fe66(0x4b9),'ktfpq':function(_0x6e77b9,_0x5363dc){return _0x6e77b9!==_0x5363dc;},'oevHa':_0x39fe66(0x4ea),'VKOEa':function(_0x495d97,_0x1d8473,_0xd6f83d,_0x4094f0){return _0x495d97(_0x1d8473,_0xd6f83d,_0x4094f0);},'iNWmf':function(_0x362970,_0x178782,_0x394ebd,_0x22e9bb){return _0x362970(_0x178782,_0x394ebd,_0x22e9bb);},'ptwXS':_0x39fe66(0x1af),'IUYAc':function(_0x435afb,_0x43f18e){return _0x435afb(_0x43f18e);},'QJhsX':function(_0x48510f,_0x55d840,_0x55d790,_0x42af53,_0xcb8a65){return _0x48510f(_0x55d840,_0x55d790,_0x42af53,_0xcb8a65);},'BaFSS':_0x39fe66(0x2bf)+_0x39fe66(0x313)+_0x39fe66(0x294),'hYcdY':_0x39fe66(0x2bf)+_0x39fe66(0x313)+_0x39fe66(0x467)+_0x39fe66(0x21e)+'.'};productListContainer[_0x39fe66(0x4de)]='',noProductsMessage[_0x39fe66(0x2cc)+'t']=_0x55cf94[_0x39fe66(0x28c)],noProductsMessage[_0x39fe66(0x27f)][_0x39fe66(0x312)](_0x55cf94[_0x39fe66(0x4cc)]),categoryFilterButtons[_0x39fe66(0x1f1)](_0x4ebcc4=>{const _0x3151bb=_0x39fe66;_0x55cf94[_0x3151bb(0x55b)](_0x4ebcc4[_0x3151bb(0x204)][_0x3151bb(0x1af)],_0x156e4e)?(_0x4ebcc4[_0x3151bb(0x27f)][_0x3151bb(0x486)](_0x55cf94[_0x3151bb(0x2cf)],_0x55cf94[_0x3151bb(0x325)],_0x55cf94[_0x3151bb(0x544)]),_0x4ebcc4[_0x3151bb(0x27f)][_0x3151bb(0x312)](_0x55cf94[_0x3151bb(0x49f)],_0x55cf94[_0x3151bb(0x531)],_0x55cf94[_0x3151bb(0x452)],_0x55cf94[_0x3151bb(0x55e)],_0x55cf94[_0x3151bb(0x584)])):(_0x4ebcc4[_0x3151bb(0x27f)][_0x3151bb(0x312)](_0x55cf94[_0x3151bb(0x2cf)],_0x55cf94[_0x3151bb(0x325)],_0x55cf94[_0x3151bb(0x544)]),_0x4ebcc4[_0x3151bb(0x27f)][_0x3151bb(0x486)](_0x55cf94[_0x3151bb(0x49f)],_0x55cf94[_0x3151bb(0x531)],_0x55cf94[_0x3151bb(0x452)],_0x55cf94[_0x3151bb(0x55e)],_0x55cf94[_0x3151bb(0x584)]));});try{let _0x217913=_0x55cf94[_0x39fe66(0x2c7)](query,_0x55cf94[_0x39fe66(0x3f3)](collection,db,_0x55cf94[_0x39fe66(0x2d9)]),_0x55cf94[_0x39fe66(0x3f3)](orderBy,_0x55cf94[_0x39fe66(0x57b)],_0x55cf94[_0x39fe66(0x34d)]));_0x55cf94[_0x39fe66(0x4e8)](_0x156e4e,_0x55cf94[_0x39fe66(0x398)])&&(_0x217913=_0x55cf94[_0x39fe66(0x4f9)](query,_0x55cf94[_0x39fe66(0x2c7)](collection,db,_0x55cf94[_0x39fe66(0x2d9)]),_0x55cf94[_0x39fe66(0x434)](where,_0x55cf94[_0x39fe66(0x28b)],'==',_0x156e4e),_0x55cf94[_0x39fe66(0x2c7)](orderBy,_0x55cf94[_0x39fe66(0x57b)],_0x55cf94[_0x39fe66(0x34d)])));const _0x3a5e2d=await _0x55cf94[_0x39fe66(0x2b0)](getDocs,_0x217913),_0xe9cad9=_0x3a5e2d[_0x39fe66(0x43f)][_0x39fe66(0x275)](_0x314a1b=>({'id':_0x314a1b['id'],..._0x314a1b[_0x39fe66(0x447)]()}));window[_0x39fe66(0x583)+'s']=_0xe9cad9;const _0x58d22c=_0x2f34a9[_0x39fe66(0x3fe)+'e'](),_0x5b8b3f=_0xe9cad9[_0x39fe66(0x256)](_0xd2b1f7=>(_0xd2b1f7[_0x39fe66(0x1c2)]||'')[_0x39fe66(0x3fe)+'e']()[_0x39fe66(0x320)](_0x58d22c)||(_0xd2b1f7[_0x39fe66(0x405)+'n']||'')[_0x39fe66(0x3fe)+'e']()[_0x39fe66(0x320)](_0x58d22c)||(_0xd2b1f7[_0x39fe66(0x1af)]||'')[_0x39fe66(0x3fe)+'e']()[_0x39fe66(0x320)](_0x58d22c));_0x55cf94[_0x39fe66(0x326)](renderProducts,_0x5b8b3f,productListContainer,noProductsMessage,![]);}catch(_0x1f0244){console[_0x39fe66(0x25b)](_0x55cf94[_0x39fe66(0x5a1)],_0x1f0244),noProductsMessage[_0x39fe66(0x2cc)+'t']=_0x55cf94[_0x39fe66(0x342)],noProductsMessage[_0x39fe66(0x27f)][_0x39fe66(0x312)](_0x55cf94[_0x39fe66(0x4cc)]);}}categoryFilterButtons[_0x108e2b(0x1f1)](_0x2a207a=>{const _0x2655bb=_0x108e2b,_0x5a768e={'YGSyo':function(_0x1eee0a,_0x33ec14,_0x8f3912){return _0x1eee0a(_0x33ec14,_0x8f3912);},'OmBxP':_0x2655bb(0x3d2)};_0x2a207a[_0x2655bb(0x20d)+_0x2655bb(0x208)](_0x5a768e[_0x2655bb(0x34f)],()=>{const _0xc5c56d=_0x2655bb;currentCategoryFilter=_0x2a207a[_0xc5c56d(0x204)][_0xc5c56d(0x1af)],_0x5a768e[_0xc5c56d(0x1cf)](loadProducts,searchBar[_0xc5c56d(0x424)][_0xc5c56d(0x5a8)](),currentCategoryFilter);});}),searchBar[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x3a6),()=>{const _0xb5eca3=_0x108e2b,_0x3e9009={'eoUto':_0xb5eca3(0x3c1),'szELi':_0xb5eca3(0x3b8),'KHJeD':function(_0x19b25d,_0x4249ed,_0x57f71d){return _0x19b25d(_0x4249ed,_0x57f71d);},'AgAMj':function(_0x1079f0,_0x11d3e1){return _0x1079f0===_0x11d3e1;},'DJMNZ':_0xb5eca3(0x4ea),'yrMal':function(_0x352e80,_0x5c59f2,_0x1b22b3,_0x1001e5,_0x562407){return _0x352e80(_0x5c59f2,_0x1b22b3,_0x1001e5,_0x562407);},'FzySj':function(_0x38dff9,_0x389945){return _0x38dff9>_0x389945;},'UcYGn':_0xb5eca3(0x22d)+_0xb5eca3(0x286)+_0xb5eca3(0x3f6)+_0xb5eca3(0x35e)+_0xb5eca3(0x59f)+_0xb5eca3(0x416)};if(!document[_0xb5eca3(0x3e4)+_0xb5eca3(0x222)](_0x3e9009[_0xb5eca3(0x2e9)])[_0xb5eca3(0x27f)][_0xb5eca3(0x276)](_0x3e9009[_0xb5eca3(0x245)])){const _0x4561b6=searchBar[_0xb5eca3(0x424)][_0xb5eca3(0x5a8)]()[_0xb5eca3(0x3fe)+'e']();if(!window[_0xb5eca3(0x583)+'s']){_0x3e9009[_0xb5eca3(0x4d0)](loadProducts,_0x4561b6,currentCategoryFilter);return;}const _0x2da838=_0x3e9009[_0xb5eca3(0x389)](currentCategoryFilter,_0x3e9009[_0xb5eca3(0x537)])?window[_0xb5eca3(0x583)+'s']:window[_0xb5eca3(0x583)+'s'][_0xb5eca3(0x256)](_0x1ff295=>_0x1ff295[_0xb5eca3(0x1af)]===currentCategoryFilter);if(!_0x4561b6){_0x3e9009[_0xb5eca3(0x2d4)](renderProducts,_0x2da838,productListContainer,noProductsMessage,![]);return;}const _0x28f5f7=_0x4561b6[_0xb5eca3(0x348)](/\s+/)[_0xb5eca3(0x256)](Boolean),_0x32f0fb=_0x2da838[_0xb5eca3(0x256)](_0x5eb52c=>{const _0x12cb3f=_0xb5eca3,_0x185a35=[_0x5eb52c[_0x12cb3f(0x1c2)]||'',_0x5eb52c[_0x12cb3f(0x405)+'n']||'',_0x5eb52c[_0x12cb3f(0x1af)]||''][_0x12cb3f(0x463)]('\x20')[_0x12cb3f(0x3fe)+'e']();return _0x28f5f7[_0x12cb3f(0x2af)](_0x4a7bc1=>_0x185a35[_0x12cb3f(0x320)](_0x4a7bc1));});_0x3e9009[_0xb5eca3(0x3b7)](_0x32f0fb[_0xb5eca3(0x552)],0x2630+-0xa6d+0x1*-0x1bc3)?(_0x3e9009[_0xb5eca3(0x2d4)](renderProducts,_0x32f0fb,productListContainer,noProductsMessage,![]),noProductsMessage[_0xb5eca3(0x27f)][_0xb5eca3(0x486)](_0x3e9009[_0xb5eca3(0x245)])):(productListContainer[_0xb5eca3(0x4de)]='',noProductsMessage[_0xb5eca3(0x2cc)+'t']=_0x3e9009[_0xb5eca3(0x43c)],noProductsMessage[_0xb5eca3(0x27f)][_0xb5eca3(0x312)](_0x3e9009[_0xb5eca3(0x245)]));}});function renderProducts(_0x4084fc,_0x1014c8,_0x56af69,_0x42f195=![]){const _0x26f9b4=_0x108e2b,_0x1114f6={'uTCUx':_0x26f9b4(0x1bb)+_0x26f9b4(0x528),'voZHP':function(_0x38febe,_0xbfeea2){return _0x38febe(_0xbfeea2);},'rOLio':_0x26f9b4(0x4b6),'Jeguw':_0x26f9b4(0x38f)+_0x26f9b4(0x318)+_0x26f9b4(0x54e)+_0x26f9b4(0x1b2)+_0x26f9b4(0x533)+_0x26f9b4(0x1f3)+_0x26f9b4(0x4f1),'MaOmJ':function(_0x5e75eb,_0x22afb1){return _0x5e75eb===_0x22afb1;},'lXRRo':_0x26f9b4(0x301),'gaSGc':function(_0x10de25,_0x328e0b){return _0x10de25(_0x328e0b);},'NPAeR':_0x26f9b4(0x51f)+_0x26f9b4(0x41f)+_0x26f9b4(0x240)+_0x26f9b4(0x503)+_0x26f9b4(0x2b7)+_0x26f9b4(0x32e),'IPVLp':_0x26f9b4(0x1b1),'hGLvP':_0x26f9b4(0x380)+_0x26f9b4(0x394),'uIGuV':_0x26f9b4(0x3d2),'ELUVS':_0x26f9b4(0x3b8),'Uuuha':function(_0x465266,_0x5964d2){return _0x465266===_0x5964d2;},'JFWEu':_0x26f9b4(0x22d)+_0x26f9b4(0x556)+_0x26f9b4(0x3ca)+_0x26f9b4(0x48d),'ePfOP':_0x26f9b4(0x22d)+_0x26f9b4(0x1db)+_0x26f9b4(0x52d)+_0x26f9b4(0x4a9)};_0x1014c8[_0x26f9b4(0x4de)]='',_0x56af69[_0x26f9b4(0x27f)][_0x26f9b4(0x486)](_0x1114f6[_0x26f9b4(0x207)]);if(!Array[_0x26f9b4(0x4d7)](_0x4084fc)||_0x1114f6[_0x26f9b4(0x262)](_0x4084fc[_0x26f9b4(0x552)],0x16fe+-0x133c*0x1+0x1e1*-0x2)){_0x56af69[_0x26f9b4(0x27f)][_0x26f9b4(0x312)](_0x1114f6[_0x26f9b4(0x207)]),_0x56af69[_0x26f9b4(0x2cc)+'t']=_0x42f195?_0x1114f6[_0x26f9b4(0x4f0)]:_0x1114f6[_0x26f9b4(0x1d2)];return;}_0x4084fc[_0x26f9b4(0x1f1)](_0x3b2372=>{const _0x7b2b32=_0x26f9b4,_0x4820c5={'bZgmo':_0x1114f6[_0x7b2b32(0x1ea)],'pFKIz':function(_0x2df00b,_0x4bb91b){const _0x4d17ec=_0x7b2b32;return _0x1114f6[_0x4d17ec(0x28a)](_0x2df00b,_0x4bb91b);}},_0x101872=document[_0x7b2b32(0x329)+_0x7b2b32(0x217)](_0x1114f6[_0x7b2b32(0x3b0)]);_0x101872[_0x7b2b32(0x55c)]=_0x7b2b32(0x1c5)+_0x7b2b32(0x4fc)+_0x7b2b32(0x25f)+_0x7b2b32(0x23d)+_0x7b2b32(0x55d)+_0x7b2b32(0x32a)+_0x7b2b32(0x3f2)+_0x7b2b32(0x43b)+(_0x42f195?'':_0x1114f6[_0x7b2b32(0x35a)]),_0x101872[_0x7b2b32(0x21d)+'te'](_0x1114f6[_0x7b2b32(0x1ea)],_0x3b2372['id']);const _0x3d5537=_0x1114f6[_0x7b2b32(0x3ec)](_0x1114f6[_0x7b2b32(0x28a)](parseFloat,_0x3b2372[_0x7b2b32(0x484)]),0x7*-0x1ed+0x26f0+-0x1975)?_0x1114f6[_0x7b2b32(0x401)]:'$'+_0x1114f6[_0x7b2b32(0x53e)](parseFloat,_0x3b2372[_0x7b2b32(0x484)])[_0x7b2b32(0x292)](-0x21*0x47+0xb71+-0x248);let _0x908966='';_0x42f195&&(_0x908966=_0x7b2b32(0x560)+_0x7b2b32(0x45f)+_0x7b2b32(0x377)+_0x7b2b32(0x1c6)+_0x7b2b32(0x2b3)+_0x7b2b32(0x2fd)+_0x7b2b32(0x284)+_0x7b2b32(0x400)+_0x7b2b32(0x3f9)+_0x3b2372[_0x7b2b32(0x235)]+(_0x7b2b32(0x37e)+_0x7b2b32(0x2c9)+_0x7b2b32(0x4d3))+(_0x3b2372[_0x7b2b32(0x1c2)]||'')[_0x7b2b32(0x1c1)](/\s/g,'-')+(_0x7b2b32(0x25d)+_0x7b2b32(0x218)+_0x7b2b32(0x215)+_0x7b2b32(0x249)+_0x7b2b32(0x518)+_0x7b2b32(0x49e)+_0x7b2b32(0x48f)+_0x7b2b32(0x242)+_0x7b2b32(0x4e4)+_0x7b2b32(0x322)+_0x7b2b32(0x56c)+_0x7b2b32(0x2d8)+_0x7b2b32(0x200)+_0x7b2b32(0x51a)+_0x7b2b32(0x2e2)+_0x7b2b32(0x1ca)+_0x7b2b32(0x225))+_0x3b2372['id']+(_0x7b2b32(0x47c)+_0x7b2b32(0x2e7)+_0x7b2b32(0x45b)+_0x7b2b32(0x5a6)+_0x7b2b32(0x233)+_0x7b2b32(0x336)+_0x7b2b32(0x337)+_0x7b2b32(0x519)+_0x7b2b32(0x223)+_0x7b2b32(0x5a7)+_0x7b2b32(0x365)+_0x7b2b32(0x1dd)+_0x7b2b32(0x595)+_0x7b2b32(0x520)));_0x101872[_0x7b2b32(0x4de)]=_0x7b2b32(0x1c9)+_0x7b2b32(0x25c)+(_0x3b2372[_0x7b2b32(0x2ab)+_0x7b2b32(0x459)]||_0x1114f6[_0x7b2b32(0x3ab)])+_0x7b2b32(0x1e3)+_0x3b2372[_0x7b2b32(0x1c2)]+(_0x7b2b32(0x5a4)+_0x7b2b32(0x57a)+_0x7b2b32(0x2ac)+_0x7b2b32(0x4d2)+_0x7b2b32(0x548)+_0x7b2b32(0x3da)+_0x7b2b32(0x1b8)+_0x7b2b32(0x310)+_0x7b2b32(0x4e2)+_0x7b2b32(0x2bd)+_0x7b2b32(0x45a)+_0x7b2b32(0x55f)+_0x7b2b32(0x219)+_0x7b2b32(0x586))+_0x3b2372[_0x7b2b32(0x1c2)]+(_0x7b2b32(0x213)+_0x7b2b32(0x4c6)+_0x7b2b32(0x3ba)+_0x7b2b32(0x550)+_0x7b2b32(0x219)+_0x7b2b32(0x340)+_0x7b2b32(0x3f8)+_0x7b2b32(0x1ed))+(_0x3b2372[_0x7b2b32(0x1af)]||_0x1114f6[_0x7b2b32(0x470)])+(_0x7b2b32(0x468)+_0x7b2b32(0x1c8)+_0x7b2b32(0x42a)+_0x7b2b32(0x238)+_0x7b2b32(0x508)+_0x7b2b32(0x54c)+_0x7b2b32(0x2c3)+_0x7b2b32(0x435)+_0x7b2b32(0x490)+_0x7b2b32(0x495)+_0x7b2b32(0x30b)+_0x7b2b32(0x1d4)+_0x7b2b32(0x1d7))+_0x3b2372[_0x7b2b32(0x405)+'n']+(_0x7b2b32(0x468)+_0x7b2b32(0x20e)+_0x7b2b32(0x505)+_0x7b2b32(0x574)+_0x7b2b32(0x274)+_0x7b2b32(0x492)+_0x7b2b32(0x38b)+_0x7b2b32(0x51b)+_0x7b2b32(0x4b1)+_0x7b2b32(0x4b7)+_0x7b2b32(0x553)+_0x7b2b32(0x466))+_0x3d5537+(_0x7b2b32(0x461)+_0x7b2b32(0x1f0))+_0x908966+(_0x7b2b32(0x2f9)+_0x7b2b32(0x1de)),_0x1014c8[_0x7b2b32(0x3b3)+'d'](_0x101872);if(_0x42f195){const _0x25694e=_0x101872[_0x7b2b32(0x4ca)+_0x7b2b32(0x239)](_0x1114f6[_0x7b2b32(0x458)]);_0x25694e&&_0x25694e[_0x7b2b32(0x20d)+_0x7b2b32(0x208)](_0x1114f6[_0x7b2b32(0x309)],_0x21c4d5=>{const _0xd3318f=_0x7b2b32;_0x21c4d5[_0xd3318f(0x41c)+_0xd3318f(0x4af)]();const _0x3452a3=_0x25694e[_0xd3318f(0x409)+'te'](_0x4820c5[_0xd3318f(0x48b)]);if(_0x3452a3)_0x4820c5[_0xd3318f(0x1b0)](deleteProduct,_0x3452a3);});}else _0x101872[_0x7b2b32(0x20d)+_0x7b2b32(0x208)](_0x1114f6[_0x7b2b32(0x309)],()=>{const _0x312ea6=_0x7b2b32,_0x3b08b8=_0x101872[_0x312ea6(0x409)+'te'](_0x4820c5[_0x312ea6(0x48b)]);if(_0x3b08b8)_0x4820c5[_0x312ea6(0x1b0)](showProductDetails,_0x3b08b8);});});}async function deleteProduct(_0x41b1bc){const _0xd5463b=_0x108e2b,_0x381455={'BQyGE':function(_0x184fc5,_0x2fe954){return _0x184fc5(_0x2fe954);},'UNQVM':function(_0x2e548a,_0x37c92c,_0x5c58e2,_0x2b97fc){return _0x2e548a(_0x37c92c,_0x5c58e2,_0x2b97fc);},'nEOUn':_0xd5463b(0x3ef),'qSiPE':function(_0x2105f8,_0xefc959){return _0x2105f8(_0xefc959);},'SOMwT':_0xd5463b(0x22f)+_0xd5463b(0x308)+_0xd5463b(0x3f4),'hGNqn':function(_0x196b76,_0x52df7a,_0x272a29){return _0x196b76(_0x52df7a,_0x272a29);},'wPloD':function(_0x5dcecd){return _0x5dcecd();},'AvAmD':_0xd5463b(0x587)+_0xd5463b(0x2aa)+_0xd5463b(0x44f),'ijtKK':_0xd5463b(0x229)+_0xd5463b(0x39d)+_0xd5463b(0x2de)+_0xd5463b(0x3a7)+_0xd5463b(0x4dd)+_0xd5463b(0x56a)+_0xd5463b(0x369)+_0xd5463b(0x5a5),'aKnAU':_0xd5463b(0x58d)+_0xd5463b(0x414)+_0xd5463b(0x1ff)+_0xd5463b(0x44b)+_0xd5463b(0x31d)+_0xd5463b(0x227)+_0xd5463b(0x327)+_0xd5463b(0x501)+_0xd5463b(0x1e6)};_0x381455[_0xd5463b(0x1f9)](showCustomConfirm,_0x381455[_0xd5463b(0x2c4)],async()=>{const _0x579de8=_0xd5463b;try{await _0x381455[_0x579de8(0x263)](deleteDoc,_0x381455[_0x579de8(0x3fb)](doc,db,_0x381455[_0x579de8(0x3c5)],_0x41b1bc)),_0x381455[_0x579de8(0x341)](showCustomAlert,_0x381455[_0x579de8(0x23b)]),await _0x381455[_0x579de8(0x1f9)](loadProducts,'',currentCategoryFilter),await _0x381455[_0x579de8(0x4f7)](showDashboard);}catch(_0x5195bd){console[_0x579de8(0x25b)](_0x381455[_0x579de8(0x3bb)],_0x5195bd),_0x381455[_0x579de8(0x263)](showCustomAlert,_0x381455[_0x579de8(0x52c)]);}});}async function showProductDetails(_0x387941){const _0x4e219f=_0x108e2b,_0x2396ca={'DVfgJ':function(_0x4371e6,_0x758502){return _0x4371e6(_0x758502);},'PfVMw':function(_0x20c8ae,_0x14c9fc){return _0x20c8ae+_0x14c9fc;},'WFeZt':function(_0x1172e7,_0x35a476){return _0x1172e7+_0x35a476;},'CKvdc':_0x4e219f(0x2d5)+_0x4e219f(0x3df)+'\x20','fbDnu':_0x4e219f(0x571),'fFJQd':_0x4e219f(0x46b)+'ed','mnmEF':function(_0x29094f,_0x572977){return _0x29094f!==_0x572977;},'sGqIE':_0x4e219f(0x557),'cIpeu':function(_0x5c01d6,_0x295f29){return _0x5c01d6(_0x295f29);},'ENmYQ':_0x4e219f(0x2d5)+_0x4e219f(0x30e)+_0x4e219f(0x378)+_0x4e219f(0x33c)+_0x4e219f(0x27b),'RlDtg':_0x4e219f(0x2c2),'HKOoz':_0x4e219f(0x303)+_0x4e219f(0x36f),'akizl':_0x4e219f(0x3b8),'BZVMX':function(_0x20b45d,_0x14f5fc){return _0x20b45d(_0x14f5fc);},'rbKTZ':function(_0x3f53aa,_0x4b99ba,_0x264b7d,_0x4bcbbd){return _0x3f53aa(_0x4b99ba,_0x264b7d,_0x4bcbbd);},'acynv':_0x4e219f(0x3ef),'eCIID':_0x4e219f(0x2fa)+_0x4e219f(0x2b9),'Yaxwy':_0x4e219f(0x51f)+_0x4e219f(0x41f)+_0x4e219f(0x563)+_0x4e219f(0x545)+_0x4e219f(0x2b7)+_0x4e219f(0x32e),'pfrMS':function(_0x6ad6d7,_0x4b7d0c){return _0x6ad6d7===_0x4b7d0c;},'iBCyF':_0x4e219f(0x301),'FVNPq':_0x4e219f(0x4ec)+_0x4e219f(0x53b)+_0x4e219f(0x59e)+_0x4e219f(0x293)+_0x4e219f(0x331),'uMqPN':function(_0xa9d116,_0x3f990d){return _0xa9d116>_0x3f990d;},'ySQnz':_0x4e219f(0x381),'ePJIK':_0x4e219f(0x4c8)+_0x4e219f(0x3d6)+_0x4e219f(0x3f1),'EVZTp':_0x4e219f(0x417)+_0x4e219f(0x4ac)+_0x4e219f(0x35b)+_0x4e219f(0x1f4)+_0x4e219f(0x281)+_0x4e219f(0x3b5)+_0x4e219f(0x49b)+_0x4e219f(0x500)+_0x4e219f(0x422)+_0x4e219f(0x3f0),'GEKBj':_0x4e219f(0x4ff)+'5','Ocvcx':_0x4e219f(0x2d1)+'00','KllNk':_0x4e219f(0x322)+_0x4e219f(0x2f3),'RRSTg':_0x4e219f(0x3e3),'PlRen':_0x4e219f(0x297),'kvXVZ':_0x4e219f(0x4dc),'iJeuh':_0x4e219f(0x2bf)+_0x4e219f(0x313)+_0x4e219f(0x578),'tddBH':_0x4e219f(0x2bf)+_0x4e219f(0x313)+_0x4e219f(0x473)+_0x4e219f(0x214)+_0x4e219f(0x4db)};_0x2396ca[_0x4e219f(0x32b)](showTab,_0x2396ca[_0x4e219f(0x4b4)]),productDetailsError[_0x4e219f(0x27f)][_0x4e219f(0x486)](_0x2396ca[_0x4e219f(0x50b)]);try{const _0x31dcd9=await _0x2396ca[_0x4e219f(0x542)](getDoc,_0x2396ca[_0x4e219f(0x49d)](doc,db,_0x2396ca[_0x4e219f(0x2ca)],_0x387941));if(!_0x31dcd9[_0x4e219f(0x3c3)]()){productDetailsError[_0x4e219f(0x2cc)+'t']=_0x2396ca[_0x4e219f(0x3fa)],productDetailsError[_0x4e219f(0x27f)][_0x4e219f(0x312)](_0x2396ca[_0x4e219f(0x50b)]);return;}const _0x4fe35a={'id':_0x31dcd9['id'],..._0x31dcd9[_0x4e219f(0x447)]()};detailProductImage[_0x4e219f(0x34c)]=_0x4fe35a[_0x4e219f(0x2ab)+_0x4e219f(0x459)]||_0x2396ca[_0x4e219f(0x221)],detailProductTitle[_0x4e219f(0x2cc)+'t']=_0x4fe35a[_0x4e219f(0x1c2)],detailProductDescription[_0x4e219f(0x2cc)+'t']=_0x4fe35a[_0x4e219f(0x405)+'n'];const _0x40e0af=_0x2396ca[_0x4e219f(0x4e0)](_0x2396ca[_0x4e219f(0x1e2)](parseFloat,_0x4fe35a[_0x4e219f(0x484)]),-0x26d5+-0x74a+0x2e1f)?_0x2396ca[_0x4e219f(0x464)]:'$'+_0x2396ca[_0x4e219f(0x542)](parseFloat,_0x4fe35a[_0x4e219f(0x484)])[_0x4e219f(0x292)](-0x21c7+0x1b9b*0x1+0x1*0x62e);detailProductPrice[_0x4e219f(0x2cc)+'t']=_0x40e0af,detailActionButton[_0x4e219f(0x55c)]=_0x2396ca[_0x4e219f(0x40d)],detailActionButton[_0x4e219f(0x573)]=![];if(_0x2396ca[_0x4e219f(0x3a5)](_0x2396ca[_0x4e219f(0x32b)](parseFloat,_0x4fe35a[_0x4e219f(0x484)]),-0xd6e+0x2*-0xefd+-0x4*-0xada))detailActionButton[_0x4e219f(0x26c)][_0x4e219f(0x1ba)]=_0x2396ca[_0x4e219f(0x3e5)],paypalButtonContainer[_0x4e219f(0x4de)]='',_0x2396ca[_0x4e219f(0x535)](typeof window[_0x4e219f(0x526)],_0x2396ca[_0x4e219f(0x2e0)])&&window[_0x4e219f(0x526)][_0x4e219f(0x333)]?window[_0x4e219f(0x526)][_0x4e219f(0x333)]({'createOrder':function(_0x43f52f,_0x3a3f6a){const _0x42e377=_0x4e219f;return _0x3a3f6a[_0x42e377(0x4cb)][_0x42e377(0x1d0)]({'purchase_units':[{'amount':{'value':_0x4fe35a[_0x42e377(0x484)][_0x42e377(0x536)]()},'description':_0x4fe35a[_0x42e377(0x1c2)]}]});},'onApprove':async function(_0x47b6ed,_0x504f0f){const _0x4a5297=_0x4e219f;return _0x504f0f[_0x4a5297(0x4cb)][_0x4a5297(0x1d1)]()[_0x4a5297(0x57d)](async function(_0x551ec6){const _0x3f679c=_0x4a5297;_0x2396ca[_0x3f679c(0x1e2)](showCustomAlert,_0x2396ca[_0x3f679c(0x2ee)](_0x2396ca[_0x3f679c(0x2a3)](_0x2396ca[_0x3f679c(0x1bc)],_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x230)][_0x3f679c(0x56f)]),'!')),paypalButtonContainer[_0x3f679c(0x4de)]=_0x3f679c(0x54f)+_0x4fe35a[_0x3f679c(0x235)]+(_0x3f679c(0x37e)+_0x3f679c(0x58a)+_0x3f679c(0x30c)+_0x3f679c(0x514)+_0x3f679c(0x1fc)+_0x3f679c(0x3ad)+_0x3f679c(0x4fb)+_0x3f679c(0x3e3)+_0x3f679c(0x258)+_0x3f679c(0x538)+_0x3f679c(0x4a1)+_0x3f679c(0x3c8)+_0x3f679c(0x390)+_0x3f679c(0x2d8)+_0x3f679c(0x4a4)+_0x3f679c(0x580)),await _0x2396ca[_0x3f679c(0x1e2)](handleProductPurchase,_0x4fe35a),_0x2396ca[_0x3f679c(0x1e2)](sendSaleEmail,{'buyerName':_0x551ec6[_0x3f679c(0x388)]&&_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x230)]&&_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x230)][_0x3f679c(0x56f)]?_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x230)][_0x3f679c(0x56f)]:_0x2396ca[_0x3f679c(0x569)],'buyerEmail':_0x551ec6[_0x3f679c(0x388)]&&_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x517)+_0x3f679c(0x3f7)]?_0x551ec6[_0x3f679c(0x388)][_0x3f679c(0x517)+_0x3f679c(0x3f7)]:_0x2396ca[_0x3f679c(0x569)],'sellerPaypalEmail':_0x4fe35a[_0x3f679c(0x3d0)+'l']||_0x2396ca[_0x3f679c(0x1ae)],'productTitle':_0x4fe35a[_0x3f679c(0x1c2)]||_0x2396ca[_0x3f679c(0x569)],'amount':_0x2396ca[_0x3f679c(0x535)](typeof _0x4fe35a[_0x3f679c(0x484)],_0x2396ca[_0x3f679c(0x2e0)])?_0x4fe35a[_0x3f679c(0x484)]:_0x2396ca[_0x3f679c(0x569)]});});},'onError':function(_0x15568f){const _0x5d692a=_0x4e219f;_0x2396ca[_0x5d692a(0x32b)](showCustomAlert,_0x2396ca[_0x5d692a(0x472)]),console[_0x5d692a(0x25b)](_0x15568f);}})[_0x4e219f(0x1c0)](_0x2396ca[_0x4e219f(0x4f8)]):paypalButtonContainer[_0x4e219f(0x4de)]=_0x2396ca[_0x4e219f(0x1b9)];else{const _0x42608d=_0x2396ca[_0x4e219f(0x1ee)][_0x4e219f(0x348)]('|');let _0x2494e8=0x1e6f+0x2657+-0x44c6;while(!![]){switch(_0x42608d[_0x2494e8++]){case'0':detailActionButton[_0x4e219f(0x27f)][_0x4e219f(0x486)](_0x2396ca[_0x4e219f(0x26e)],_0x2396ca[_0x4e219f(0x50e)],_0x2396ca[_0x4e219f(0x2cb)]);continue;case'1':detailActionButton[_0x4e219f(0x26c)][_0x4e219f(0x1ba)]='';continue;case'2':paypalButtonContainer[_0x4e219f(0x4de)]='';continue;case'3':detailActionButton[_0x4e219f(0x2cc)+'t']=_0x2396ca[_0x4e219f(0x450)];continue;case'4':detailActionButton[_0x4e219f(0x2ea)]=()=>{const _0x3186c8=_0x4e219f;window[_0x3186c8(0x26d)](_0x4fe35a[_0x3186c8(0x235)],_0x2396ca[_0x3186c8(0x4c7)]);};continue;case'5':detailActionButton[_0x4e219f(0x21d)+'te'](_0x2396ca[_0x4e219f(0x4ee)],_0x4e219f(0x58c)+_0x4fe35a[_0x4e219f(0x1c2)]);continue;}break;}}}catch(_0x1d9341){console[_0x4e219f(0x25b)](_0x2396ca[_0x4e219f(0x3aa)],_0x1d9341),productDetailsError[_0x4e219f(0x2cc)+'t']=_0x2396ca[_0x4e219f(0x277)],productDetailsError[_0x4e219f(0x27f)][_0x4e219f(0x312)](_0x2396ca[_0x4e219f(0x50b)]);}}async function updateSellerBalance(_0x1eaf7e){const _0x1742c4=_0x108e2b,_0x398361={'RPufC':function(_0x29c494,_0x4ac96e){return _0x29c494(_0x4ac96e);},'JNRFJ':function(_0x8a0cba,_0x437944,_0x583e56,_0x46d880){return _0x8a0cba(_0x437944,_0x583e56,_0x46d880);},'qhuPU':_0x1742c4(0x2a5),'YLHea':function(_0x174710,_0x374967){return _0x174710===_0x374967;},'NlbAT':_0x1742c4(0x22b),'UmdZc':_0x1742c4(0x4b8)};try{const _0x55002a=await _0x398361[_0x1742c4(0x491)](getDoc,_0x398361[_0x1742c4(0x2e1)](doc,db,_0x398361[_0x1742c4(0x2f1)],_0x1eaf7e));let _0x1f2379=0x1*0x1591+0x26f6*-0x1+-0x1*-0x1165;_0x55002a[_0x1742c4(0x3c3)]()&&_0x398361[_0x1742c4(0x57c)](typeof _0x55002a[_0x1742c4(0x447)]()[_0x1742c4(0x421)],_0x398361[_0x1742c4(0x1fa)])&&(_0x1f2379=_0x55002a[_0x1742c4(0x447)]()[_0x1742c4(0x421)]),sellerBalance[_0x1742c4(0x2cc)+'t']='$'+_0x1f2379[_0x1742c4(0x292)](0x25d1+0x3*-0x275+-0x8*0x3ce);}catch(_0x35253d){sellerBalance[_0x1742c4(0x2cc)+'t']=_0x398361[_0x1742c4(0x231)];}}let balanceUnsub=null;function watchSellerBalance(_0x3bab3a){const _0xab58d8=_0x108e2b,_0x325141={'nuZWH':function(_0x23865d,_0x2756db){return _0x23865d===_0x2756db;},'TXKRT':_0xab58d8(0x22b),'ElMOx':function(_0x4acb03){return _0x4acb03();},'kRCti':function(_0x161b29,_0x338547,_0x26e9dc){return _0x161b29(_0x338547,_0x26e9dc);},'rCYxd':function(_0xeb7289,_0x3afe65,_0x198473,_0x1ec6b7){return _0xeb7289(_0x3afe65,_0x198473,_0x1ec6b7);},'dwiaJ':_0xab58d8(0x2a5)};if(balanceUnsub)_0x325141[_0xab58d8(0x307)](balanceUnsub);balanceUnsub=_0x325141[_0xab58d8(0x446)](onSnapshot,_0x325141[_0xab58d8(0x1be)](doc,db,_0x325141[_0xab58d8(0x2da)],_0x3bab3a),_0x2af4e1=>{const _0x445f90=_0xab58d8;let _0x1ebd92=-0xa1*0x33+-0x10f+0x2122;if(_0x2af4e1[_0x445f90(0x3c3)]()&&_0x325141[_0x445f90(0x582)](typeof _0x2af4e1[_0x445f90(0x447)]()[_0x445f90(0x421)],_0x325141[_0x445f90(0x1ef)]))_0x1ebd92=_0x2af4e1[_0x445f90(0x447)]()[_0x445f90(0x421)];sellerBalance[_0x445f90(0x2cc)+'t']='$'+_0x1ebd92[_0x445f90(0x292)](-0x1718+-0x1ae*-0xb+-0x2*-0x250);});}async function loadMyProducts(_0x15d258){const _0x4913c7=_0x108e2b,_0x128e45={'zJytW':_0x4913c7(0x3b8),'ZwLAB':function(_0x583067,_0x232521,_0x96965d,_0x204c64){return _0x583067(_0x232521,_0x96965d,_0x204c64);},'nonng':function(_0x189c5c,_0x1108c2,_0x7e9953){return _0x189c5c(_0x1108c2,_0x7e9953);},'NVcTz':_0x4913c7(0x3ef),'yblLW':function(_0x114bca,_0x350fd7,_0x5f4222,_0x57db71){return _0x114bca(_0x350fd7,_0x5f4222,_0x57db71);},'ZqcWb':_0x4913c7(0x371),'vZhKp':function(_0x2a3907,_0x4046c9,_0x49896c){return _0x2a3907(_0x4046c9,_0x49896c);},'wOrpp':_0x4913c7(0x35f),'MHqgr':_0x4913c7(0x4b9),'ISSWv':function(_0x2968ca,_0x17b869){return _0x2968ca(_0x17b869);},'ZQAYo':function(_0x31185c,_0x205393){return _0x31185c===_0x205393;},'lNNQl':function(_0x550460,_0x26a0f7,_0x18c128,_0x1b02ac,_0x40198d){return _0x550460(_0x26a0f7,_0x18c128,_0x1b02ac,_0x40198d);},'mGeiB':_0x4913c7(0x2bf)+_0x4913c7(0x216)+_0x4913c7(0x4ed),'hTOtA':function(_0x2406ca,_0x1113c0){return _0x2406ca+_0x1113c0;},'BcLMv':function(_0x19623f,_0x1569ad){return _0x19623f+_0x1569ad;},'LAYPM':_0x4913c7(0x417)+_0x4913c7(0x52b)+_0x4913c7(0x296)+_0x4913c7(0x238)+_0x4913c7(0x351)+_0x4913c7(0x289)+_0x4913c7(0x29a)+_0x4913c7(0x540)+_0x4913c7(0x471),'zepbM':_0x4913c7(0x2a6)};myProductsContainer[_0x4913c7(0x4de)]='',noMyProductsMessage[_0x4913c7(0x27f)][_0x4913c7(0x486)](_0x128e45[_0x4913c7(0x2dd)]);try{const _0x5b902b=_0x128e45[_0x4913c7(0x462)](query,_0x128e45[_0x4913c7(0x311)](collection,db,_0x128e45[_0x4913c7(0x406)]),_0x128e45[_0x4913c7(0x383)](where,_0x128e45[_0x4913c7(0x444)],'==',_0x15d258),_0x128e45[_0x4913c7(0x3cb)](orderBy,_0x128e45[_0x4913c7(0x57e)],_0x128e45[_0x4913c7(0x596)])),_0x294233=await _0x128e45[_0x4913c7(0x4a3)](getDocs,_0x5b902b),_0x12be6b=_0x294233[_0x4913c7(0x43f)][_0x4913c7(0x275)](_0x399463=>({'id':_0x399463['id'],..._0x399463[_0x4913c7(0x447)]()}));if(_0x128e45[_0x4913c7(0x57f)](_0x12be6b[_0x4913c7(0x552)],-0x84b+0x1093+-0x848)){noMyProductsMessage[_0x4913c7(0x27f)][_0x4913c7(0x312)](_0x128e45[_0x4913c7(0x2dd)]);return;}_0x128e45[_0x4913c7(0x3eb)](renderProducts,_0x12be6b,myProductsContainer,noMyProductsMessage,!![]);}catch(_0x50505e){console[_0x4913c7(0x25b)](_0x128e45[_0x4913c7(0x319)],_0x50505e),myProductsContainer[_0x4913c7(0x4de)]=_0x128e45[_0x4913c7(0x3c2)](_0x128e45[_0x4913c7(0x23c)](_0x128e45[_0x4913c7(0x1f7)],_0x50505e[_0x4913c7(0x24e)]),_0x128e45[_0x4913c7(0x4cd)]);}}function openEditProductModal(_0x23833d){const _0x289d99=_0x108e2b,_0x569188={'JJqHd':_0x289d99(0x559)+'1','risyX':_0x289d99(0x3b8)},_0xa87cb8=_0x569188[_0x289d99(0x330)][_0x289d99(0x348)]('|');let _0x214c91=0x1*-0x196d+0x1b8f+0x111*-0x2;while(!![]){switch(_0xa87cb8[_0x214c91++]){case'0':editProductIdInput[_0x289d99(0x424)]=_0x23833d['id'];continue;case'1':editProductModal[_0x289d99(0x27f)][_0x289d99(0x312)](_0x569188[_0x289d99(0x453)]);continue;case'2':editDescriptionInput[_0x289d99(0x424)]=_0x23833d[_0x289d99(0x405)+'n'];continue;case'3':editFileUrlInput[_0x289d99(0x424)]=_0x23833d[_0x289d99(0x235)];continue;case'4':editPriceInput[_0x289d99(0x424)]=_0x23833d[_0x289d99(0x484)];continue;case'5':editTitleInput[_0x289d99(0x424)]=_0x23833d[_0x289d99(0x1c2)];continue;}break;}}function closeEditProductModal(){const _0x32cb5f=_0x108e2b,_0x3a83bd={'XVOrj':_0x32cb5f(0x3b8)};editProductModal[_0x32cb5f(0x27f)][_0x32cb5f(0x486)](_0x3a83bd[_0x32cb5f(0x2fc)]);}function _0x293a(){const _0x6f3c9b=['a>\x0a\x20\x20\x20\x20\x20\x20\x20','>\x0a\x20\x20\x20\x20\x20\x20\x20\x20','editTitle','XjueX','psVlJ','https://vi','v>\x0a\x20\x20\x20\x20\x20\x20','r\x20a\x20positi','visibility','987723EgmMwC','geContaine','82bbb.apps','paypal','<ul>','ct-id','jmDrT','email.','text-cente','ijtKK','tching\x20you','IPOdj','RFdAS','cancelEdit','FkBZY','vEcCJ','nt\x20dark:bo','UlSLt','mnmEF','toString','DJMNZ','er\x20py-3\x20ro','reload','lQOkb','3\x20rounded-','zkHiu','00\x20p-6\x20rou','gaSGc','duct.','ur\x20product','ilename','BZVMX','fYQza','SuqZZ','0x400?text','FAILED\x20to\x20','mConfirmNo','t-cover\x20w-','delete\x20acc','Btn','om/api/?na','400\x20text-s','sted\x20succe','der\x20border','<a\x20href=\x22','y-600\x20dark','class=\x22bg-','length','ld\x20text-bl','8mdvo','main\x20secti','s\x20listed\x20o','undefined','XBqqD','0|5|2|4|3|','service_px','vTsGm','className','dow\x20p-4\x20fl','SPYTI','y-900\x20dark','\x0a\x20\x20\x20\x20\x20\x20\x20\x20<','res-recent','wQTtc','der.com/60','lid','tradedeck_','ay-700','ion\x22>No</b','list\x20produ','fbDnu','Firestore\x20','33998920xNUspQ','ray-600\x20tr','dark:bg-bl','openPrevie','given_name','ktEwD','Unknown','SeWSR','disabled','\x20flex\x20just','detailActi','leted\x20succ','loading','t\x20details:','TerDo','class=\x22rou','OIajm','YLHea','then','wOrpp','ZQAYo','roduct</a>','PqOgA','nuZWH','allProduct','GYEra','p\x20class=\x22t','-100\x22>','Error\x20remo','email','667455OwwqOQ','_blank\x22\x20cl','>\x0a\x20\x20','Download\x20','Are\x20you\x20su','ue-600\x20tex','POQDT','ion\x20cancel','EBpIv','ad\x20failed.','t\x20to\x20Fires','shadow-sm','\x20\x20\x20\x20\x20\x20</di','MHqgr','gNLtJ','82bbb','nsition\x22>O','Please\x20wai','OKbrG','e\x20signed\x20i','1qcuwEM','xl\x20font-se','ifferent\x20k','send\x20sale\x20','BaFSS','Graphics','ray-200','\x20preview\x22\x20','t\x20fails)','-3\x20py-1\x20bg','ition\x20ml-2','trim','7552359315','r\x20account?','\x20\x20\x20</div>\x0a','success','ct.\x20Please','G-4RXR7V9N','fFJQd','category','pFKIz','N/A','-transpare','0\x20dark:tex','ellForm','https://ui','TradeDeck\x20','-avatars.c','\x20\x20\x20\x20<h3\x20cl','EVZTp','display','data-produ','CKvdc','\x20provided.','rCYxd','</li>','render','replace','title','s=\x22flex\x20ju','urDpt','bg-white\x20d','lex\x20justif','R6wWdQKrXt','\x20<p\x20class=','\x0a\x20\x20\x20\x20\x20\x20<im','\x20data-prod','ehpqB','.fas','82bbb.fire','kQfYm','YGSyo','create','capture','ePfOP','\x20This\x20cann','\x20whitespac','adow-xl\x20ma','github.io/','e-nowrap\x22>','location','desejdvif','asbdb','s\x20found\x20ma','format','button>\x0a\x20\x20','iv>\x0a\x20\x20\x20\x20','t\x20for\x20the\x20','ext-lg\x20fon','preventDef','DVfgJ','\x22\x20alt=\x22','tore\x20rules','nce','undone.','BiAiT','Courses','white\x20dark','uTCUx','ton-contai','getItem','ategory:\x20','GEKBj','TXKRT','\x20\x20\x20\x20\x20\x20','forEach','</ul>','rder-gray-','xt-red-400','-5\x20py-2\x20ro','default','LAYPM','nMPlE','hGNqn','NlbAT','detailProd','-green-600','cfQFB','ue-900','t\x20to\x20perma','Download</','hbCEy','aejmy','page','dataset','setItem','EFOyB','ELUVS','stener','match','dark:text-','userEmail','FPRYc','addEventLi','\x20<div\x20clas','-4\x22>\x0a\x20\x20\x20\x20\x20','cgDor','uctDescrip','Failed\x20to\x20','</h3>\x0a\x20\x20\x20\x20','\x20Please\x20tr','g-gray-600','ing\x20user\x27s','ent','x-3\x20py-1\x20b',':text-gray','etails.\x20(C','bg-blue-60','dark:bg-gr','setAttribu','\x20try\x20again','bg-red-600','Loaded','Yaxwy','ById','-700\x20trans','Video','uct-id=\x22','QBaYS','roduct?\x20Th','set','Error\x20deli','aria-curre','number','lertOk\x22\x20cl','No\x20product','Price\x20must','Product\x20de','name','UmdZc','t-semibold','-red-600\x20t','ne.','fileUrl','ext-center','torAll','-600\x20dark:','tor','600','SOMwT','BcLMv','ded-lg\x20sha','USnDL','status','der.com/30','removeItem','er:bg-gray','JHHHI','<li>','szELi','wsoNL','sign\x20in\x20ag','INHhD','\x20dark:bg-g','tForm','s\x20required','backToHome','eCbpt','message','NLLkB','Please\x20sig','pacity-75\x20','WDdBr','oducts...','d=\x22customA','jpg','filter','tle\x20is\x20req','\x20text-cent','\x22>\x0a\x20\x20\x20\x20\x20\x20<','FfWmC','error','g\x20src=\x22','\x22\x20class=\x22p','aside\x20nav\x20','y-800\x20roun','UyywJ','ect\x20a\x20cate','Uuuha','BQyGE','baseapp.co','paypal-but','heck\x20Fires','e\x20is\x20requi','ton>\x0a\x20\x20\x20\x20\x20','le.com/ope','mBljo','Valid\x20PayP','style','open','Ocvcx','try\x20deleti','dropdownMe','Other','3|5|1','wqjhp','ify-betwee','map','contains','tddBH','KRgwq','ELBel','(no\x20email)','ry\x20again.','ngNTQ','ailsError','al\x20email\x20i','classList','yPdAw','\x22>PayPal\x20b','event','zQwVo','t-2\x22>\x0a\x20\x20\x20\x20','fvZOH','s\x20found\x20fo','age\x20select',':bg-gray-6','00\x22>Error\x20','voZHP','ptwXS','QKCtM','dark:hover','myProducts','irmYes','n\x20out\x20and\x20','gory=\x22All\x22','toFixed','mibold\x20tra','ts:','body','r\x20text-red','Download','Message','opacity-50','loading\x20yo','searchBar','vEzKN','ue-700\x20tra','noProducts','oadForm','Product\x20pr','flex\x20items','n?id=','WFeZt','\x20<button\x20i','balances','</p>','Product\x20ti','ot\x20be\x20undo','bvABO','ving\x20docum','previewIma','nded\x20mb-3\x20','uDafl','Uploading\x20','some','IUYAc','ive.google','Kyjoi','y-end\x20item','.com/uc?ex','scription\x20','currentUse','=Product+P','sCWkf','t\x20found.','1550260kCVCoI','utton>\x0a\x20\x20\x20','dashboard','ext-lg\x20mb-','1:75523593','Error\x20load','mYtxA','TFVnu','_blank','m\x20flex-gro','aKnAU','jpeg','uctPrice','TLUIl','\x0a\x20\x20\x20\x20<div\x20','_blank\x22\x20do','acynv','RRSTg','textConten','oalKz','cloudinary','fRGfK','tId','bg-green-6','YiBfP','gYKXG','yrMal','Payment\x20co','2961458DVlhmN','You\x20must\x20b','ansition\x22>','pJBMJ','dwiaJ','aPwQl','essfully!','zJytW','uct.\x20Pleas','href','sGqIE','JNRFJ','\x20\x20\x20<button','FuEIO','yCAuc','TradeDeckS','a[data-tab','elist-prod','tElSH','eoUto','onclick','\x20id=\x22custo','EDsqD','tsMessage','PfVMw','formErrorS','3|0|2|4|1|','qhuPU','GqNpC','reen-700','srnLs','gif','mIoEK','FnCEi','LqTnq','\x0a\x20\x20\x20\x20\x20\x20</d','Product\x20no','removeAttr','XVOrj','s-center\x20p','er\x20z-50','3|0|1|4|2','nMsg','Free','sellerBala','productDet','auth/requi','startSelli','K</button>','ElMOx','listed\x20suc','uIGuV','uid','w-ellipsis','ass=\x22w-ful','xzJwV','uld\x20not\x20be','AXXpj','ass=\x22font-','nonng','remove','ing\x20produc','dYxfS','1546:web:7','oEndg','mcima','e-card\x20bor','mGeiB','tion','ZwbXz','uctTitle','ist\x20this\x20p','s\x22\x20class=\x22','ePic','includes','is\x20require','hover:bg-g','createUplo','Psneg','PtUjV','QJhsX','is\x20action\x20','pkgUe','createElem','ex\x20flex-co','cIpeu','4|2|1|6|0|','ption','review','xQtBA','JJqHd','nsition','get','Buttons','code','count.','ext-white\x20','rounded\x20ho','uctImage','adWidget','t-0\x20bg-gra','pVqqE','.\x20Please\x20t','ng\x20documen','112zHcIra','eBooks','-400\x20text-','qSiPE','hYcdY','366IILIkt','me=','YUluq','our\x20produc','nkNhY','split','kuXJjh7X43','close','HGwqH','src','rWyhF','submitProd','OmBxP','stringify','text-red-4','png','geStatus','change','irmNo','QUJrZ','text','6|0|7|2|4|','editFileUr','Jeguw','00\x20dark:te','-gray-400\x20','productUpl','rch.\x20Try\x20d','createdAt',':bg-gray-8','\x20\x20\x20\x20</div>','vDzfg','untBtn','deleteAcco','\x22>Delist</','\x0a\x20\x20','Pvdao','uctBtn','rules\x20if\x20i','List\x20Produ','editPrice','\x0a\x20\x20\x20\x20</div','YJQaO','...','ails','\x22>Yes</but','sellerId','-center\x20ju','editDescri','ibute','HBKAz','load\x20link\x20','\x22mt-auto\x20f','\x20completed','jdYDh','t-gray-200','gray-200','white','eview\x20imag','\x22\x20target=\x22','test','.delist-pr','none','er\x20space-x','yblLW','vZyHw','flex','removeChil','7cd7fc2a62','payer','AgAMj','UHgJo','nter\x20pt-2\x22','required','\x20be\x20zero\x20o','cXxkt','interactiv','emibold\x20tr','ummary','dHiSx','tore:','oduct-btn','image','x-w-sm\x20w-f','VqJCn','oevHa','wImageWidg','info','-login','sell','sting\x20prod','qiIUQ','noMyProduc','Jwpkd','VxHcs','e35364b015','00\x20transit','over:bg-bl','uMqPN','input','e\x20try\x20agai','eUrl','aded:\x20','iJeuh','NPAeR','BxcdW','\x20hover:bg-','Product\x20li','local','rOLio','unded-lg\x20h','WAKOB','appendChil','filter-btn','uttons\x20cou','EMgse','FzySj','hidden','Please\x20sel','=\x22text-gra','AvAmD','Photograph','ull\x20mx-4\x20t','landing-pa','sjUKO','t-white\x20px','home','hTOtA','exists','n\x20to\x20list\x20','nEOUn','products.','productLis','t-2\x20font-s','Image\x20uplo','n\x20the\x20dash','vZhKp','OXfpz','ssJyc','y-800\x20bg-o','ngBtn','paypalEmai','VXdfo','click','viewImage','fySLb','log','tton-conta','XRWox','editProduc','sQdMg','full\x22/>\x0a\x20\x20','port=downl','drive.goog','2\x20rounded-','IoChR','mpleted\x20by','fixed\x20inse','original_f','Templates','text-white','getElement','ySQnz','signOutBtn','eWTUP','Valid\x20down','tradeDeckT','authOverla','lNNQl','MaOmJ','OEXzD','stify-cent','products','sh.</p>','iner','l\x20product-','pCzJw','cessfully!','svg','r\x20your\x20sea','ess','sm\x20mb-1\x22>C','ref=\x22','eCIID','UNQVM','ASsdj','lValidatio','toLowerCas','submit','\x20\x20\x20\x20\x20\x20<a\x20h','lXRRo','\x20for\x20paid\x20','tOk','PJHQa','descriptio','NVcTz','DwheE','g-gray-300','getAttribu','JPmzW','UABTl','lHmeX','FVNPq','evihP','CvGfD','ve\x20number.','NFstR','AuvOg','ad\x20to\x20fini','re\x20you\x20wan','https://dr','eywords!','<p\x20class=\x22','cursor-not','transition','FaJuY','JJDbZ','stopPropag','customConf','\x20check\x20con','a.placehol','data-tab','balance','ease\x20refre','59412POIwbb','value','gContent','ass=\x22bg-bl','productFil','zmMxY','TradeDeck-','\x22text-gray','sh.','Sale\x20email','Listing...','customAler','vDyJs','productFor','sole\x20for\x20d','JuxXB','xCzHS','iNWmf','w\x20mb-2\x20ove','kjwZP','dUwVJ-4js','ssfully!','ARnWL','SvEHk','card\x20','UcYGn','\x22\x20class=\x22b','EJoOd','docs','lKevf','3|5','-allowed','tradedeck-','ZqcWb','Audio','kRCti','data','toggle','bg-blue-10','abort','nently\x20del','muXAn','led\x20or\x20not','g-red-700\x20','ent:\x20','PlRen','https://93','rTXrx','risyX','PPwHA','update\x20pro','nded-lg\x20sh','secure_url','hGLvP','geUrl','1\x20text-gra','uct-btn\x20px','asset_sele','\x20sent!','bQCoe','div\x20class=','xTMDi','</span>\x0a\x20\x20','ZwLAB','join','iBCyF','OMsyq','ue-600\x22>','ts.\x20Please','</p>\x0a\x20\x20\x20\x20\x20','mConfirmYe','g\x20hover:bg','Not\x20Provid','eGtBf','WTkJA','reset','pot.com','IPVLp','s.<br>','ENmYQ','t\x20details.','lContainer','text-blue-','zljca','ouEef','target','sellLandin','ttuHE','Software','\x22\x20class=\x22d','bPijC','jfdlY','jFXJz','.category-','Delete\x20you','lOjLp','xgyPj','price','\x20px-5\x20py-2','add','\x20text-whit','hKnDu','fdaSc','heme','bZgmo','Account\x20de','board.','cts','ounded\x20hov','rflow-hidd','RPufC','n\x20items-ce','3-ship-it.','qXOhx','en\x20overflo','WNwUp','PUlqk','onButton','image\x20uplo','onsubmit','ld\x20not\x20be\x20','ault','rbKTZ','xt-white\x20r','ksfRJ','xt-gray-80','unded-xl\x20m','zVVOY','ISSWv','Download\x20P','oad&id=','mbWJp','Mfvqm','send','r\x20search.','parse','Preview\x20im','text-red-6','PytRH','currentPre','ation','\x20mb-4\x20text','<span\x20clas','cvChd','JrlBD','HKOoz','fPVsZ','div','s=\x22font-bo','$0.00','desc','gray-100\x22>','AIzaSyA0RF','NLsmw','yWham','dllUU','ner','zjedi','photoURL','gory\x20for\x20y','[data-cate','eUrlInput','userProfil','\x20\x20<p\x20class','RlDtg','#paypal-bu','ount:\x20','querySelec','order','hgpRe','zepbM','DOMContent','vsieY','KHJeD','uired.','h-48\x20objec','wnload=\x22','lyBQK','RzzsJ','kGneE','isArray','user\x20produ','MaLwA','tModal','y\x20again.','aria-label','n.\x20(Check\x20','innerHTML','-gray-900\x20','pfrMS','LrNzX','semibold\x20t','template_4','-700\x20dark:','ge/','input-inva','mbgRe','ktfpq','gvs2zf','All','FqtkC','w-full\x20py-','\x20products:','kvXVZ','qUuYk','JFWEu','700','push','shadow-md','red.','nGbYP','ng\x20your\x20ac','wPloD','ePJIK','VKOEa','e\x20px-5\x20py-','green-700\x20','ark:bg-gra','\x20rounded-l','cted','1|2|3|0|4|','loaded.\x20Pl','cannot\x20be\x20','Loading\x20pr','0x200?text','wvcxY','s=\x22mt-auto','nAXoe','Error\x20addi','text-gray-','123907GBuksk','bg-gray-20','akizl','rhlJc','a\x20product.','KllNk','eviews','product_pr','eLIYD','HSbeM','ain,\x20then\x20','l\x20block\x20bg','lg\x20hover:b',':bg-gray-7','email_addr','ray-700\x20te','ver:bg-red'];_0x293a=function(){return _0x6f3c9b;};return _0x293a();}editProductForm[_0x108e2b(0x49a)]=async function(_0x529cba){const _0x3597f1=_0x108e2b,_0xc4f070={'hbCEy':function(_0x2fc2c0,_0x140ce9){return _0x2fc2c0(_0x140ce9);},'cgDor':function(_0x3dcee2,_0x5ac0ce,_0x5c2dc6){return _0x3dcee2(_0x5ac0ce,_0x5c2dc6);},'qXOhx':function(_0x546f68,_0x1638f3,_0xf21038,_0x49e16f){return _0x546f68(_0x1638f3,_0xf21038,_0x49e16f);},'fdaSc':_0x3597f1(0x3ef),'ehpqB':function(_0x49fd8a){return _0x49fd8a();},'yCAuc':function(_0x2b080c,_0x474f3c){return _0x2b080c(_0x474f3c);},'RFdAS':function(_0x27a65c,_0x3f42a2){return _0x27a65c(_0x3f42a2);},'Pvdao':_0x3597f1(0x212)+_0x3597f1(0x455)+_0x3597f1(0x53f)};_0x529cba[_0x3597f1(0x1e1)+_0x3597f1(0x49c)]();const _0x4be0e1=editProductIdInput[_0x3597f1(0x424)],_0x3d420e={'title':editTitleInput[_0x3597f1(0x424)][_0x3597f1(0x5a8)](),'description':editDescriptionInput[_0x3597f1(0x424)][_0x3597f1(0x5a8)](),'price':_0xc4f070[_0x3597f1(0x201)](parseFloat,editPriceInput[_0x3597f1(0x424)]),'fileUrl':editFileUrlInput[_0x3597f1(0x424)][_0x3597f1(0x5a8)]()};try{await _0xc4f070[_0x3597f1(0x210)](updateDoc,_0xc4f070[_0x3597f1(0x494)](doc,db,_0xc4f070[_0x3597f1(0x489)],_0x4be0e1),_0x3d420e),_0xc4f070[_0x3597f1(0x1cb)](closeEditProductModal),auth[_0x3597f1(0x2b6)+'r']&&await _0xc4f070[_0x3597f1(0x2e4)](loadMyProducts,auth[_0x3597f1(0x2b6)+'r'][_0x3597f1(0x30a)]);}catch(_0x535b23){_0xc4f070[_0x3597f1(0x52f)](showCustomAlert,_0xc4f070[_0x3597f1(0x367)]);}},cancelEditBtn[_0x108e2b(0x2ea)]=closeEditProductModal;async function showDashboard(){const _0x2e4878=_0x108e2b,_0xff20a8={'jmDrT':_0x2e4878(0x2ff),'nAXoe':function(_0x13c761,_0x328821){return _0x13c761(_0x328821);},'kGneE':_0x2e4878(0x2bc),'yPdAw':function(_0xccc643,_0x41239f){return _0xccc643(_0x41239f);}},_0x4be03f=_0xff20a8[_0x2e4878(0x529)][_0x2e4878(0x348)]('|');let _0x3d198c=0x2*-0xab6+-0x1d69+0x743*0x7;while(!![]){switch(_0x4be03f[_0x3d198c++]){case'0':_0xff20a8[_0x2e4878(0x506)](showTab,_0xff20a8[_0x2e4878(0x4d6)]);continue;case'1':await _0xff20a8[_0x2e4878(0x506)](updateSellerBalance,auth[_0x2e4878(0x2b6)+'r'][_0x2e4878(0x30a)]);continue;case'2':await _0xff20a8[_0x2e4878(0x506)](loadMyProducts,auth[_0x2e4878(0x2b6)+'r'][_0x2e4878(0x30a)]);continue;case'3':if(!auth[_0x2e4878(0x2b6)+'r'])return;continue;case'4':_0xff20a8[_0x2e4878(0x280)](watchSellerBalance,auth[_0x2e4878(0x2b6)+'r'][_0x2e4878(0x30a)]);continue;}break;}}async function incrementSellerBalance(_0x211f45,_0x1875f7){const _0x2add65=_0x108e2b,_0x16cb36={'zmMxY':function(_0x29eafb,_0x5e9296){return _0x29eafb===_0x5e9296;},'JrlBD':_0x2add65(0x22b),'ZwbXz':function(_0x1661a1,_0x20d096,_0x23e2f2,_0xf4e7a2){return _0x1661a1(_0x20d096,_0x23e2f2,_0xf4e7a2);},'rhlJc':_0x2add65(0x2a5),'evihP':function(_0x49d6a1,_0x1efde8,_0x30ba94){return _0x49d6a1(_0x1efde8,_0x30ba94);}},_0x2ab826=_0x16cb36[_0x2add65(0x31b)](doc,db,_0x16cb36[_0x2add65(0x50c)],_0x211f45);await _0x16cb36[_0x2add65(0x40e)](runTransaction,db,async _0x5c3d1e=>{const _0x10a729=_0x2add65,_0x3a1a73=await _0x5c3d1e[_0x10a729(0x332)](_0x2ab826);let _0x224fd4=_0x1875f7;_0x3a1a73[_0x10a729(0x3c3)]()&&_0x16cb36[_0x10a729(0x428)](typeof _0x3a1a73[_0x10a729(0x447)]()[_0x10a729(0x421)],_0x16cb36[_0x10a729(0x4b3)])&&(_0x224fd4+=_0x3a1a73[_0x10a729(0x447)]()[_0x10a729(0x421)]),_0x5c3d1e[_0x10a729(0x228)](_0x2ab826,{'balance':_0x224fd4},{'merge':!![]});});}async function handleProductPurchase(_0xaa46a6){const _0x1acbf2=_0x108e2b,_0x2e93dc={'xgyPj':function(_0xeafab2,_0x326216,_0x1f0b2b){return _0xeafab2(_0x326216,_0x1f0b2b);},'sQdMg':function(_0xead798,_0x507f92){return _0xead798(_0x507f92);}};if(!_0xaa46a6||!_0xaa46a6[_0x1acbf2(0x371)]||!_0xaa46a6[_0x1acbf2(0x484)])return;await _0x2e93dc[_0x1acbf2(0x483)](incrementSellerBalance,_0xaa46a6[_0x1acbf2(0x371)],_0x2e93dc[_0x1acbf2(0x3d9)](parseFloat,_0xaa46a6[_0x1acbf2(0x484)]));}document[_0x108e2b(0x20d)+_0x108e2b(0x208)](_0x108e2b(0x4ce)+_0x108e2b(0x220),()=>{const _0x11260a=_0x108e2b,_0x2e65cc={'Mfvqm':_0x11260a(0x480)+_0x11260a(0x3b4)+_0x11260a(0x4c3)+_0x11260a(0x291)+']','tElSH':_0x11260a(0x21b)+'0','RzzsJ':_0x11260a(0x3e3),'SeWSR':_0x11260a(0x4f3),'lyBQK':_0x11260a(0x50a)+'0','ARnWL':_0x11260a(0x21c)+_0x11260a(0x566),'WNwUp':_0x11260a(0x508)+_0x11260a(0x4f1),'kjwZP':_0x11260a(0x20a)+_0x11260a(0x37b),'PPwHA':_0x11260a(0x594),'fPVsZ':function(_0x58cf48,_0x4548da,_0x345426){return _0x58cf48(_0x4548da,_0x345426);},'WDdBr':function(_0x10b411,_0x4999be){return _0x10b411(_0x4999be);},'cXxkt':_0x11260a(0x3c1),'lHmeX':function(_0x126a92){return _0x126a92();}},_0x80a5e2=document[_0x11260a(0x4ca)+_0x11260a(0x239)](_0x2e65cc[_0x11260a(0x4a7)]);_0x80a5e2&&(_0x80a5e2[_0x11260a(0x27f)][_0x11260a(0x486)](_0x2e65cc[_0x11260a(0x2e8)],_0x2e65cc[_0x11260a(0x4d5)],_0x2e65cc[_0x11260a(0x572)]),_0x80a5e2[_0x11260a(0x27f)][_0x11260a(0x312)](_0x2e65cc[_0x11260a(0x4d4)],_0x2e65cc[_0x11260a(0x439)],_0x2e65cc[_0x11260a(0x496)],_0x2e65cc[_0x11260a(0x436)],_0x2e65cc[_0x11260a(0x454)])),_0x2e65cc[_0x11260a(0x4b5)](loadProducts,'',currentCategoryFilter),_0x2e65cc[_0x11260a(0x252)](showTab,_0x2e65cc[_0x11260a(0x38e)]),_0x2e65cc[_0x11260a(0x40c)](enableSubmitButton);});
+// --- Firebase Modular SDK Imports ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signOut, deleteUser
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+// --- Constants ---
+const CLOUDINARY_CLOUD_NAME = 'desejdvif';
+const CLOUDINARY_UPLOAD_PRESET = 'TradeDeck user products';
+const SELL_FORM_KEY = "TradeDeckSellForm";
+const LANDING_URL = "https://933-ship-it.github.io/TradeDeck-landing-page/";
+const PRODUCT_CATEGORIES = ["All", "eBooks", "Software", "Templates", "Graphics", "Audio", "Video", "Courses", "Photography", "Other"];
+const THEME_STORAGE_KEY = 'tradeDeckTheme'; // Key for storing theme preference
+
+// --- Firebase Config ---
+const firebaseConfig = {
+  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+  authDomain: "tradedeck-82bbb.firebaseapp.com",
+  projectId: "tradedeck-82bbb",
+  storageBucket: "tradedeck-82bbb.appspot.com",
+  messagingSenderId: "755235931546",
+  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+  measurementId: "G-4RXR7V9NCW"
+};
+
+// --- Initialize Firebase ---
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// --- DOM Elements ---
+const profilePic = document.getElementById('userProfilePic');
+const dropdownMenu = document.getElementById('dropdownMenu');
+const userEmail = document.getElementById('userEmail');
+const authOverlay = document.getElementById('authOverlay');
+let userGlobal = null;
+
+// Navigation
+const tabs = document.querySelectorAll('aside nav a[data-tab]');
+const sections = document.querySelectorAll('main section');
+const startSellingBtn = document.getElementById('startSellingBtn');
+const sellLandingContent = document.getElementById('sellLandingContent');
+const productForm = document.getElementById('productForm');
+const formErrorSummary = document.getElementById('formErrorSummary');
+
+// Sell form fields
+const titleInput = document.getElementById('title');
+const descriptionInput = document.getElementById('description');
+const categorySelect = document.getElementById('category'); // New category select
+const priceInput = document.getElementById('price');
+const paypalEmailContainer = document.getElementById('paypalEmailContainer');
+const paypalEmailInput = document.getElementById('paypalEmail');
+const paypalEmailValidationMsg = document.getElementById('paypalEmailValidationMsg');
+const productFileUrlInput = document.getElementById('productFileUrlInput');
+const openPreviewImageWidgetBtn = document.getElementById('openPreviewImageWidget');
+const previewImageUrlInput = document.getElementById('previewImageUrl');
+const previewImageStatus = document.getElementById('previewImageStatus');
+const previewImageContainer = document.getElementById('previewImageContainer');
+const currentPreviewImage = document.getElementById('currentPreviewImage');
+const productUploadForm = document.getElementById('productUploadForm');
+const submitProductBtn = document.getElementById('submitProductBtn');
+
+// Home/Product listing
+const searchBar = document.getElementById('searchBar');
+const productListContainer = document.getElementById('productList');
+const noProductsMessage = document.getElementById('noProductsMessage');
+const categoryFilterButtons = document.querySelectorAll('.category-filter-btn'); // New category filter buttons
+
+let currentCategoryFilter = 'All'; // Track current category filter
+
+// Dashboard
+const myProductsContainer = document.getElementById('myProducts');
+const noMyProductsMessage = document.getElementById('noMyProductsMessage');
+const sellerBalance = document.getElementById('sellerBalance');
+
+// Product details
+const productDetailsSection = document.getElementById('productDetails');
+const backToHomeBtn = document.getElementById('backToHomeBtn');
+const detailProductImage = document.getElementById('detailProductImage');
+const detailProductTitle = document.getElementById('detailProductTitle');
+const detailProductDescription = document.getElementById('detailProductDescription');
+const detailProductPrice = document.getElementById('detailProductPrice');
+const detailActionButton = document.getElementById('detailActionButton');
+const productDetailsError = document.getElementById('productDetailsError');
+const paypalButtonContainer = document.getElementById('paypal-button-container');
+
+// Edit modal
+const editProductModal = document.getElementById('editProductModal');
+const editProductForm = document.getElementById('editProductForm');
+const editProductIdInput = document.getElementById('editProductId');
+const editTitleInput = document.getElementById('editTitle');
+const editDescriptionInput = document.getElementById('editDescription');
+const editPriceInput = document.getElementById('editPrice');
+const editFileUrlInput = document.getElementById('editFileUrl');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+// --- Auth and Profile ---
+document.body.style.visibility = "hidden";
+onAuthStateChanged(auth, user => {
+  document.body.style.visibility = "";
+  if (!user) {
+    authOverlay.style.display = "flex";
+    userGlobal = null;
+  } else {
+    authOverlay.style.display = "none";
+    userGlobal = user;
+    showProfileUI(user);
+  }
+});
+
+// --- EmailJS sale notification ---
+function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
+  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+    buyer_name: buyerName,
+    buyer_email: buyerEmail,
+    seller_paypal_email: sellerPaypalEmail,
+    product_title: productTitle,
+    amount: amount
+  }).then(function(response) {
+    console.log('Sale email sent!', response.status, response.text);
+  }, function(error) {
+    console.error('FAILED to send sale email.', error);
+  });
+}
+
+function showProfileUI(user) {
+  if (!user) return;
+  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
+  profilePic.classList.remove("hidden");
+  userEmail.textContent = user.email || "(no email)";
+  profilePic.onclick = function(e) {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('hidden');
+  };
+  document.addEventListener('click', (e) => {
+    if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownMenu.classList.add('hidden');
+    }
+  });
+  document.getElementById('deleteAccountBtn').onclick = async () => {
+    // Replace alert with custom modal for better UX
+    showCustomConfirm("Delete your account? This cannot be undone.", async () => {
+      try {
+        await deleteUser(user);
+        showCustomAlert("Account deleted successfully!");
+        window.location.href = LANDING_URL;
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          showCustomAlert("Please sign out and sign in again, then try deleting your account.");
+        } else {
+          showCustomAlert("Failed to delete account: " + err.message);
+        }
+      }
+    });
+  };
+  document.getElementById('signOutBtn').onclick = () => {
+    signOut(auth);
+  };
+}
+
+// Custom Alert/Confirm Modals (instead of window.alert/confirm)
+function showCustomAlert(message) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+      <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customAlertOk').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+function showCustomConfirm(message, onConfirm) {
+  const modal = document.createElement('div');
+  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+      <div class="flex justify-center space-x-4">
+        <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
+        <button id="customConfirmNo" class="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition">No</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('customConfirmYes').onclick = () => {
+    document.body.removeChild(modal);
+    if (onConfirm) onConfirm();
+  };
+  document.getElementById('customConfirmNo').onclick = () => {
+    document.body.removeChild(modal);
+  };
+}
+
+
+// --- Tab Navigation ---
+function showTab(targetTabId) {
+  tabs.forEach(t => {
+    t.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    t.removeAttribute('aria-current');
+    const icon = t.querySelector('.fas');
+    if (icon) icon.classList.remove('text-blue-600');
+  });
+  const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
+  if (currentTab) {
+    currentTab.classList.add('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+    currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+    currentTab.setAttribute('aria-current', 'page');
+    const icon = currentTab.querySelector('.fas');
+    if (icon) icon.classList.add('text-blue-600');
+  }
+  sections.forEach(sec => {
+    if (sec.id === targetTabId) sec.classList.remove('hidden');
+    else sec.classList.add('hidden');
+  });
+}
+tabs.forEach(tab => {
+  tab.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const target = tab.getAttribute('data-tab');
+    showTab(target);
+    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+      toggleProductForm(false);
+    }
+    productDetailsSection.classList.add('hidden');
+    if (target === 'home') {
+      await loadProducts(searchBar.value.trim(), currentCategoryFilter);
+      searchBar.value = ''; // Clear search bar on tab switch to home
+    } else if (target === 'dashboard') {
+      await showDashboard();
+    }
+  });
+});
+backToHomeBtn.addEventListener('click', () => {
+  showTab('home');
+  loadProducts(searchBar.value.trim(), currentCategoryFilter);
+});
+startSellingBtn.addEventListener('click', () => {
+  toggleProductForm(true);
+});
+
+function toggleProductForm(showForm) {
+  if (showForm) {
+    sellLandingContent.classList.add('hidden');
+    productForm.classList.remove('hidden');
+    showTab('sell');
+    productUploadForm.reset();
+    restoreSellForm();
+    enableSubmitButton();
+  } else {
+    sellLandingContent.classList.remove('hidden');
+    productForm.classList.add('hidden');
+  }
+}
+
+// --- SELL FORM AUTOSAVE/RESTORE ---
+function saveSellForm() {
+  const state = {
+    title: titleInput.value,
+    description: descriptionInput.value,
+    category: categorySelect.value, // Save category
+    price: priceInput.value,
+    paypalEmail: paypalEmailInput.value,
+    previewImageUrl: previewImageUrlInput.value,
+    productFileUrl: productFileUrlInput.value
+  };
+  localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
+}
+function restoreSellForm() {
+  const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
+  titleInput.value = state.title || "";
+  descriptionInput.value = state.description || "";
+  categorySelect.value = state.category || ""; // Restore category
+  priceInput.value = state.price || "";
+  paypalEmailInput.value = state.paypalEmail || "";
+  previewImageUrlInput.value = state.previewImageUrl || "";
+  productFileUrlInput.value = state.productFileUrl || "";
+  if (state.previewImageUrl) {
+    currentPreviewImage.src = state.previewImageUrl;
+    previewImageContainer.classList.remove('hidden');
+  } else {
+    previewImageContainer.classList.add('hidden');
+    currentPreviewImage.src = "";
+  }
+  // Show/hide PayPal field based on price
+  const priceVal = parseFloat(state.price);
+  if (!isNaN(priceVal) && priceVal > 0) {
+    paypalEmailContainer.classList.remove('hidden');
+    paypalEmailInput.setAttribute('required', 'required');
+  } else {
+    paypalEmailContainer.classList.add('hidden');
+    paypalEmailInput.removeAttribute('required');
+  }
+}
+[
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+  previewImageUrlInput, productFileUrlInput
+].forEach(input => {
+  input.addEventListener('input', saveSellForm);
+  input.addEventListener('change', saveSellForm); // For select elements
+});
+document.addEventListener("DOMContentLoaded", restoreSellForm);
+
+// --- Cloudinary Widget ---
+let isPreviewImageUploading = false;
+const previewImageWidget = window.cloudinary.createUploadWidget(
+  {
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+    sources: ['local'],
+    resourceType: 'image',
+    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+    maxFileSize: 10 * 1024 * 1024,
+    multiple: false,
+    folder: 'tradedeck_product_previews',
+  },
+  (error, result) => {
+    if (!error && result && result.event === "success") {
+      previewImageUrlInput.value = result.info.secure_url;
+      setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+      openPreviewImageWidgetBtn.classList.remove('input-invalid');
+      currentPreviewImage.src = result.info.secure_url;
+      previewImageContainer.classList.remove('hidden');
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+      saveSellForm();
+    } else if (error) {
+      setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
+      previewImageUrlInput.value = '';
+      openPreviewImageWidgetBtn.classList.add('input-invalid');
+      previewImageContainer.classList.add('hidden');
+      currentPreviewImage.src = '';
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+    } else if (result && (result.event === "close" || result.event === "abort")) {
+      if (previewImageUrlInput.value === '') {
+        setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
+        openPreviewImageWidgetBtn.classList.add('input-invalid');
+      }
+      isPreviewImageUploading = false;
+      enableSubmitButton();
+    } else if (result && result.event === "asset_selected") {
+      setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
+      isPreviewImageUploading = true;
+      disableSubmitButton();
+    }
+  }
+);
+openPreviewImageWidgetBtn.addEventListener('click', () => {
+  previewImageWidget.open();
+});
+
+// --- UTILITIES ---
+function setFileInputStatus(statusElement, message, type = 'default') {
+  statusElement.textContent = message;
+  statusElement.classList.remove('success', 'error', 'loading');
+  if (type === 'success') statusElement.classList.add('success');
+  else if (type === 'error') statusElement.classList.add('error');
+  else if (type === 'loading') statusElement.classList.add('loading');
+}
+function convertToGoogleDriveDirectDownload(url) {
+  if (!url) return url;
+  let convertedUrl = url;
+  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
+  const match = url.match(driveViewPattern);
+  if (match && match[1]) {
+    const fileId = match[1];
+    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  } else if (url.includes('drive.google.com/open?id=')) {
+    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (idMatch && idMatch[1]) {
+      const fileId = idMatch[1];
+      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+  }
+  return convertedUrl;
+}
+
+// --- SELL FORM VALIDATION ---
+function validateSellForm() {
+  let errors = [];
+  if (!titleInput.value.trim()) errors.push("Product title is required.");
+  if (!descriptionInput.value.trim()) errors.push("Product description is required.");
+  if (!categorySelect.value) errors.push("Please select a category for your product."); // Validate category
+  if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
+  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
+  if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
+  if (!paypalEmailContainer.classList.contains('hidden')) {
+    const v = paypalEmailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
+  }
+  if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
+  return errors;
+}
+
+function showFormErrors(errors) {
+  if (!errors.length) {
+    formErrorSummary.classList.add('hidden');
+    formErrorSummary.innerHTML = "";
+    return;
+  }
+  formErrorSummary.classList.remove('hidden');
+  formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+}
+
+function enableSubmitButton() {
+  const errors = validateSellForm();
+  showFormErrors(errors);
+  if (errors.length) {
+    submitProductBtn.disabled = true;
+    submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+  } else {
+    submitProductBtn.disabled = false;
+    submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+}
+function disableSubmitButton() {
+  submitProductBtn.disabled = true;
+  submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+}
+[
+  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+  previewImageUrlInput, productFileUrlInput
+].forEach(input => {
+  input.addEventListener('input', enableSubmitButton);
+  input.addEventListener('change', enableSubmitButton); // For select elements
+});
+priceInput.addEventListener('input', () => {
+  const price = parseFloat(priceInput.value);
+  if (isNaN(price) || price === 0) {
+    paypalEmailContainer.classList.add('hidden');
+    paypalEmailInput.removeAttribute('required');
+    paypalEmailInput.value = '';
+  } else {
+    paypalEmailContainer.classList.remove('hidden');
+    paypalEmailInput.setAttribute('required', 'required');
+  }
+  enableSubmitButton();
+  saveSellForm();
+});
+
+// --- SELL FORM SUBMIT ---
+productUploadForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  disableSubmitButton();
+  submitProductBtn.textContent = 'Listing...';
+  let errors = validateSellForm(); // Get initial validation errors
+
+  if (errors.length > 0) {
+    showFormErrors(errors);
+    submitProductBtn.textContent = 'List Product';
+    enableSubmitButton();
+    return;
+  }
+
+  try {
+    if (!auth.currentUser) {
+      showCustomAlert("You must be signed in to list a product."); // Use custom alert
+      window.location.reload();
+      return;
+    }
+
+    const newProductTitle = titleInput.value.trim().toLowerCase();
+    const newProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
+
+    // --- Duplicate Check: Product Title and File URL ---
+    const productsRef = collection(db, "products");
+
+    // Check for duplicate title
+    const titleQuery = query(productsRef, where("title", "==", newProductTitle));
+    const titleSnapshot = await getDocs(titleQuery);
+    let titleConflictProduct = null;
+
+    if (!titleSnapshot.empty) {
+        titleConflictProduct = titleSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
+        if (titleConflictProduct) {
+            errors.push("A product with this exact title already exists. Please choose a unique title.");
+        }
+    }
+
+    // Check for duplicate file URL
+    const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
+    const fileUrlSnapshot = await getDocs(fileUrlQuery);
+    let fileUrlConflictProduct = null;
+
+    if (!fileUrlSnapshot.empty) {
+        fileUrlConflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
+        if (fileUrlConflictProduct) {
+            errors.push("A product with this exact download link already exists. Please use a unique link.");
+        }
+    }
+
+    if (errors.length > 0) {
+      showFormErrors(errors);
+      submitProductBtn.textContent = 'List Product';
+      enableSubmitButton();
+      return;
+    }
+    // --- End Duplicate Check ---
+
+
+    const newProduct = {
+      title: titleInput.value.trim(),
+      description: descriptionInput.value.trim(),
+      category: categorySelect.value, // Save category
+      price: parseFloat(priceInput.value),
+      fileUrl: newProductFileUrl, // Use the potentially converted URL
+      previewImageUrl: previewImageUrlInput.value,
+      createdAt: serverTimestamp(),
+      sellerId: auth.currentUser.uid,
+      paypalEmail: paypalEmailInput.value.trim(),
+    };
+    await addDoc(collection(db, "products"), newProduct);
+    showCustomAlert('Product listed successfully!'); // Use custom alert
+    localStorage.removeItem(SELL_FORM_KEY);
+    toggleProductForm(false);
+    await loadProducts('', currentCategoryFilter); // Reload products after listing
+    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+  } catch (error) {
+    showFormErrors(["Failed to list product. Please try again."]);
+    console.error("Error adding document to Firestore:", error);
+    showCustomAlert('Failed to list product. Please check console for details. (Check Firestore rules!)'); // Use custom alert
+  } finally {
+    enableSubmitButton();
+    submitProductBtn.textContent = 'List Product';
+  }
+});
+
+// --- PRODUCT LISTING & SEARCH ---
+async function loadProducts(filterQuery = '', categoryFilter = 'All') {
+  productListContainer.innerHTML = '';
+  noProductsMessage.textContent = 'Loading products...';
+  noProductsMessage.classList.remove('hidden');
+
+  // Update active category button style
+  categoryFilterButtons.forEach(btn => {
+    if (btn.dataset.category === categoryFilter) {
+      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+    } else {
+      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+      btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+    }
+  });
+
+  try {
+    let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+
+    // Apply category filter if not "All"
+    if (categoryFilter !== 'All') {
+      // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+      // Firebase will provide a direct link in the console error message (like the one you saw).
+      // Example: Index on 'category' (ascending) and 'createdAt' (descending)
+      q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
+    }
+
+    const snapshot = await getDocs(q);
+    const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    window.allProducts = fetchedProducts; // Store all fetched products for client-side search
+
+    const lowerCaseQuery = filterQuery.toLowerCase();
+    const filteredProducts = fetchedProducts.filter(product =>
+      (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
+      (product.description || '').toLowerCase().includes(lowerCaseQuery) ||
+      (product.category || '').toLowerCase().includes(lowerCaseQuery) // Include category in search
+    );
+
+    renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+  } catch (error) {
+    console.error("Error loading products:", error);
+    noProductsMessage.textContent = 'Error loading products. Please try again.';
+    noProductsMessage.classList.remove('hidden');
+  }
+}
+
+// Event listeners for category filter buttons
+categoryFilterButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    currentCategoryFilter = button.dataset.category;
+    loadProducts(searchBar.value.trim(), currentCategoryFilter);
+  });
+});
+
+searchBar.addEventListener('input', () => {
+  if (!document.getElementById('home').classList.contains('hidden')) {
+    const query = searchBar.value.trim().toLowerCase();
+    if (!window.allProducts) {
+      loadProducts(query, currentCategoryFilter); // If allProducts not loaded, fetch from Firestore
+      return;
+    }
+
+    // Filter based on currently loaded products (which are already filtered by category)
+    const productsToSearch = currentCategoryFilter === 'All'
+                             ? window.allProducts
+                             : window.allProducts.filter(p => p.category === currentCategoryFilter);
+
+    if (!query) {
+      renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
+      return;
+    }
+
+    const keywords = query.split(/\s+/).filter(Boolean);
+    const filteredProducts = productsToSearch.filter(product => {
+      const haystack = [
+        product.title || '',
+        product.description || '',
+        product.category || '' // Include category in search haystack
+      ].join(' ').toLowerCase();
+      return keywords.some(kw => haystack.includes(kw));
+    });
+
+    if (filteredProducts.length > 0) {
+      renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+      noProductsMessage.classList.add('hidden');
+    } else {
+      productListContainer.innerHTML = '';
+      noProductsMessage.textContent = "No products found for your search. Try different keywords!";
+      noProductsMessage.classList.remove('hidden');
+    }
+  }
+});
+
+
+// --- PRODUCT CARD RENDERING ---
+function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
+  container.innerHTML = '';
+  noResultsMsgElement.classList.add('hidden');
+  if (!Array.isArray(productArray) || productArray.length === 0) {
+    noResultsMsgElement.classList.remove('hidden');
+    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
+    return;
+  }
+  productArray.forEach(product => {
+    const productCard = document.createElement('div');
+    // Adjusted product-card classes for dark mode
+    productCard.className = `bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent dark:border-gray-700'}`;
+    productCard.setAttribute('data-product-id', product.id);
+    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+    let cardButtonsHtml = '';
+    if (isDashboardView) {
+      cardButtonsHtml = `
+        <div class="mt-auto flex justify-end items-center pt-2">
+          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition">Download</a>
+          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
+        </div>
+      `;
+    }
+    productCard.innerHTML = `
+      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
+      <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
+      <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+      <div class="mt-auto flex justify-between items-center pt-2">
+        <span class="font-bold text-blue-600">${displayPrice}</span>
+        ${cardButtonsHtml}
+      </div>
+    `;
+    container.appendChild(productCard);
+    if (isDashboardView) {
+      const delistButton = productCard.querySelector('.delist-product-btn');
+      if (delistButton) {
+        delistButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const productId = delistButton.getAttribute('data-product-id');
+          if (productId) deleteProduct(productId);
+        });
+      }
+    } else {
+      productCard.addEventListener('click', () => {
+        const productId = productCard.getAttribute('data-product-id');
+        if (productId) showProductDetails(productId);
+      });
+    }
+  });
+}
+
+// --- PRODUCT DELISTING ---
+async function deleteProduct(productId) {
+  showCustomConfirm('Are you sure you want to permanently delist this product? This action cannot be undone.', async () => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+      showCustomAlert('Product delisted successfully!');
+      await loadProducts('', currentCategoryFilter); // Reload products globally
+      await showDashboard(); // Reload dashboard
+    } catch (error) {
+      console.error("Error removing document: ", error);
+      showCustomAlert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
+    }
+  });
+}
+
+// --- PRODUCT DETAILS & PURCHASE ---
+async function showProductDetails(productId) {
+  showTab('productDetails');
+  productDetailsError.classList.add('hidden');
+  try {
+    const productDoc = await getDoc(doc(db, "products", productId));
+    if (!productDoc.exists()) {
+      productDetailsError.textContent = 'Product not found.';
+      productDetailsError.classList.remove('hidden');
+      return;
+    }
+    const product = { id: productDoc.id, ...productDoc.data() };
+    detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
+    detailProductTitle.textContent = product.title;
+    detailProductDescription.textContent = product.description;
+    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+    detailProductPrice.textContent = displayPrice;
+    detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
+    detailActionButton.disabled = false;
+
+    if (parseFloat(product.price) > 0) {
+      detailActionButton.style.display = 'none';
+      paypalButtonContainer.innerHTML = '';
+      if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
+        window.paypal.Buttons({
+          createOrder: function(data, actions) {
+            return actions.order.create({
+              purchase_units: [{
+                amount: { value: product.price.toString() },
+                description: product.title
+              }]
+            });
+          },
+          onApprove: async function(data, actions) {
+            return actions.order.capture().then(async function(details) {
+              showCustomAlert('Payment completed by ' + details.payer.name.given_name + '!'); // Use custom alert
+              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
+              await handleProductPurchase(product);
+              // --- Send EmailJS sale notification ---
+              sendSaleEmail({
+                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
+                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
+                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
+                productTitle: product.title || 'Unknown',
+                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
+              });
+            });
+          },
+          onError: function(err) {
+            showCustomAlert('Payment could not be completed. Please try again.'); // Use custom alert
+            console.error(err);
+          }
+        }).render('#paypal-button-container');
+      } else {
+        paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
+      }
+    } else {
+      detailActionButton.style.display = '';
+      paypalButtonContainer.innerHTML = '';
+      detailActionButton.textContent = 'Download';
+      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+      detailActionButton.onclick = () => {
+        window.open(product.fileUrl, '_blank');
+      };
+      detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
+    }
+  } catch (error) {
+    console.error("Error loading product details:", error);
+    productDetailsError.textContent = 'Error loading product details. Please try again.';
+    productDetailsError.classList.remove('hidden');
+  }
+}
+
+// --- DASHBOARD LOGIC ---
+async function updateSellerBalance(userId) {
+  try {
+    const balDoc = await getDoc(doc(db, "balances", userId));
+    let value = 0;
+    if (balDoc.exists() && typeof balDoc.data().balance === 'number') {
+      value = balDoc.data().balance;
+    }
+    sellerBalance.textContent = `$${value.toFixed(2)}`;
+  } catch (e) {
+    sellerBalance.textContent = "$0.00";
+  }
+}
+let balanceUnsub = null;
+function watchSellerBalance(userId) {
+  if (balanceUnsub) balanceUnsub();
+  balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
+    let value = 0;
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
+    sellerBalance.textContent = `$${value.toFixed(2)}`;
+  });
+}
+async function loadMyProducts(userId) {
+  myProductsContainer.innerHTML = '';
+  noMyProductsMessage.classList.add('hidden');
+  try {
+    // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+    // Example: Index on 'sellerId' (ascending) and 'createdAt' (descending)
+    const q = query(
+      collection(db, "products"),
+      where("sellerId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (products.length === 0) {
+      noMyProductsMessage.classList.remove('hidden');
+      return;
+    }
+    // Use your existing rendering function for consistency:
+    renderProducts(products, myProductsContainer, noMyProductsMessage, true);
+  } catch (e) {
+    console.error("Error loading user's products:", e);
+    myProductsContainer.innerHTML = '<p class="text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
+  }
+}
+function openEditProductModal(product) {
+  editProductIdInput.value = product.id;
+  editTitleInput.value = product.title;
+  editDescriptionInput.value = product.description;
+  editPriceInput.value = product.price;
+  editFileUrlInput.value = product.fileUrl;
+  editProductModal.classList.remove('hidden');
+}
+function closeEditProductModal() {
+  editProductModal.classList.add('hidden');
+}
+editProductForm.onsubmit = async function (e) {
+  e.preventDefault();
+  const id = editProductIdInput.value;
+  const updated = {
+    title: editTitleInput.value.trim(),
+    description: editDescriptionInput.value.trim(),
+    price: parseFloat(editPriceInput.value),
+    fileUrl: editFileUrlInput.value.trim()
+  };
+
+  // --- Duplicate Check for Edit Form ---
+  let errors = [];
+  const productsRef = collection(db, "products");
+  const newProductTitle = updated.title.toLowerCase();
+  const newProductFileUrl = convertToGoogleDriveDirectDownload(updated.fileUrl);
+
+  // Check for duplicate title (excluding the product being edited)
+  const titleQuery = query(productsRef, where("title", "==", newProductTitle));
+  const titleSnapshot = await getDocs(titleQuery);
+  if (!titleSnapshot.empty) {
+      const conflictProduct = titleSnapshot.docs.find(doc => doc.id !== id);
+      if (conflictProduct) {
+          errors.push("Another active product already has this title. Please choose a unique title.");
+      }
+  }
+
+  // Check for duplicate file URL (excluding the product being edited)
+  const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
+  const fileUrlSnapshot = await getDocs(fileUrlQuery);
+  if (!fileUrlSnapshot.empty) {
+      const conflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== id);
+      if (conflictProduct) {
+          errors.push("Another active product already uses this download link. Please use a unique link.");
+      }
+  }
+
+  if (errors.length > 0) {
+    showCustomAlert(errors.join("\n")); // Show errors to the user
+    return;
+  }
+  // --- End Duplicate Check for Edit Form ---
+
+  try {
+    await updateDoc(doc(db, "products", id), updated);
+    closeEditProductModal();
+    if (auth.currentUser) {
+      await loadMyProducts(auth.currentUser.uid);
+    }
+  } catch (err) {
+    showCustomAlert("Failed to update product."); // Use custom alert
+  }
+};
+cancelEditBtn.onclick = closeEditProductModal;
+
+async function showDashboard() {
+  if (!auth.currentUser) return;
+  showTab('dashboard');
+  await updateSellerBalance(auth.currentUser.uid);
+  watchSellerBalance(auth.currentUser.uid);
+  await loadMyProducts(auth.currentUser.uid);
+}
+async function incrementSellerBalance(sellerId, amount) {
+  const balRef = doc(db, "balances", sellerId);
+  await runTransaction(db, async (tx) => {
+    const docSnap = await tx.get(balRef);
+    let newBalance = amount;
+    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+      newBalance += docSnap.data().balance;
+    }
+    tx.set(balRef, { balance: newBalance }, { merge: true });
+  });
+}
+async function handleProductPurchase(product) {
+  if (!product || !product.sellerId || !product.price) return;
+  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+}
+
+// --- Initial Load ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Set initial category filter button state
+  const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
+  if (allCategoryButton) {
+    allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+    allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+  }
+  loadProducts('', currentCategoryFilter);
+  showTab('home');
+  enableSubmitButton();
+});
