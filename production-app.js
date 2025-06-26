@@ -1,11 +1,11 @@
 // --- Firebase Modular SDK Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged, signOut, deleteUser
+    getAuth, onAuthStateChanged, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
+    getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
+    query, where, orderBy, serverTimestamp, onSnapshot, runTransaction
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 // --- Constants ---
@@ -18,13 +18,13 @@ const THEME_STORAGE_KEY = 'tradeDeckTheme'; // Key for storing theme preference
 
 // --- Firebase Config ---
 const firebaseConfig = {
-  apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
-  authDomain: "tradedeck-82bbb.firebaseapp.com",
-  projectId: "tradedeck-82bbb",
-  storageBucket: "tradedeck-82bbb.appspot.com",
-  messagingSenderId: "755235931546",
-  appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
-  measurementId: "G-4RXR7V9NCW"
+    apiKey: "AIzaSyA0RFkuXJjh7X43R6wWdQKrXtdUwVJ-4js",
+    authDomain: "tradedeck-82bbb.firebaseapp.com",
+    projectId: "tradedeck-82bbb",
+    storageBucket: "tradedeck-82bbb.appspot.com",
+    messagingSenderId: "755235931546",
+    appId: "1:755235931546:web:7e35364b0157cd7fc2a623",
+    measurementId: "G-4RXR7V9NCW"
 };
 
 // --- Initialize Firebase ---
@@ -101,819 +101,827 @@ const cancelEditBtn = document.getElementById('cancelEditBtn');
 // --- Auth and Profile ---
 document.body.style.visibility = "hidden";
 onAuthStateChanged(auth, user => {
-  document.body.style.visibility = "";
-  if (!user) {
-    authOverlay.style.display = "flex";
-    userGlobal = null;
-  } else {
-    authOverlay.style.display = "none";
-    userGlobal = user;
-    showProfileUI(user);
-  }
+    document.body.style.visibility = "";
+    if (!user) {
+        authOverlay.style.display = "flex";
+        userGlobal = null;
+    } else {
+        authOverlay.style.display = "none";
+        userGlobal = user;
+        showProfileUI(user);
+    }
 });
 
 // --- EmailJS sale notification ---
 function sendSaleEmail({ buyerName, buyerEmail, sellerPaypalEmail, productTitle, amount }) {
-  emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
-    buyer_name: buyerName,
-    buyer_email: buyerEmail,
-    seller_paypal_email: sellerPaypalEmail,
-    product_title: productTitle,
-    amount: amount
-  }).then(function(response) {
-    console.log('Sale email sent!', response.status, response.text);
-  }, function(error) {
-    console.error('FAILED to send sale email.', error);
-  });
+    emailjs.send('service_px8mdvo', 'template_4gvs2zf', {
+        buyer_name: buyerName,
+        buyer_email: buyerEmail,
+        seller_paypal_email: sellerPaypalEmail,
+        product_title: productTitle,
+        amount: amount
+    }).then(function(response) {
+        console.log('Sale email sent!', response.status, response.text);
+    }, function(error) {
+        console.error('FAILED to send sale email.', error);
+    });
 }
 
 function showProfileUI(user) {
-  if (!user) return;
-  profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
-  profilePic.classList.remove("hidden");
-  userEmail.textContent = user.email || "(no email)";
-  profilePic.onclick = function(e) {
-    e.stopPropagation();
-    dropdownMenu.classList.toggle('hidden');
-  };
-  document.addEventListener('click', (e) => {
-    if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
-      dropdownMenu.classList.add('hidden');
-    }
-  });
-  document.getElementById('deleteAccountBtn').onclick = async () => {
-    // Replace alert with custom modal for better UX
-    showCustomConfirm("Delete your account? This cannot be undone.", async () => {
-      try {
-        await deleteUser(user);
-        showCustomAlert("Account deleted successfully!");
-        window.location.href = LANDING_URL;
-      } catch (err) {
-        if (err.code === 'auth/requires-recent-login') {
-          showCustomAlert("Please sign out and sign in again, then try deleting your account.");
-        } else {
-          showCustomAlert("Failed to delete account: " + err.message);
+    if (!user) return;
+    profilePic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.email || "U");
+    profilePic.classList.remove("hidden");
+    userEmail.textContent = user.email || "(no email)";
+    profilePic.onclick = function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('hidden');
+    };
+    document.addEventListener('click', (e) => {
+        if (!profilePic.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.classList.add('hidden');
         }
-      }
     });
-  };
-  document.getElementById('signOutBtn').onclick = () => {
-    signOut(auth);
-  };
+    document.getElementById('deleteAccountBtn').onclick = async () => {
+        // Replace alert with custom modal for better UX
+        showCustomConfirm("Delete your account? This cannot be undone.", async () => {
+            try {
+                await deleteUser(user);
+                showCustomAlert("Account deleted successfully!");
+                window.location.href = LANDING_URL;
+            } catch (err) {
+                if (err.code === 'auth/requires-recent-login') {
+                    showCustomAlert("Please sign out and sign in again, then try deleting your account.");
+                } else {
+                    showCustomAlert("Failed to delete account: " + err.message);
+                }
+            }
+        });
+    };
+    document.getElementById('signOutBtn').onclick = () => {
+        signOut(auth);
+    };
 }
 
 // Custom Alert/Confirm Modals (instead of window.alert/confirm)
 function showCustomAlert(message) {
-  const modal = document.createElement('div');
-  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
-  modal.innerHTML = `
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
-      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
-      <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  document.getElementById('customAlertOk').onclick = () => {
-    document.body.removeChild(modal);
-  };
+    const modal = document.createElement('div');
+    modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+            <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+            <button id="customAlertOk" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('customAlertOk').onclick = () => {
+        document.body.removeChild(modal);
+    };
 }
 
 function showCustomConfirm(message, onConfirm) {
-  const modal = document.createElement('div');
-  modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
-  modal.innerHTML = `
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
-      <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
-      <div class="flex justify-center space-x-4">
-        <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
-        <button id="customConfirmNo" class="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition">No</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  document.getElementById('customConfirmYes').onclick = () => {
-    document.body.removeChild(modal);
-    if (onConfirm) onConfirm();
-  };
-  document.getElementById('customConfirmNo').onclick = () => {
-    document.body.removeChild(modal);
-  };
+    const modal = document.createElement('div');
+    modal.className = "fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50";
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 text-center">
+            <p class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">${message}</p>
+            <div class="flex justify-center space-x-4">
+                <button id="customConfirmYes" class="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition">Yes</button>
+                <button id="customConfirmNo" class="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-5 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition">No</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('customConfirmYes').onclick = () => {
+        document.body.removeChild(modal);
+        if (onConfirm) onConfirm();
+    };
+    document.getElementById('customConfirmNo').onclick = () => {
+        document.body.removeChild(modal);
+    };
 }
 
 
 // --- Tab Navigation ---
 function showTab(targetTabId) {
-  tabs.forEach(t => {
-    t.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
-    t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
-    t.removeAttribute('aria-current');
-    const icon = t.querySelector('.fas');
-    if (icon) icon.classList.remove('text-blue-600');
-  });
-  const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
-  if (currentTab) {
-    currentTab.classList.add('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
-    currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
-    currentTab.setAttribute('aria-current', 'page');
-    const icon = currentTab.querySelector('.fas');
-    if (icon) icon.classList.add('text-blue-600');
-  }
-  sections.forEach(sec => {
-    if (sec.id === targetTabId) sec.classList.remove('hidden');
-    else sec.classList.add('hidden');
-  });
+    tabs.forEach(t => {
+        t.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+        t.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+        t.removeAttribute('aria-current');
+        const icon = t.querySelector('.fas');
+        if (icon) icon.classList.remove('text-blue-600');
+    });
+    const currentTab = document.querySelector(`a[data-tab="${targetTabId}"]`);
+    if (currentTab) {
+        currentTab.classList.add('bg-blue-100', 'dark:bg-blue-900', 'dark:text-white');
+        currentTab.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+        currentTab.setAttribute('aria-current', 'page');
+        const icon = currentTab.querySelector('.fas');
+        if (icon) icon.classList.add('text-blue-600');
+    }
+    sections.forEach(sec => {
+        if (sec.id === targetTabId) sec.classList.remove('hidden');
+        else sec.classList.add('hidden');
+    });
 }
 tabs.forEach(tab => {
-  tab.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const target = tab.getAttribute('data-tab');
-    showTab(target);
-    if (target !== 'sell' && !productForm.classList.contains('hidden')) {
-      toggleProductForm(false);
-    }
-    productDetailsSection.classList.add('hidden');
-    if (target === 'home') {
-      await loadProducts(searchBar.value.trim(), currentCategoryFilter);
-      searchBar.value = ''; // Clear search bar on tab switch to home
-    } else if (target === 'dashboard') {
-      await showDashboard();
-    }
-  });
+    tab.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const target = tab.getAttribute('data-tab');
+        showTab(target);
+        if (target !== 'sell' && !productForm.classList.contains('hidden')) {
+            toggleProductForm(false);
+        }
+        productDetailsSection.classList.add('hidden');
+        if (target === 'home') {
+            await loadProducts(searchBar.value.trim(), currentCategoryFilter);
+            searchBar.value = ''; // Clear search bar on tab switch to home
+        } else if (target === 'dashboard') {
+            await showDashboard();
+        }
+    });
 });
 backToHomeBtn.addEventListener('click', () => {
-  showTab('home');
-  loadProducts(searchBar.value.trim(), currentCategoryFilter);
+    showTab('home');
+    loadProducts(searchBar.value.trim(), currentCategoryFilter);
 });
 startSellingBtn.addEventListener('click', () => {
-  toggleProductForm(true);
+    toggleProductForm(true);
 });
 
 function toggleProductForm(showForm) {
-  if (showForm) {
-    sellLandingContent.classList.add('hidden');
-    productForm.classList.remove('hidden');
-    showTab('sell');
-    productUploadForm.reset();
-    restoreSellForm();
-    enableSubmitButton();
-  } else {
-    sellLandingContent.classList.remove('hidden');
-    productForm.classList.add('hidden');
-  }
+    if (showForm) {
+        sellLandingContent.classList.add('hidden');
+        productForm.classList.remove('hidden');
+        showTab('sell');
+        productUploadForm.reset();
+        restoreSellForm();
+        enableSubmitButton();
+    } else {
+        sellLandingContent.classList.remove('hidden');
+        productForm.classList.add('hidden');
+    }
 }
 
 // --- SELL FORM AUTOSAVE/RESTORE ---
 function saveSellForm() {
-  const state = {
-    title: titleInput.value,
-    description: descriptionInput.value,
-    category: categorySelect.value, // Save category
-    price: priceInput.value,
-    paypalEmail: paypalEmailInput.value,
-    previewImageUrl: previewImageUrlInput.value,
-    productFileUrl: productFileUrlInput.value
-  };
-  localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
+    const state = {
+        title: titleInput.value,
+        description: descriptionInput.value,
+        category: categorySelect.value, // Save category
+        price: priceInput.value,
+        paypalEmail: paypalEmailInput.value,
+        previewImageUrl: previewImageUrlInput.value,
+        productFileUrl: productFileUrlInput.value
+    };
+    localStorage.setItem(SELL_FORM_KEY, JSON.stringify(state));
 }
 function restoreSellForm() {
-  const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
-  titleInput.value = state.title || "";
-  descriptionInput.value = state.description || "";
-  categorySelect.value = state.category || ""; // Restore category
-  priceInput.value = state.price || "";
-  paypalEmailInput.value = state.paypalEmail || "";
-  previewImageUrlInput.value = state.previewImageUrl || "";
-  productFileUrlInput.value = state.productFileUrl || "";
-  if (state.previewImageUrl) {
-    currentPreviewImage.src = state.previewImageUrl;
-    previewImageContainer.classList.remove('hidden');
-  } else {
-    previewImageContainer.classList.add('hidden');
-    currentPreviewImage.src = "";
-  }
-  // Show/hide PayPal field based on price
-  const priceVal = parseFloat(state.price);
-  if (!isNaN(priceVal) && priceVal > 0) {
-    paypalEmailContainer.classList.remove('hidden');
-    paypalEmailInput.setAttribute('required', 'required');
-  } else {
-    paypalEmailContainer.classList.add('hidden');
-    paypalEmailInput.removeAttribute('required');
-  }
+    const state = JSON.parse(localStorage.getItem(SELL_FORM_KEY) || "{}");
+    titleInput.value = state.title || "";
+    descriptionInput.value = state.description || "";
+    categorySelect.value = state.category || ""; // Restore category
+    priceInput.value = state.price || "";
+    paypalEmailInput.value = state.paypalEmail || "";
+    previewImageUrlInput.value = state.previewImageUrl || "";
+    productFileUrlInput.value = state.productFileUrl || "";
+    if (state.previewImageUrl) {
+        currentPreviewImage.src = state.previewImageUrl;
+        previewImageContainer.classList.remove('hidden');
+    } else {
+        previewImageContainer.classList.add('hidden');
+        currentPreviewImage.src = "";
+    }
+    // Show/hide PayPal field based on price
+    const priceVal = parseFloat(state.price);
+    if (!isNaN(priceVal) && priceVal > 0) {
+        paypalEmailContainer.classList.remove('hidden');
+        paypalEmailInput.setAttribute('required', 'required');
+    } else {
+        paypalEmailContainer.classList.add('hidden');
+        paypalEmailInput.removeAttribute('required');
+    }
 }
 [
-  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
-  previewImageUrlInput, productFileUrlInput
+    titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+    previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
-  input.addEventListener('input', saveSellForm);
-  input.addEventListener('change', saveSellForm); // For select elements
+    input.addEventListener('input', saveSellForm);
+    input.addEventListener('change', saveSellForm); // For select elements
 });
 document.addEventListener("DOMContentLoaded", restoreSellForm);
 
 // --- Cloudinary Widget ---
 let isPreviewImageUploading = false;
 const previewImageWidget = window.cloudinary.createUploadWidget(
-  {
-    cloudName: CLOUDINARY_CLOUD_NAME,
-    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
-    sources: ['local'],
-    resourceType: 'image',
-    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
-    maxFileSize: 10 * 1024 * 1024,
-    multiple: false,
-    folder: 'tradedeck_product_previews',
-  },
-  (error, result) => {
-    if (!error && result && result.event === "success") {
-      previewImageUrlInput.value = result.info.secure_url;
-      setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
-      openPreviewImageWidgetBtn.classList.remove('input-invalid');
-      currentPreviewImage.src = result.info.secure_url;
-      previewImageContainer.classList.remove('hidden');
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-      saveSellForm();
-    } else if (error) {
-      setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
-      previewImageUrlInput.value = '';
-      openPreviewImageWidgetBtn.classList.add('input-invalid');
-      previewImageContainer.classList.add('hidden');
-      currentPreviewImage.src = '';
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-    } else if (result && (result.event === "close" || result.event === "abort")) {
-      if (previewImageUrlInput.value === '') {
-        setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
-        openPreviewImageWidgetBtn.classList.add('input-invalid');
-      }
-      isPreviewImageUploading = false;
-      enableSubmitButton();
-    } else if (result && result.event === "asset_selected") {
-      setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
-      isPreviewImageUploading = true;
-      disableSubmitButton();
+    {
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+        sources: ['local'],
+        resourceType: 'image',
+        clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+        maxFileSize: 10 * 1024 * 1024,
+        multiple: false,
+        folder: 'tradedeck_product_previews',
+    },
+    (error, result) => {
+        if (!error && result && result.event === "success") {
+            previewImageUrlInput.value = result.info.secure_url;
+            setFileInputStatus(previewImageStatus, `Image uploaded: ${result.info.original_filename}.${result.info.format}`, 'success');
+            openPreviewImageWidgetBtn.classList.remove('input-invalid');
+            currentPreviewImage.src = result.info.secure_url;
+            previewImageContainer.classList.remove('hidden');
+            isPreviewImageUploading = false;
+            enableSubmitButton();
+            saveSellForm();
+        } else if (error) {
+            setFileInputStatus(previewImageStatus, 'Image upload failed. Please try again.', 'error');
+            previewImageUrlInput.value = '';
+            openPreviewImageWidgetBtn.classList.add('input-invalid');
+            previewImageContainer.classList.add('hidden');
+            currentPreviewImage.src = '';
+            isPreviewImageUploading = false;
+            enableSubmitButton();
+        } else if (result && (result.event === "close" || result.event === "abort")) {
+            if (previewImageUrlInput.value === '') {
+                setFileInputStatus(previewImageStatus, 'Preview image selection cancelled or not provided.', 'error');
+                openPreviewImageWidgetBtn.classList.add('input-invalid');
+            }
+            isPreviewImageUploading = false;
+            enableSubmitButton();
+        } else if (result && result.event === "asset_selected") {
+            setFileInputStatus(previewImageStatus, `Uploading ${result.info.original_filename || 'image'}...`, 'loading');
+            isPreviewImageUploading = true;
+            disableSubmitButton();
+        }
     }
-  }
 );
 openPreviewImageWidgetBtn.addEventListener('click', () => {
-  previewImageWidget.open();
+    previewImageWidget.open();
 });
 
 // --- UTILITIES ---
 function setFileInputStatus(statusElement, message, type = 'default') {
-  statusElement.textContent = message;
-  statusElement.classList.remove('success', 'error', 'loading');
-  if (type === 'success') statusElement.classList.add('success');
-  else if (type === 'error') statusElement.classList.add('error');
-  else if (type === 'loading') statusElement.classList.add('loading');
+    statusElement.textContent = message;
+    statusElement.classList.remove('success', 'error', 'loading');
+    if (type === 'success') statusElement.classList.add('success');
+    else if (type === 'error') statusElement.classList.add('error');
+    else if (type === 'loading') statusElement.classList.add('loading');
 }
 function convertToGoogleDriveDirectDownload(url) {
-  if (!url) return url;
-  let convertedUrl = url;
-  const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
-  const match = url.match(driveViewPattern);
-  if (match && match[1]) {
-    const fileId = match[1];
-    convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-  } else if (url.includes('drive.google.com/open?id=')) {
-    const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (idMatch && idMatch[1]) {
-      const fileId = idMatch[1];
-      convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    if (!url) return url;
+    let convertedUrl = url;
+    const driveViewPattern = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\/(view|edit|preview)/;
+    const match = url.match(driveViewPattern);
+    if (match && match[1]) {
+        const fileId = match[1];
+        convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    } else if (url.includes('drive.google.com/open?id=')) {
+        const idMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+        if (idMatch && idMatch[1]) {
+            const fileId = idMatch[1];
+            convertedUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        }
     }
-  }
-  return convertedUrl;
+    return convertedUrl;
 }
 
 // --- SELL FORM VALIDATION ---
 function validateSellForm() {
-  let errors = [];
-  if (!titleInput.value.trim()) errors.push("Product title is required.");
-  if (!descriptionInput.value.trim()) errors.push("Product description is required.");
-  if (!categorySelect.value) errors.push("Please select a category for your product."); // Validate category
-  if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
-  if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
-  if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
-  if (!paypalEmailContainer.classList.contains('hidden')) {
-    const v = paypalEmailInput.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
-  }
-  if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
-  return errors;
+    let errors = [];
+    if (!titleInput.value.trim()) errors.push("Product title is required.");
+    if (!descriptionInput.value.trim()) errors.push("Product description is required.");
+    if (!categorySelect.value) errors.push("Please select a category for your product."); // Validate category
+    if (isNaN(parseFloat(priceInput.value)) || parseFloat(priceInput.value) < 0) errors.push("Price must be zero or a positive number.");
+    if (!productFileUrlInput.value.trim() || !/^https?:\/\/.+\..+/.test(productFileUrlInput.value.trim())) errors.push("Valid download link is required.");
+    if (!previewImageUrlInput.value) errors.push("Product preview image is required.");
+    if (!paypalEmailContainer.classList.contains('hidden')) {
+        const v = paypalEmailInput.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push("Valid PayPal email is required for paid products.");
+    }
+    if (isPreviewImageUploading) errors.push("Please wait for the image upload to finish.");
+    return errors;
 }
 
 function showFormErrors(errors) {
-  if (!errors.length) {
-    formErrorSummary.classList.add('hidden');
-    formErrorSummary.innerHTML = "";
-    return;
-  }
-  formErrorSummary.classList.remove('hidden');
-  formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
+    if (!errors.length) {
+        formErrorSummary.classList.add('hidden');
+        formErrorSummary.innerHTML = "";
+        return;
+    }
+    formErrorSummary.classList.remove('hidden');
+    formErrorSummary.innerHTML = `<ul>${errors.map(e=>`<li>${e}</li>`).join('')}</ul>`;
 }
 
 function enableSubmitButton() {
-  const errors = validateSellForm();
-  showFormErrors(errors);
-  if (errors.length) {
-    submitProductBtn.disabled = true;
-    submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
-  } else {
-    submitProductBtn.disabled = false;
-    submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-  }
+    const errors = validateSellForm();
+    showFormErrors(errors);
+    if (errors.length) {
+        submitProductBtn.disabled = true;
+        submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        submitProductBtn.disabled = false;
+        submitProductBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
 }
 function disableSubmitButton() {
-  submitProductBtn.disabled = true;
-  submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    submitProductBtn.disabled = true;
+    submitProductBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }
 [
-  titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
-  previewImageUrlInput, productFileUrlInput
+    titleInput, descriptionInput, categorySelect, priceInput, paypalEmailInput, // Add categorySelect here
+    previewImageUrlInput, productFileUrlInput
 ].forEach(input => {
-  input.addEventListener('input', enableSubmitButton);
-  input.addEventListener('change', enableSubmitButton); // For select elements
+    input.addEventListener('input', enableSubmitButton);
+    input.addEventListener('change', enableSubmitButton); // For select elements
 });
 priceInput.addEventListener('input', () => {
-  const price = parseFloat(priceInput.value);
-  if (isNaN(price) || price === 0) {
-    paypalEmailContainer.classList.add('hidden');
-    paypalEmailInput.removeAttribute('required');
-    paypalEmailInput.value = '';
-  } else {
-    paypalEmailContainer.classList.remove('hidden');
-    paypalEmailInput.setAttribute('required', 'required');
-  }
-  enableSubmitButton();
-  saveSellForm();
+    const price = parseFloat(priceInput.value);
+    if (isNaN(price) || price === 0) {
+        paypalEmailContainer.classList.add('hidden');
+        paypalEmailInput.removeAttribute('required');
+        paypalEmailInput.value = '';
+    } else {
+        paypalEmailContainer.classList.remove('hidden');
+        paypalEmailInput.setAttribute('required', 'required');
+    }
+    enableSubmitButton();
+    saveSellForm();
 });
 
 // --- SELL FORM SUBMIT ---
 productUploadForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  disableSubmitButton();
-  submitProductBtn.textContent = 'Listing...';
-  let errors = validateSellForm(); // Get initial validation errors
-
-  if (errors.length > 0) {
-    showFormErrors(errors);
-    submitProductBtn.textContent = 'List Product';
-    enableSubmitButton();
-    return;
-  }
-
-  try {
-    if (!auth.currentUser) {
-      showCustomAlert("You must be signed in to list a product."); // Use custom alert
-      window.location.reload();
-      return;
-    }
-
-    const newProductTitle = titleInput.value.trim().toLowerCase();
-    const newProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
-
-    // --- Duplicate Check: Product Title and File URL ---
-    const productsRef = collection(db, "products");
-
-    // Check for duplicate title
-    const titleQuery = query(productsRef, where("title", "==", newProductTitle));
-    const titleSnapshot = await getDocs(titleQuery);
-    let titleConflictProduct = null;
-
-    if (!titleSnapshot.empty) {
-        titleConflictProduct = titleSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
-        if (titleConflictProduct) {
-            errors.push("A product with this exact title already exists. Please choose a unique title.");
-        }
-    }
-
-    // Check for duplicate file URL
-    const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
-    const fileUrlSnapshot = await getDocs(fileUrlQuery);
-    let fileUrlConflictProduct = null;
-
-    if (!fileUrlSnapshot.empty) {
-        fileUrlConflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
-        if (fileUrlConflictProduct) {
-            errors.push("A product with this exact download link already exists. Please use a unique link.");
-        }
-    }
+    e.preventDefault();
+    disableSubmitButton();
+    submitProductBtn.textContent = 'Listing...';
+    let errors = validateSellForm(); // Get initial validation errors
 
     if (errors.length > 0) {
-      showFormErrors(errors);
-      submitProductBtn.textContent = 'List Product';
-      enableSubmitButton();
-      return;
+        showFormErrors(errors);
+        submitProductBtn.textContent = 'List Product';
+        enableSubmitButton();
+        return;
     }
-    // --- End Duplicate Check ---
+
+    try {
+        if (!auth.currentUser) {
+            showCustomAlert("You must be signed in to list a product."); // Use custom alert
+            window.location.reload();
+            return;
+        }
+
+        const newProductTitle = titleInput.value.trim().toLowerCase();
+        const newProductFileUrl = convertToGoogleDriveDirectDownload(productFileUrlInput.value.trim());
+
+        // --- Duplicate Check: Product Title and File URL ---
+        const productsRef = collection(db, "products");
+
+        // Check for duplicate title
+        const titleQuery = query(productsRef, where("title", "==", newProductTitle));
+        const titleSnapshot = await getDocs(titleQuery);
+        let titleConflictProduct = null;
+
+        if (!titleSnapshot.empty) {
+            titleConflictProduct = titleSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
+            if (titleConflictProduct) {
+                errors.push("A product with this exact title already exists. Please choose a unique title.");
+            }
+        }
+
+        // Check for duplicate file URL
+        const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
+        const fileUrlSnapshot = await getDocs(fileUrlQuery);
+        let fileUrlConflictProduct = null;
+
+        if (!fileUrlSnapshot.empty) {
+            fileUrlConflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== (editProductIdInput.value || null)); // Exclude current product if editing
+            if (fileUrlConflictProduct) {
+                errors.push("A product with this exact download link already exists. Please use a unique link.");
+            }
+        }
+
+        if (errors.length > 0) {
+            showFormErrors(errors);
+            submitProductBtn.textContent = 'List Product';
+            enableSubmitButton();
+            return;
+        }
+        // --- End Duplicate Check ---
 
 
-    const newProduct = {
-      title: titleInput.value.trim(),
-      description: descriptionInput.value.trim(),
-      category: categorySelect.value, // Save category
-      price: parseFloat(priceInput.value),
-      fileUrl: newProductFileUrl, // Use the potentially converted URL
-      previewImageUrl: previewImageUrlInput.value,
-      createdAt: serverTimestamp(),
-      sellerId: auth.currentUser.uid,
-      paypalEmail: paypalEmailInput.value.trim(),
-    };
-    await addDoc(collection(db, "products"), newProduct);
-    showCustomAlert('Product listed successfully!'); // Use custom alert
-    localStorage.removeItem(SELL_FORM_KEY);
-    toggleProductForm(false);
-    await loadProducts('', currentCategoryFilter); // Reload products after listing
-    if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
-  } catch (error) {
-    showFormErrors(["Failed to list product. Please try again."]);
-    console.error("Error adding document to Firestore:", error);
-    showCustomAlert('Failed to list product. Please check console for details. (Check Firestore rules!)'); // Use custom alert
-  } finally {
-    enableSubmitButton();
-    submitProductBtn.textContent = 'List Product';
-  }
+        const newProduct = {
+            title: titleInput.value.trim(),
+            description: descriptionInput.value.trim(),
+            category: categorySelect.value, // Save category
+            price: parseFloat(priceInput.value),
+            fileUrl: newProductFileUrl, // Use the potentially converted URL
+            previewImageUrl: previewImageUrlInput.value,
+            createdAt: serverTimestamp(),
+            sellerId: auth.currentUser.uid,
+            paypalEmail: paypalEmailInput.value.trim(),
+        };
+        await addDoc(collection(db, "products"), newProduct);
+        showCustomAlert('Product listed successfully!'); // Use custom alert
+        localStorage.removeItem(SELL_FORM_KEY);
+        toggleProductForm(false);
+        await loadProducts('', currentCategoryFilter); // Reload products after listing
+        if (auth.currentUser) await loadMyProducts(auth.currentUser.uid);
+    } catch (error) {
+        showFormErrors(["Failed to list product. Please try again."]);
+        console.error("Error adding document to Firestore:", error);
+        showCustomAlert('Failed to list product. Please check console for details. (Check Firestore rules!)'); // Use custom alert
+    } finally {
+        enableSubmitButton();
+        submitProductBtn.textContent = 'List Product';
+    }
 });
 
 // --- PRODUCT LISTING & SEARCH ---
 async function loadProducts(filterQuery = '', categoryFilter = 'All') {
-  productListContainer.innerHTML = '';
-  noProductsMessage.textContent = 'Loading products...';
-  noProductsMessage.classList.remove('hidden');
-
-  // Update active category button style
-  categoryFilterButtons.forEach(btn => {
-    if (btn.dataset.category === categoryFilter) {
-      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-      btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
-    } else {
-      btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-      btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
-    }
-  });
-
-  try {
-    let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
-
-    // Apply category filter if not "All"
-    if (categoryFilter !== 'All') {
-      // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
-      // Firebase will provide a direct link in the console error message (like the one you saw).
-      // Example: Index on 'category' (ascending) and 'createdAt' (descending)
-      q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
-    }
-
-    const snapshot = await getDocs(q);
-    const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    window.allProducts = fetchedProducts; // Store all fetched products for client-side search
-
-    const lowerCaseQuery = filterQuery.toLowerCase();
-    const filteredProducts = fetchedProducts.filter(product =>
-      (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
-      (product.description || '').toLowerCase().includes(lowerCaseQuery) ||
-      (product.category || '').toLowerCase().includes(lowerCaseQuery) // Include category in search
-    );
-
-    renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
-  } catch (error) {
-    console.error("Error loading products:", error);
-    noProductsMessage.textContent = 'Error loading products. Please try again.';
+    productListContainer.innerHTML = '';
+    noProductsMessage.textContent = 'Loading products...';
     noProductsMessage.classList.remove('hidden');
-  }
+
+    // Update active category button style
+    categoryFilterButtons.forEach(btn => {
+        if (btn.dataset.category === categoryFilter) {
+            btn.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+            btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+        } else {
+            btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+            btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+        }
+    });
+
+    try {
+        let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+
+        // Apply category filter if not "All"
+        if (categoryFilter !== 'All') {
+            // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+            // Firebase will provide a direct link in the console error message (like the one you saw).
+            // Example: Index on 'category' (ascending) and 'createdAt' (descending)
+            q = query(collection(db, "products"), where("category", "==", categoryFilter), orderBy("createdAt", "desc"));
+        }
+
+        const snapshot = await getDocs(q);
+        const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        window.allProducts = fetchedProducts; // Store all fetched products for client-side search
+
+        const lowerCaseQuery = filterQuery.toLowerCase();
+        const filteredProducts = fetchedProducts.filter(product =>
+            (product.title || '').toLowerCase().includes(lowerCaseQuery) ||
+            (product.description || '').toLowerCase().includes(lowerCaseQuery) ||
+            (product.category || '').toLowerCase().includes(lowerCaseQuery) // Include category in search
+        );
+
+        renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+    } catch (error) {
+        console.error("Error loading products:", error);
+        noProductsMessage.textContent = 'Error loading products. Please try again.';
+        noProductsMessage.classList.remove('hidden');
+    }
 }
 
 // Event listeners for category filter buttons
 categoryFilterButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    currentCategoryFilter = button.dataset.category;
-    loadProducts(searchBar.value.trim(), currentCategoryFilter);
-  });
+    button.addEventListener('click', () => {
+        currentCategoryFilter = button.dataset.category;
+        loadProducts(searchBar.value.trim(), currentCategoryFilter);
+    });
 });
 
 searchBar.addEventListener('input', () => {
-  if (!document.getElementById('home').classList.contains('hidden')) {
-    const query = searchBar.value.trim().toLowerCase();
-    if (!window.allProducts) {
-      loadProducts(query, currentCategoryFilter); // If allProducts not loaded, fetch from Firestore
-      return;
+    if (!document.getElementById('home').classList.contains('hidden')) {
+        const query = searchBar.value.trim().toLowerCase();
+        if (!window.allProducts) {
+            loadProducts(query, currentCategoryFilter); // If allProducts not loaded, fetch from Firestore
+            return;
+        }
+
+        // Filter based on currently loaded products (which are already filtered by category)
+        const productsToSearch = currentCategoryFilter === 'All'
+            ? window.allProducts
+            : window.allProducts.filter(p => p.category === currentCategoryFilter);
+
+        if (!query) {
+            renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
+            return;
+        }
+
+        const keywords = query.split(/\s+/).filter(Boolean);
+        const filteredProducts = productsToSearch.filter(product => {
+            const haystack = [
+                product.title || '',
+                product.description || '',
+                product.category || '' // Include category in search haystack
+            ].join(' ').toLowerCase();
+            return keywords.some(kw => haystack.includes(kw));
+        });
+
+        if (filteredProducts.length > 0) {
+            renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
+            noProductsMessage.classList.add('hidden');
+        } else {
+            productListContainer.innerHTML = '';
+            noProductsMessage.textContent = "No products found for your search. Try different keywords!";
+            noProductsMessage.classList.remove('hidden');
+        }
     }
-
-    // Filter based on currently loaded products (which are already filtered by category)
-    const productsToSearch = currentCategoryFilter === 'All'
-                             ? window.allProducts
-                             : window.allProducts.filter(p => p.category === currentCategoryFilter);
-
-    if (!query) {
-      renderProducts(productsToSearch, productListContainer, noProductsMessage, false);
-      return;
-    }
-
-    const keywords = query.split(/\s+/).filter(Boolean);
-    const filteredProducts = productsToSearch.filter(product => {
-      const haystack = [
-        product.title || '',
-        product.description || '',
-        product.category || '' // Include category in search haystack
-      ].join(' ').toLowerCase();
-      return keywords.some(kw => haystack.includes(kw));
-    });
-
-    if (filteredProducts.length > 0) {
-      renderProducts(filteredProducts, productListContainer, noProductsMessage, false);
-      noProductsMessage.classList.add('hidden');
-    } else {
-      productListContainer.innerHTML = '';
-      noProductsMessage.textContent = "No products found for your search. Try different keywords!";
-      noProductsMessage.classList.remove('hidden');
-    }
-  }
 });
 
 
 // --- PRODUCT CARD RENDERING ---
 function renderProducts(productArray, container, noResultsMsgElement, isDashboardView = false) {
-  container.innerHTML = '';
-  noResultsMsgElement.classList.add('hidden');
-  if (!Array.isArray(productArray) || productArray.length === 0) {
-    noResultsMsgElement.classList.remove('hidden');
-    noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
-    return;
-  }
-  productArray.forEach(product => {
-    const productCard = document.createElement('div');
-    // Adjusted product-card classes for dark mode
-    productCard.className = `bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent dark:border-gray-700'}`;
-    productCard.setAttribute('data-product-id', product.id);
-    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
-    let cardButtonsHtml = '';
-    if (isDashboardView) {
-      cardButtonsHtml = `
-        <div class="mt-auto flex justify-end items-center pt-2">
-          <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition">Download</a>
-          <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
-        </div>
-      `;
+    container.innerHTML = '';
+    noResultsMsgElement.classList.add('hidden');
+    if (!Array.isArray(productArray) || productArray.length === 0) {
+        noResultsMsgElement.classList.remove('hidden');
+        noResultsMsgElement.textContent = isDashboardView ? 'No products listed on the dashboard.' : 'No products found matching your search.';
+        return;
     }
-    productCard.innerHTML = `
-      <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
-      <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
-      <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
-      <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
-      <div class="mt-auto flex justify-between items-center pt-2">
-        <span class="font-bold text-blue-600">${displayPrice}</span>
-        ${cardButtonsHtml}
-      </div>
-    `;
-    container.appendChild(productCard);
-    if (isDashboardView) {
-      const delistButton = productCard.querySelector('.delist-product-btn');
-      if (delistButton) {
-        delistButton.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const productId = delistButton.getAttribute('data-product-id');
-          if (productId) deleteProduct(productId);
-        });
-      }
-    } else {
-      productCard.addEventListener('click', () => {
-        const productId = productCard.getAttribute('data-product-id');
-        if (productId) showProductDetails(productId);
-      });
-    }
-  });
+    productArray.forEach(product => {
+        const productCard = document.createElement('div');
+        // Adjusted product-card classes for dark mode
+        productCard.className = `bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col product-card ${isDashboardView ? '' : 'interactive-card border border-transparent dark:border-gray-700'}`;
+        productCard.setAttribute('data-product-id', product.id);
+        const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+        let cardButtonsHtml = '';
+        if (isDashboardView) {
+            cardButtonsHtml = `
+                <div class="mt-auto flex justify-end items-center pt-2">
+                    <a href="${product.fileUrl}" target="_blank" download="${(product.title || '').replace(/\s/g, '-')}" class="px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white rounded hover:bg-gray-700 dark:hover:bg-gray-600 transition">Download</a>
+                    <button data-product-id="${product.id}" class="delist-product-btn px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition ml-2">Delist</button>
+                </div>
+            `;
+        }
+        productCard.innerHTML = `
+            <img src="${product.previewImageUrl || 'https://via.placeholder.com/300x200?text=Product+Preview'}" alt="${product.title} preview" class="rounded mb-3 h-48 object-cover w-full"/>
+            <h3 class="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">${product.title}</h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-1">Category: ${product.category || 'N/A'}</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm flex-grow mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap">${product.description}</p>
+            <div class="mt-auto flex justify-between items-center pt-2">
+                <span class="font-bold text-blue-600">${displayPrice}</span>
+                ${cardButtonsHtml}
+            </div>
+        `;
+        container.appendChild(productCard);
+        if (isDashboardView) {
+            const delistButton = productCard.querySelector('.delist-product-btn');
+            if (delistButton) {
+                delistButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const productId = delistButton.getAttribute('data-product-id');
+                    if (productId) deleteProduct(productId);
+                });
+            }
+        } else {
+            productCard.addEventListener('click', () => {
+                const productId = productCard.getAttribute('data-product-id');
+                if (productId) showProductDetails(productId);
+            });
+        }
+    });
 }
 
 // --- PRODUCT DELISTING ---
 async function deleteProduct(productId) {
-  showCustomConfirm('Are you sure you want to permanently delist this product? This action cannot be undone.', async () => {
-    try {
-      await deleteDoc(doc(db, "products", productId));
-      showCustomAlert('Product delisted successfully!');
-      await loadProducts('', currentCategoryFilter); // Reload products globally
-      await showDashboard(); // Reload dashboard
-    } catch (error) {
-      console.error("Error removing document: ", error);
-      showCustomAlert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
-    }
-  });
+    showCustomConfirm('Are you sure you want to permanently delist this product? This action cannot be undone.', async () => {
+        try {
+            await deleteDoc(doc(db, "products", productId));
+            showCustomAlert('Product delisted successfully!');
+            await loadProducts('', currentCategoryFilter); // Reload products globally
+            await showDashboard(); // Reload dashboard
+        } catch (error) {
+            console.error("Error removing document: ", error);
+            showCustomAlert('Error delisting product. Please try again. (Check Firestore rules if it fails)');
+        }
+    });
 }
 
 // --- PRODUCT DETAILS & PURCHASE ---
 async function showProductDetails(productId) {
-  showTab('productDetails');
-  productDetailsError.classList.add('hidden');
-  try {
-    const productDoc = await getDoc(doc(db, "products", productId));
-    if (!productDoc.exists()) {
-      productDetailsError.textContent = 'Product not found.';
-      productDetailsError.classList.remove('hidden');
-      return;
-    }
-    const product = { id: productDoc.id, ...productDoc.data() };
-    detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
-    detailProductTitle.textContent = product.title;
-    detailProductDescription.textContent = product.description;
-    const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
-    detailProductPrice.textContent = displayPrice;
-    detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
-    detailActionButton.disabled = false;
+    showTab('productDetails');
+    productDetailsError.classList.add('hidden');
+    try {
+        const productDoc = await getDoc(doc(db, "products", productId));
+        if (!productDoc.exists()) {
+            productDetailsError.textContent = 'Product not found.';
+            productDetailsError.classList.remove('hidden');
+            return;
+        }
+        const product = { id: productDoc.id, ...productDoc.data() };
+        detailProductImage.src = product.previewImageUrl || 'https://via.placeholder.com/600x400?text=Product+Preview';
 
-    if (parseFloat(product.price) > 0) {
-      detailActionButton.style.display = 'none';
-      paypalButtonContainer.innerHTML = '';
-      if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
-        window.paypal.Buttons({
-          createOrder: function(data, actions) {
-            return actions.order.create({
-              purchase_units: [{
-                amount: { value: product.price.toString() },
-                description: product.title
-              }]
-            });
-          },
-          onApprove: async function(data, actions) {
-            return actions.order.capture().then(async function(details) {
-              showCustomAlert('Payment completed by ' + details.payer.name.given_name + '!'); // Use custom alert
-              paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
-              await handleProductPurchase(product);
-              // --- Send EmailJS sale notification ---
-              sendSaleEmail({
-                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
-                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
-                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
-                productTitle: product.title || 'Unknown',
-                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
-              });
-            });
-          },
-          onError: function(err) {
-            showCustomAlert('Payment could not be completed. Please try again.'); // Use custom alert
-            console.error(err);
-          }
-        }).render('#paypal-button-container');
-      } else {
-        paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
-      }
-    } else {
-      detailActionButton.style.display = '';
-      paypalButtonContainer.innerHTML = '';
-      detailActionButton.textContent = 'Download';
-      detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
-      detailActionButton.onclick = () => {
-        window.open(product.fileUrl, '_blank');
-      };
-      detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
+        // --- FIX: Image fitting for product details view ---
+        // Remove 'h-48' and 'object-cover' which can cut off images.
+        // Add 'object-contain' to ensure the entire image is visible while maintaining aspect ratio.
+        // Add 'max-h-[70vh]' (or 'max-h-96'/'max-h-md') to prevent the image from becoming too tall.
+        detailProductImage.classList.remove('h-48', 'object-cover');
+        detailProductImage.classList.add('object-contain', 'max-h-[70vh]', 'w-full'); // Added w-full for responsiveness
+
+        detailProductTitle.textContent = product.title;
+        detailProductDescription.textContent = product.description;
+        const displayPrice = parseFloat(product.price) === 0 ? 'Free' : `$${parseFloat(product.price).toFixed(2)}`;
+        detailProductPrice.textContent = displayPrice;
+        detailActionButton.className = 'w-full py-3 rounded-xl font-semibold transition';
+        detailActionButton.disabled = false;
+
+        if (parseFloat(product.price) > 0) {
+            detailActionButton.style.display = 'none';
+            paypalButtonContainer.innerHTML = '';
+            if (typeof window.paypal !== "undefined" && window.paypal.Buttons) {
+                window.paypal.Buttons({
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: { value: product.price.toString() },
+                                description: product.title
+                            }]
+                        });
+                    },
+                    onApprove: async function(data, actions) {
+                        return actions.order.capture().then(async function(details) {
+                            showCustomAlert('Payment completed by ' + details.payer.name.given_name + '!'); // Use custom alert
+                            paypalButtonContainer.innerHTML = `<a href="${product.fileUrl}" target="_blank" class="w-full block bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-xl mt-2 font-semibold transition">Download Product</a>`;
+                            await handleProductPurchase(product);
+                            // --- Send EmailJS sale notification ---
+                            sendSaleEmail({
+                                buyerName: (details.payer && details.payer.name && details.payer.name.given_name) ? details.payer.name.given_name : 'Unknown',
+                                buyerEmail: (details.payer && details.payer.email_address) ? details.payer.email_address : 'Unknown',
+                                sellerPaypalEmail: product.paypalEmail || 'Not Provided',
+                                productTitle: product.title || 'Unknown',
+                                amount: typeof product.price !== "undefined" ? product.price : 'Unknown'
+                            });
+                        });
+                    },
+                    onError: function(err) {
+                        showCustomAlert('Payment could not be completed. Please try again.'); // Use custom alert
+                        console.error(err);
+                    }
+                }).render('#paypal-button-container');
+            } else {
+                paypalButtonContainer.innerHTML = '<p class="text-red-600 dark:text-red-400">PayPal buttons could not be loaded. Please refresh.</p>';
+            }
+        } else {
+            detailActionButton.style.display = '';
+            paypalButtonContainer.innerHTML = '';
+            detailActionButton.textContent = 'Download';
+            detailActionButton.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+            detailActionButton.onclick = () => {
+                window.open(product.fileUrl, '_blank');
+            };
+            detailActionButton.setAttribute('aria-label', `Download ${product.title}`);
+        }
+    } catch (error) {
+        console.error("Error loading product details:", error);
+        productDetailsError.textContent = 'Error loading product details. Please try again.';
+        productDetailsError.classList.remove('hidden');
     }
-  } catch (error) {
-    console.error("Error loading product details:", error);
-    productDetailsError.textContent = 'Error loading product details. Please try again.';
-    productDetailsError.classList.remove('hidden');
-  }
 }
 
 // --- DASHBOARD LOGIC ---
 async function updateSellerBalance(userId) {
-  try {
-    const balDoc = await getDoc(doc(db, "balances", userId));
-    let value = 0;
-    if (balDoc.exists() && typeof balDoc.data().balance === 'number') {
-      value = balDoc.data().balance;
+    try {
+        const balDoc = await getDoc(doc(db, "balances", userId));
+        let value = 0;
+        if (balDoc.exists() && typeof balDoc.data().balance === 'number') {
+            value = balDoc.data().balance;
+        }
+        sellerBalance.textContent = `$${value.toFixed(2)}`;
+    } catch (e) {
+        sellerBalance.textContent = "$0.00";
     }
-    sellerBalance.textContent = `$${value.toFixed(2)}`;
-  } catch (e) {
-    sellerBalance.textContent = "$0.00";
-  }
 }
 let balanceUnsub = null;
 function watchSellerBalance(userId) {
-  if (balanceUnsub) balanceUnsub();
-  balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
-    let value = 0;
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
-    sellerBalance.textContent = `$${value.toFixed(2)}`;
-  });
+    if (balanceUnsub) balanceUnsub();
+    balanceUnsub = onSnapshot(doc(db, "balances", userId), (docSnap) => {
+        let value = 0;
+        if (docSnap.exists() && typeof docSnap.data().balance === 'number') value = docSnap.data().balance;
+        sellerBalance.textContent = `$${value.toFixed(2)}`;
+    });
 }
 async function loadMyProducts(userId) {
-  myProductsContainer.innerHTML = '';
-  noMyProductsMessage.classList.add('hidden');
-  try {
-    // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
-    // Example: Index on 'sellerId' (ascending) and 'createdAt' (descending)
-    const q = query(
-      collection(db, "products"),
-      where("sellerId", "==", userId),
-      orderBy("createdAt", "desc")
-    );
-    const snapshot = await getDocs(q);
-    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if (products.length === 0) {
-      noMyProductsMessage.classList.remove('hidden');
-      return;
+    myProductsContainer.innerHTML = '';
+    noMyProductsMessage.classList.add('hidden');
+    try {
+        // IMPORTANT: If you use 'where' and 'orderBy' on different fields, you MUST create a composite index in Firestore.
+        // Example: Index on 'sellerId' (ascending) and 'createdAt' (descending)
+        const q = query(
+            collection(db, "products"),
+            where("sellerId", "==", userId),
+            orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (products.length === 0) {
+            noMyProductsMessage.classList.remove('hidden');
+            return;
+        }
+        // Use your existing rendering function for consistency:
+        renderProducts(products, myProductsContainer, noMyProductsMessage, true);
+    } catch (e) {
+        console.error("Error loading user's products:", e);
+        myProductsContainer.innerHTML = '<p class="text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
     }
-    // Use your existing rendering function for consistency:
-    renderProducts(products, myProductsContainer, noMyProductsMessage, true);
-  } catch (e) {
-    console.error("Error loading user's products:", e);
-    myProductsContainer.innerHTML = '<p class="text-center text-red-600 dark:text-red-400">Error loading your products.<br>' + e.message + '</p>';
-  }
 }
 function openEditProductModal(product) {
-  editProductIdInput.value = product.id;
-  editTitleInput.value = product.title;
-  editDescriptionInput.value = product.description;
-  editPriceInput.value = product.price;
-  editFileUrlInput.value = product.fileUrl;
-  editProductModal.classList.remove('hidden');
+    editProductIdInput.value = product.id;
+    editTitleInput.value = product.title;
+    editDescriptionInput.value = product.description;
+    editPriceInput.value = product.price;
+    editFileUrlInput.value = product.fileUrl;
+    editProductModal.classList.remove('hidden');
 }
 function closeEditProductModal() {
-  editProductModal.classList.add('hidden');
+    editProductModal.classList.add('hidden');
 }
 editProductForm.onsubmit = async function (e) {
-  e.preventDefault();
-  const id = editProductIdInput.value;
-  const updated = {
-    title: editTitleInput.value.trim(),
-    description: editDescriptionInput.value.trim(),
-    price: parseFloat(editPriceInput.value),
-    fileUrl: editFileUrlInput.value.trim()
-  };
+    e.preventDefault();
+    const id = editProductIdInput.value;
+    const updated = {
+        title: editTitleInput.value.trim(),
+        description: editDescriptionInput.value.trim(),
+        price: parseFloat(editPriceInput.value),
+        fileUrl: editFileUrlInput.value.trim()
+    };
 
-  // --- Duplicate Check for Edit Form ---
-  let errors = [];
-  const productsRef = collection(db, "products");
-  const newProductTitle = updated.title.toLowerCase();
-  const newProductFileUrl = convertToGoogleDriveDirectDownload(updated.fileUrl);
+    // --- Duplicate Check for Edit Form ---
+    let errors = [];
+    const productsRef = collection(db, "products");
+    const newProductTitle = updated.title.toLowerCase();
+    const newProductFileUrl = convertToGoogleDriveDirectDownload(updated.fileUrl);
 
-  // Check for duplicate title (excluding the product being edited)
-  const titleQuery = query(productsRef, where("title", "==", newProductTitle));
-  const titleSnapshot = await getDocs(titleQuery);
-  if (!titleSnapshot.empty) {
-      const conflictProduct = titleSnapshot.docs.find(doc => doc.id !== id);
-      if (conflictProduct) {
-          errors.push("Another active product already has this title. Please choose a unique title.");
-      }
-  }
-
-  // Check for duplicate file URL (excluding the product being edited)
-  const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
-  const fileUrlSnapshot = await getDocs(fileUrlQuery);
-  if (!fileUrlSnapshot.empty) {
-      const conflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== id);
-      if (conflictProduct) {
-          errors.push("Another active product already uses this download link. Please use a unique link.");
-      }
-  }
-
-  if (errors.length > 0) {
-    showCustomAlert(errors.join("\n")); // Show errors to the user
-    return;
-  }
-  // --- End Duplicate Check for Edit Form ---
-
-  try {
-    await updateDoc(doc(db, "products", id), updated);
-    closeEditProductModal();
-    if (auth.currentUser) {
-      await loadMyProducts(auth.currentUser.uid);
+    // Check for duplicate title (excluding the product being edited)
+    const titleQuery = query(productsRef, where("title", "==", newProductTitle));
+    const titleSnapshot = await getDocs(titleQuery);
+    if (!titleSnapshot.empty) {
+        const conflictProduct = titleSnapshot.docs.find(doc => doc.id !== id);
+        if (conflictProduct) {
+            errors.push("Another active product already has this title. Please choose a unique title.");
+        }
     }
-  } catch (err) {
-    showCustomAlert("Failed to update product."); // Use custom alert
-  }
+
+    // Check for duplicate file URL (excluding the product being edited)
+    const fileUrlQuery = query(productsRef, where("fileUrl", "==", newProductFileUrl));
+    const fileUrlSnapshot = await getDocs(fileUrlQuery);
+    if (!fileUrlSnapshot.empty) {
+        const conflictProduct = fileUrlSnapshot.docs.find(doc => doc.id !== id);
+        if (conflictProduct) {
+            errors.push("Another active product already uses this download link. Please use a unique link.");
+        }
+    }
+
+    if (errors.length > 0) {
+        showCustomAlert(errors.join("\n")); // Show errors to the user
+        return;
+    }
+    // --- End Duplicate Check for Edit Form ---
+
+    try {
+        await updateDoc(doc(db, "products", id), updated);
+        closeEditProductModal();
+        if (auth.currentUser) {
+            await loadMyProducts(auth.currentUser.uid);
+        }
+    } catch (err) {
+        showCustomAlert("Failed to update product."); // Use custom alert
+    }
 };
 cancelEditBtn.onclick = closeEditProductModal;
 
 async function showDashboard() {
-  if (!auth.currentUser) return;
-  showTab('dashboard');
-  await updateSellerBalance(auth.currentUser.uid);
-  watchSellerBalance(auth.currentUser.uid);
-  await loadMyProducts(auth.currentUser.uid);
+    if (!auth.currentUser) return;
+    showTab('dashboard');
+    await updateSellerBalance(auth.currentUser.uid);
+    watchSellerBalance(auth.currentUser.uid);
+    await loadMyProducts(auth.currentUser.uid);
 }
 async function incrementSellerBalance(sellerId, amount) {
-  const balRef = doc(db, "balances", sellerId);
-  await runTransaction(db, async (tx) => {
-    const docSnap = await tx.get(balRef);
-    let newBalance = amount;
-    if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
-      newBalance += docSnap.data().balance;
-    }
-    tx.set(balRef, { balance: newBalance }, { merge: true });
-  });
+    const balRef = doc(db, "balances", sellerId);
+    await runTransaction(db, async (tx) => {
+        const docSnap = await tx.get(balRef);
+        let newBalance = amount;
+        if (docSnap.exists() && typeof docSnap.data().balance === 'number') {
+            newBalance += docSnap.data().balance;
+        }
+        tx.set(balRef, { balance: newBalance }, { merge: true });
+    });
 }
 async function handleProductPurchase(product) {
-  if (!product || !product.sellerId || !product.price) return;
-  await incrementSellerBalance(product.sellerId, parseFloat(product.price));
+    if (!product || !product.sellerId || !product.price) return;
+    await incrementSellerBalance(product.sellerId, parseFloat(product.price));
 }
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Set initial category filter button state
-  const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
-  if (allCategoryButton) {
-    allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-    allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
-  }
-  loadProducts('', currentCategoryFilter);
-  showTab('home');
-  enableSubmitButton();
+    // Set initial category filter button state
+    const allCategoryButton = document.querySelector('.category-filter-btn[data-category="All"]');
+    if (allCategoryButton) {
+        allCategoryButton.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+        allCategoryButton.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200', 'shadow-sm');
+    }
+    loadProducts('', currentCategoryFilter);
+    showTab('home');
+    enableSubmitButton();
 });
